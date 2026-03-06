@@ -1,0 +1,130 @@
+###############################################
+#   Prometheus — Ghostty Config               #
+#   Theme   : Tokyo Night                     #
+#   Focus   : Dev | Multi-tab | Fast          #
+###############################################
+
+# ── Theme ─────────────────────────────────────────────────
+theme = Tokyo Night
+
+# Slightly transparent background so the Tokyo Night wallpaper
+# bleeds through. blur-radius requires macOS 14+.
+background-opacity = 0.95
+background-blur-radius = 20
+
+# Keep the window chrome dark to match the bar
+window-theme = dark
+
+# ── Font ──────────────────────────────────────────────────
+# Prefers JetBrains Mono Nerd Font for icon glyphs.
+# Falls back to Ghostty's default if not installed.
+font-family = JetBrainsMono Nerd Font
+font-family = JetBrains Mono
+font-size = 13
+
+# Slightly heavier strokes — easier to read on Retina
+font-thicken = true
+
+# ── Cursor ────────────────────────────────────────────────
+# Thin bar cursor; blinks so you never lose it
+cursor-style = bar
+cursor-style-blink = true
+cursor-color = #7aa2f7
+
+# ── Window & Padding ──────────────────────────────────────
+# Generous padding so content doesn't hug the edges
+window-padding-x = 12
+window-padding-y = 10
+window-padding-balance = true
+
+# Transparent title bar blends with the background
+macos-titlebar-style = transparent
+
+# Restore window positions and tabs on relaunch
+window-save-state = always
+
+# Confirm before closing only when a process is running
+confirm-close-surface = true
+
+# ── Tabs ──────────────────────────────────────────────────
+# Always show the tab bar so you can see all open tabs
+window-show-tab-bar = always
+window-new-tab-position = end
+
+# ── Shell & Working Directory ─────────────────────────────
+# New windows/tabs open in ~ (home) — never some random cwd
+working-directory = home
+
+# Auto-detect shell (zsh, fish, bash) for full integration
+shell-integration = detect
+
+# Shell integration features:
+#   cursor  — shell controls cursor shape per mode
+#   sudo    — forward integration through sudo
+#   title   — shell sets the tab title automatically
+shell-integration-features = cursor,sudo,title
+
+# Clickable URLs
+link-url = true
+
+# ── Scrollback ────────────────────────────────────────────
+# 10 MB — generous buffer so you never lose build output
+scrollback-limit = 10000000
+
+# ── Clipboard ─────────────────────────────────────────────
+# Auto-copy whatever you highlight (like a real terminal)
+copy-on-select = true
+
+# Allow programs to read/write clipboard freely
+clipboard-read = allow
+clipboard-write = allow
+
+# Warn before pasting something that looks like a multiline
+# command (prevents accidental execution of pasted scripts)
+clipboard-paste-protection = true
+
+# Right-click pastes if clipboard has text, opens menu otherwise
+right-click-action = paste
+
+# ── Keybindings ───────────────────────────────────────────
+
+# ── Tabs ──────────────────────────────────────────────────
+keybind = super+t=new_tab
+keybind = super+w=close_surface
+keybind = super+shift+]=next_tab
+keybind = super+shift+[=previous_tab
+keybind = ctrl+tab=next_tab
+keybind = ctrl+shift+tab=previous_tab
+
+# Jump directly to tab 1–8
+keybind = super+1=jump_to_tab:1
+keybind = super+2=jump_to_tab:2
+keybind = super+3=jump_to_tab:3
+keybind = super+4=jump_to_tab:4
+keybind = super+5=jump_to_tab:5
+keybind = super+6=jump_to_tab:6
+keybind = super+7=jump_to_tab:7
+keybind = super+8=jump_to_tab:8
+
+# ── Splits ────────────────────────────────────────────────
+keybind = super+d=new_split:right
+keybind = super+shift+d=new_split:down
+keybind = super+alt+h=goto_split:left
+keybind = super+alt+l=goto_split:right
+keybind = super+alt+k=goto_split:top
+keybind = super+alt+j=goto_split:bottom
+
+# ── Clipboard ─────────────────────────────────────────────
+keybind = super+c=copy_to_clipboard
+keybind = super+v=paste_from_clipboard
+
+# ── Font size ─────────────────────────────────────────────
+keybind = super+equal=increase_font_size:1
+keybind = super+minus=decrease_font_size:1
+keybind = super+zero=reset_font_size
+
+# ── Utility ───────────────────────────────────────────────
+keybind = super+k=clear_screen
+keybind = super+enter=toggle_fullscreen
+keybind = super+n=new_window
+keybind = super+comma=open_config

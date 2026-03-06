@@ -104,6 +104,9 @@ link "$DOTFILES/starship/starship.toml" ~/.config/starship.toml
 link "$DOTFILES/fastfetch/config.jsonc" ~/.config/fastfetch/config.jsonc
 link "$DOTFILES/fastfetch/eldritch.png"  ~/.config/fastfetch/eldritch.png
 
+# Ghostty
+link "$DOTFILES/ghostty/config" ~/.config/ghostty/config
+
 echo ""
 
 # ── Shell setup ───────────────────────────────────────────

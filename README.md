@@ -11,10 +11,22 @@ My personal macOS dotfiles — Tokyo Night themed, minimal, and fast.
 |---|---|
 | [SketchyBar](https://github.com/FelixKratz/SketchyBar) | Custom menu bar (floating, Tokyo Night) |
 | [AeroSpace](https://github.com/nikitabobko/AeroSpace) | Tiling window manager |
+| [Ghostty](https://ghostty.org) | GPU-accelerated terminal with tabs & splits |
 | [lsd](https://github.com/lsd-rs/lsd) | Modern `ls` replacement |
 | [Starship](https://starship.rs) | Cross-shell prompt |
 | [Fastfetch](https://github.com/fastfetch-cli/fastfetch) | System info display |
 | [CodexBar](https://github.com/steipete/CodexBar) | AI token usage tracker |
+
+## How symlinks work
+
+The dotfiles repo **is** the source of truth. `install.sh` creates symlinks from `~/.config/*` back into this repo — so every edit you make inside `~/dotfiles/` is instantly live, and every live change is automatically tracked by git.
+
+```
+~/dotfiles/sketchybar/  ←──── ~/.config/sketchybar  (symlink)
+~/dotfiles/aerospace/aerospace.toml  ←──── ~/.config/aerospace/aerospace.toml
+~/dotfiles/ghostty/config            ←──── ~/.config/ghostty/config
+... and so on
+```
 
 ## Quick install
 
@@ -119,7 +131,50 @@ Add to `~/.zshrc`:
 eval "$(starship init zsh)"
 ```
 
-### 5. Fastfetch
+### 5. Ghostty
+
+GPU-accelerated terminal. Download from [ghostty.org](https://ghostty.org) or:
+
+```bash
+brew install --cask ghostty
+```
+
+```bash
+mkdir -p ~/.config/ghostty
+ln -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config
+```
+
+**Key features configured:**
+
+| Feature | Setting |
+|---|---|
+| Theme | Tokyo Night (built-in) |
+| Font | JetBrains Mono Nerd Font, 13pt |
+| Background | 95% opacity + blur |
+| Working dir | `~` (home) on every new tab/window |
+| Scrollback | 10 MB |
+| Copy on select | Enabled |
+| Clipboard | Full read/write access |
+
+**Keybindings:**
+
+| Key | Action |
+|---|---|
+| `⌘ T` | New tab |
+| `⌘ W` | Close tab/split |
+| `⌘ ]` / `⌘ [` | Next / previous tab |
+| `⌘ 1–8` | Jump to tab |
+| `⌘ D` | Split right |
+| `⌘ ⇧ D` | Split down |
+| `⌘ ⌥ H/J/K/L` | Navigate splits |
+| `⌘ K` | Clear screen |
+| `⌘ ↩` | Toggle fullscreen |
+| `⌘ =` / `⌘ -` | Font size up / down |
+| `⌘ 0` | Reset font size |
+
+> Install [JetBrainsMono Nerd Font](https://www.nerdfonts.com/font-downloads) for icon glyphs in the prompt.
+
+### 6. Fastfetch
 
 System info on terminal open.
 
