@@ -213,6 +213,61 @@ To switch color schemes, edit the active exports at the top of `sketchybar/color
 
 ---
 
+## Useful commands
+
+### SketchyBar
+
+```bash
+# Reload config after any change
+sketchybar --reload
+
+# Restart the service (if bar disappears)
+brew services restart sketchybar
+
+# Start / stop
+brew services start sketchybar
+brew services stop sketchybar
+
+# Trigger a single item to re-run its plugin
+sketchybar --trigger <item_name>
+
+# Check service status
+brew services list | grep sketchybar
+```
+
+### AeroSpace
+
+```bash
+# Reload config after any change
+aerospace reload-config
+
+# List all windows (debug)
+aerospace list-windows --all
+
+# Flatten current workspace layout (reset)
+# Alt + Shift + ; → R  (from keyboard)
+```
+
+### Ghostty
+
+```bash
+# Reload config (no restart needed — Ghostty reloads on focus)
+# Or: Cmd + , to open config file directly
+```
+
+### Symlinks — verify all are correct
+
+```bash
+readlink ~/.config/sketchybar
+readlink ~/.config/aerospace/aerospace.toml
+readlink ~/.config/ghostty/config
+readlink ~/.config/starship.toml
+readlink ~/.config/lsd/config.yaml
+readlink ~/.config/fastfetch/config.jsonc
+```
+
+---
+
 ## License
 
 MIT
