@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prometheus Dotfiles</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tn: {
+              bg:      '#1a1b26',
+              bg2:     '#24283b',
+              bg3:     '#2f3549',
+              border:  '#414868',
+              fg:      '#a9b1d6',
+              sub:     '#565f89',
+              blue:    '#7aa2f7',
+              purple:  '#bb9af7',
+              cyan:    '#7dcfff',
+              green:   '#9ece6a',
+              yellow:  '#e0af68',
+              red:     '#f7768e',
+              orange:  '#ff9e64',
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * { scroll-behavior: smooth; }
+
+    body { font-family: 'Inter', sans-serif; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #1a1b26; }
+    ::-webkit-scrollbar-thumb { background: #414868; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #565f89; }
+
+    /* Code blocks */
+    pre {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+
+    /* Sidebar active state */
+    .nav-link.active {
+      color: #7aa2f7;
+      background: rgba(122, 162, 247, 0.1);
+      border-left-color: #7aa2f7;
+    }
+
+    /* Gradient hero text */
+    .hero-gradient {
+      background: linear-gradient(135deg, #7aa2f7 0%, #bb9af7 50%, #7dcfff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Glow on hover cards */
+    .tool-card:hover {
+      box-shadow: 0 0 0 1px #7aa2f7, 0 4px 24px rgba(122, 162, 247, 0.08);
+    }
+
+    /* Copy button feedback */
+    .copy-btn.copied {
+      color: #9ece6a !important;
+      border-color: #9ece6a !important;
+    }
+
+    /* Section fade-in */
+    .section-fade {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .section-fade.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Table */
+    table { border-collapse: collapse; width: 100%; }
+    th { color: #7aa2f7; font-weight: 600; text-align: left; padding: 10px 14px; border-bottom: 1px solid #414868; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    td { padding: 10px 14px; border-bottom: 1px solid #2f3549; font-size: 0.875rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(122, 162, 247, 0.04); }
+
+    /* Kbd */
+    kbd {
+      background: #24283b;
+      border: 1px solid #414868;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #a9b1d6;
+    }
+  </style>
+</head>
+<body class="bg-tn-bg text-tn-fg min-h-screen">
+
+  <!-- Mobile header -->
+  <header class="lg:hidden sticky top-0 z-50 bg-tn-bg/95 backdrop-blur border-b border-tn-border px-4 py-3 flex items-center justify-between">
+    <span class="font-bold text-tn-blue text-lg tracking-tight">Prometheus Dotfiles</span>
+    <button id="menu-toggle" class="text-tn-sub hover:text-tn-fg transition-colors p-1">
+      <svg id="menu-icon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Mobile nav drawer -->
+  <div id="mobile-nav" class="lg:hidden fixed inset-0 z-40 hidden">
+    <div class="absolute inset-0 bg-black/60" id="nav-backdrop"></div>
+    <nav class="absolute left-0 top-0 bottom-0 w-64 bg-tn-bg border-r border-tn-border p-6 overflow-y-auto" id="mobile-nav-panel"></nav>
+  </div>
+
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="hidden lg:flex flex-col w-60 shrink-0 h-screen sticky top-0 border-r border-tn-border overflow-y-auto py-8 px-4">
+      <div class="mb-8 px-2">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xl">⚡</span>
+          <span class="font-bold text-tn-blue text-base tracking-tight">Prometheus</span>
+        </div>
+        <span class="text-tn-sub text-xs">Tokyo Night · macOS Dotfiles</span>
+      </div>
+      <nav id="sidebar-nav" class="flex flex-col gap-0.5 text-sm"></nav>
+      <div class="mt-auto pt-8 px-2">
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank"
+           class="flex items-center gap-2 text-tn-sub hover:text-tn-fg text-xs transition-colors">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 min-w-0 px-6 lg:px-12 py-10 max-w-4xl mx-auto">
+
+      <!-- Hero -->
+      <section id="overview" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-4xl">⚡</span>
+          <h1 class="text-4xl lg:text-5xl font-bold hero-gradient">Prometheus Dotfiles</h1>
+        </div>
+        <p class="text-tn-sub text-lg mb-6 leading-relaxed">
+          Minimal, fast macOS setup — Tokyo Night themed from terminal to taskbar.
+          One install script. Everything symlinked. Always in sync with git.
+        </p>
+        <div class="flex flex-wrap gap-2 mb-8">
+          <span class="badge bg-tn-bg2 border border-tn-border text-tn-blue text-xs px-3 py-1 rounded-full">macOS Sequoia</span>
+          <span class="badge bg-tn-bg2 border border-tn-border text-tn-purple text-xs px-3 py-1 rounded-full">Tokyo Night</span>
+          <span class="badge bg-tn-bg2 border border-tn-border text-tn-green text-xs px-3 py-1 rounded-full">MIT License</span>
+          <span class="badge bg-tn-bg2 border border-tn-border text-tn-cyan text-xs px-3 py-1 rounded-full">Shell · Bash</span>
+        </div>
+
+        <!-- Tool cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <a href="#sketchybar" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-blue/50 no-underline">
+            <span class="text-2xl mt-0.5">🎨</span>
+            <div>
+              <div class="font-semibold text-tn-fg text-sm">SketchyBar</div>
+              <div class="text-tn-sub text-xs mt-0.5">Floating notch-aware menu bar · Tokyo Night</div>
+            </div>
+          </a>
+          <a href="#aerospace" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-purple/50 no-underline">
+            <span class="text-2xl mt-0.5">🪟</span>
+            <div>
+              <div class="font-semibold text-tn-fg text-sm">AeroSpace</div>
+              <div class="text-tn-sub text-xs mt-0.5">i3-inspired tiling window manager</div>
+            </div>
+          </a>
+          <a href="#ghostty" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-cyan/50 no-underline">
+            <span class="text-2xl mt-0.5">👻</span>
+            <div>
+              <div class="font-semibold text-tn-fg text-sm">Ghostty</div>
+              <div class="text-tn-sub text-xs mt-0.5">GPU terminal · tabs · splits · blur</div>
+            </div>
+          </a>
+          <a href="#shell" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-green/50 no-underline">
+            <span class="text-2xl mt-0.5">🐚</span>
+            <div>
+              <div class="font-semibold text-tn-fg text-sm">Shell Tools</div>
+              <div class="text-tn-sub text-xs mt-0.5">lsd · Starship · Fastfetch · CodexBar</div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Quick Install -->
+      <section id="install" class="section-fade mb-16">
+        <h2 class="section-title">Quick Install</h2>
+        <p class="text-tn-sub mb-4">Clone the repo, run the script. It handles Homebrew, packages, symlinks, and shell config.</p>
+        <div class="code-block-wrap">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">bash</span>
+            <button class="copy-btn" data-code="git clone https://github.com/rafay99-epic/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+chmod +x install.sh
+./install.sh">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-sub"># Clone</span>
+<span class="text-tn-blue">git</span> clone https://github.com/rafay99-epic/dotfiles.git ~/dotfiles
+<span class="text-tn-blue">cd</span> ~/dotfiles
+
+<span class="text-tn-sub"># Run installer</span>
+<span class="text-tn-blue">chmod</span> +x install.sh
+<span class="text-tn-green">./install.sh</span></pre>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="code-block-wrap">
+            <div class="code-header">
+              <span class="text-tn-sub text-xs">Preview changes (dry run)</span>
+              <button class="copy-btn" data-code="./install.sh --dry-run">Copy</button>
+            </div>
+            <pre class="code-body"><span class="text-tn-green">./install.sh</span> --dry-run</pre>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header">
+              <span class="text-tn-sub text-xs">Help</span>
+              <button class="copy-btn" data-code="./install.sh --help">Copy</button>
+            </div>
+            <pre class="code-body"><span class="text-tn-green">./install.sh</span> --help</pre>
+          </div>
+        </div>
+
+        <div class="mt-6 bg-tn-bg2 border border-tn-yellow/30 rounded-xl p-4 flex gap-3">
+          <span class="text-tn-yellow text-lg shrink-0">⚠</span>
+          <div class="text-sm text-tn-sub">
+            After install, <strong class="text-tn-fg">open a new terminal tab</strong> and <strong class="text-tn-fg">log out / log back in</strong> so AeroSpace and SketchyBar launch at login.
+          </div>
+        </div>
+      </section>
+
+      <!-- Symlinks -->
+      <section id="symlinks" class="section-fade mb-16">
+        <h2 class="section-title">How Symlinks Work</h2>
+        <p class="text-tn-sub mb-4">
+          The dotfiles repo <em class="text-tn-fg not-italic font-medium">is</em> the source of truth.
+          Every config file is symlinked from <code class="inline-code">~/.config/</code> back into this repo —
+          so edits are instantly live <em>and</em> automatically tracked by git.
+        </p>
+        <div class="code-block-wrap">
+          <div class="code-header"><span class="text-tn-sub text-xs">symlink map</span></div>
+          <pre class="code-body"><span class="text-tn-blue">~/.config/sketchybar</span>             <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/sketchybar/</span>
+<span class="text-tn-blue">~/.config/aerospace/aerospace.toml</span> <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/aerospace/aerospace.toml</span>
+<span class="text-tn-blue">~/.config/ghostty/config</span>           <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/ghostty/config</span>
+<span class="text-tn-blue">~/.config/starship.toml</span>            <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/starship/starship.toml</span>
+<span class="text-tn-blue">~/.config/lsd/config.yaml</span>          <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/lsd/config.yaml</span>
+<span class="text-tn-blue">~/.config/fastfetch/config.jsonc</span>   <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/fastfetch/config.jsonc</span></pre>
+        </div>
+        <div class="mt-4 code-block-wrap">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Verify all symlinks</span>
+            <button class="copy-btn" data-code="readlink ~/.config/sketchybar
+readlink ~/.config/aerospace/aerospace.toml
+readlink ~/.config/ghostty/config
+readlink ~/.config/starship.toml
+readlink ~/.config/lsd/config.yaml">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">readlink</span> ~/.config/sketchybar
+<span class="text-tn-blue">readlink</span> ~/.config/aerospace/aerospace.toml
+<span class="text-tn-blue">readlink</span> ~/.config/ghostty/config
+<span class="text-tn-blue">readlink</span> ~/.config/starship.toml
+<span class="text-tn-blue">readlink</span> ~/.config/lsd/config.yaml</pre>
+        </div>
+      </section>
+
+      <!-- SketchyBar -->
+      <section id="sketchybar" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">🎨</span>
+          <h2 class="section-title mb-0">SketchyBar</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Floating, notch-aware menu bar replacement. Two frosted-glass pills sit on either side of the MacBook notch.</p>
+
+        <!-- Features list -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+          <div class="bg-tn-bg2 border border-tn-border rounded-lg p-3 text-center">
+            <div class="text-tn-blue font-mono text-xs mb-1">SPACES</div>
+            <div class="text-tn-sub text-xs">AeroSpace workspaces</div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-lg p-3 text-center">
+            <div class="text-tn-purple font-mono text-xs mb-1">MEDIA</div>
+            <div class="text-tn-sub text-xs">Now playing</div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-lg p-3 text-center">
+            <div class="text-tn-cyan font-mono text-xs mb-1">SYSTEM</div>
+            <div class="text-tn-sub text-xs">Battery · Volume · Wi-Fi</div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-lg p-3 text-center">
+            <div class="text-tn-green font-mono text-xs mb-1">AI</div>
+            <div class="text-tn-sub text-xs">Claude + Gemini usage</div>
+          </div>
+        </div>
+
+        <div class="code-block-wrap mb-4">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Setup</span>
+            <button class="copy-btn" data-code="brew tap FelixKratz/formulae
+brew install sketchybar
+brew services start sketchybar
+curl -fsSL https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf \
+  -o ~/Library/Fonts/sketchybar-app-font.ttf
+ln -sf ~/dotfiles/sketchybar ~/.config/sketchybar
+sketchybar --reload">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> tap FelixKratz/formulae
+<span class="text-tn-blue">brew</span> install sketchybar
+<span class="text-tn-blue">brew</span> services start sketchybar
+
+<span class="text-tn-sub"># App font (workspace icons)</span>
+<span class="text-tn-blue">curl</span> -fsSL https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf \
+  -o ~/Library/Fonts/sketchybar-app-font.ttf
+
+<span class="text-tn-sub"># Symlink + reload</span>
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/sketchybar ~/.config/sketchybar
+<span class="text-tn-blue">sketchybar</span> --reload</pre>
+        </div>
+
+        <!-- Reload commands -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">Reload config</span><button class="copy-btn" data-code="sketchybar --reload">Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">sketchybar</span> --reload</pre>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">Restart service</span><button class="copy-btn" data-code="brew services restart sketchybar">Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">brew</span> services restart sketchybar</pre>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">Check status</span><button class="copy-btn" data-code="brew services list | grep sketchybar">Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">brew</span> services list | grep sketchybar</pre>
+          </div>
+        </div>
+
+        <!-- Color scheme -->
+        <h3 class="text-tn-fg font-semibold mb-3 text-sm uppercase tracking-wider text-tn-sub">Color Scheme</h3>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-2">
+          <table>
+            <thead><tr><th>Variable</th><th>Color</th><th>Use</th></tr></thead>
+            <tbody>
+              <tr><td class="font-mono text-tn-sub text-xs">BAR_COLOR</td><td><span class="color-swatch" style="background:#1a1b26"></span> <span class="text-tn-fg">#1a1b26</span></td><td class="text-tn-sub">Bar / pill background</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">ACCENT_COLOR</td><td><span class="color-swatch" style="background:#7aa2f7"></span> <span class="text-tn-blue">#7aa2f7</span></td><td class="text-tn-sub">Active space · Wi-Fi</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">PURPLE</td><td><span class="color-swatch" style="background:#bb9af7"></span> <span class="text-tn-purple">#bb9af7</span></td><td class="text-tn-sub">Calendar icon</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">CYAN</td><td><span class="color-swatch" style="background:#7dcfff"></span> <span class="text-tn-cyan">#7dcfff</span></td><td class="text-tn-sub">Volume icon</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">GREEN</td><td><span class="color-swatch" style="background:#9ece6a"></span> <span class="text-tn-green">#9ece6a</span></td><td class="text-tn-sub">Battery full · AI low</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">YELLOW</td><td><span class="color-swatch" style="background:#e0af68"></span> <span class="text-tn-yellow">#e0af68</span></td><td class="text-tn-sub">Battery mid · AI mid</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">RED</td><td><span class="color-swatch" style="background:#f7768e"></span> <span class="text-tn-red">#f7768e</span></td><td class="text-tn-sub">Battery low · AI high</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- AeroSpace -->
+      <section id="aerospace" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">🪟</span>
+          <h2 class="section-title mb-0">AeroSpace</h2>
+        </div>
+        <p class="text-tn-sub mb-6">i3-inspired tiling window manager for macOS. Vim-style keybindings, workspace-based layout.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Setup</span>
+            <button class="copy-btn" data-code="brew tap nikitabobko/tap
+brew install --cask nikitabobko/tap/aerospace
+mkdir -p ~/.config/aerospace
+ln -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> tap nikitabobko/tap
+<span class="text-tn-blue">brew</span> install --cask nikitabobko/tap/aerospace
+<span class="text-tn-blue">mkdir</span> -p ~/.config/aerospace
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml</pre>
+        </div>
+
+        <!-- Keybindings tabs -->
+        <div class="mb-2">
+          <div class="flex gap-1 mb-3" id="aerospace-tabs">
+            <button class="tab-btn active-tab" data-tab="aerospace-nav">Navigation</button>
+            <button class="tab-btn" data-tab="aerospace-ws">Workspaces</button>
+            <button class="tab-btn" data-tab="aerospace-service">Service Mode</button>
+          </div>
+
+          <div id="aerospace-nav" class="tab-panel bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+            <table>
+              <thead><tr><th>Key</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><kbd>Alt + H/J/K/L</kbd></td><td class="text-tn-sub">Focus window left / down / up / right</td></tr>
+                <tr><td><kbd>Alt + Shift + H/J/K/L</kbd></td><td class="text-tn-sub">Move window</td></tr>
+                <tr><td><kbd>Alt + /</kbd></td><td class="text-tn-sub">Toggle tile layout</td></tr>
+                <tr><td><kbd>Alt + ,</kbd></td><td class="text-tn-sub">Toggle accordion layout</td></tr>
+                <tr><td><kbd>Alt + Shift + -</kbd></td><td class="text-tn-sub">Resize smart –50</td></tr>
+                <tr><td><kbd>Alt + Shift + =</kbd></td><td class="text-tn-sub">Resize smart +50</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="aerospace-ws" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+            <table>
+              <thead><tr><th>Key</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><kbd>Alt + 1–9</kbd></td><td class="text-tn-sub">Switch to workspace</td></tr>
+                <tr><td><kbd>Alt + Shift + 1–9</kbd></td><td class="text-tn-sub">Move window to workspace</td></tr>
+                <tr><td><kbd>Alt + Tab</kbd></td><td class="text-tn-sub">Previous workspace (back and forth)</td></tr>
+                <tr><td><kbd>Alt + Shift + Tab</kbd></td><td class="text-tn-sub">Move workspace to next monitor</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="aerospace-service" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+            <table>
+              <thead><tr><th>Key</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><kbd>Alt + Shift + ;</kbd></td><td class="text-tn-sub">Enter service mode</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td class="text-tn-sub">Reload config + exit service mode</td></tr>
+                <tr><td><kbd>R</kbd></td><td class="text-tn-sub">Flatten workspace tree (reset layout)</td></tr>
+                <tr><td><kbd>F</kbd></td><td class="text-tn-sub">Toggle floating / tiling</td></tr>
+                <tr><td><kbd>Backspace</kbd></td><td class="text-tn-sub">Close all windows but current</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="mt-4 bg-tn-bg2 border border-tn-blue/20 rounded-xl p-4 flex gap-3">
+          <span class="text-tn-blue text-lg shrink-0">ℹ</span>
+          <div class="text-sm text-tn-sub">
+            <strong class="text-tn-fg">Ghostty tabs</strong> are OS-level windows. AeroSpace floats post-startup Ghostty windows automatically so new tabs don't break your layout. Use <kbd>⌘ D</kbd> / <kbd>⌘ ⇧ D</kbd> for splits inside a single tile.
+          </div>
+        </div>
+      </section>
+
+      <!-- Ghostty -->
+      <section id="ghostty" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">👻</span>
+          <h2 class="section-title mb-0">Ghostty</h2>
+        </div>
+        <p class="text-tn-sub mb-6">GPU-accelerated terminal. Tokyo Night theme, JetBrains Mono Nerd Font, tabs, splits, clipboard.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Setup</span>
+            <button class="copy-btn" data-code="brew install --cask ghostty
+mkdir -p ~/.config/ghostty
+ln -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> install --cask ghostty
+<span class="text-tn-blue">mkdir</span> -p ~/.config/ghostty
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config</pre>
+        </div>
+
+        <!-- Features table -->
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table>
+            <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td class="text-tn-fg">Theme</td><td class="text-tn-sub">Tokyo Night (built-in)</td></tr>
+              <tr><td class="text-tn-fg">Font</td><td class="text-tn-sub">JetBrains Mono Nerd Font · 13pt</td></tr>
+              <tr><td class="text-tn-fg">Background</td><td class="text-tn-sub">95% opacity + blur radius 20</td></tr>
+              <tr><td class="text-tn-fg">Working dir</td><td class="text-tn-sub"><code class="inline-code">~</code> on every new tab/window</td></tr>
+              <tr><td class="text-tn-fg">Scrollback</td><td class="text-tn-sub">10 MB</td></tr>
+              <tr><td class="text-tn-fg">Copy on select</td><td class="text-tn-green">Enabled</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Keybindings tabs -->
+        <div class="flex gap-1 mb-3" id="ghostty-tabs">
+          <button class="tab-btn active-tab" data-tab="ghostty-tabs-panel">Tabs</button>
+          <button class="tab-btn" data-tab="ghostty-splits">Splits</button>
+          <button class="tab-btn" data-tab="ghostty-misc">Misc</button>
+        </div>
+
+        <div id="ghostty-tabs-panel" class="tab-panel bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>⌘ T</kbd></td><td class="text-tn-sub">New tab</td></tr>
+              <tr><td><kbd>⌘ W</kbd></td><td class="text-tn-sub">Close tab / split</td></tr>
+              <tr><td><kbd>⌘ ]</kbd> / <kbd>⌘ [</kbd></td><td class="text-tn-sub">Next / previous tab</td></tr>
+              <tr><td><kbd>⌘ 1–8</kbd></td><td class="text-tn-sub">Jump to tab</td></tr>
+              <tr><td><kbd>Ctrl + Tab</kbd></td><td class="text-tn-sub">Next tab</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="ghostty-splits" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>⌘ D</kbd></td><td class="text-tn-sub">Split right</td></tr>
+              <tr><td><kbd>⌘ ⇧ D</kbd></td><td class="text-tn-sub">Split down</td></tr>
+              <tr><td><kbd>⌘ ⌥ H/J/K/L</kbd></td><td class="text-tn-sub">Navigate splits</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div id="ghostty-misc" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>⌘ K</kbd></td><td class="text-tn-sub">Clear screen</td></tr>
+              <tr><td><kbd>⌘ ↩</kbd></td><td class="text-tn-sub">Toggle fullscreen</td></tr>
+              <tr><td><kbd>⌘ =</kbd> / <kbd>⌘ -</kbd></td><td class="text-tn-sub">Font size up / down</td></tr>
+              <tr><td><kbd>⌘ 0</kbd></td><td class="text-tn-sub">Reset font size</td></tr>
+              <tr><td><kbd>⌘ N</kbd></td><td class="text-tn-sub">New window</td></tr>
+              <tr><td><kbd>⌘ ,</kbd></td><td class="text-tn-sub">Open config</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Shell Tools -->
+      <section id="shell" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">🐚</span>
+          <h2 class="section-title mb-0">Shell Tools</h2>
+        </div>
+        <p class="text-tn-sub mb-6">lsd · Starship prompt · Fastfetch · CodexBar AI tracker</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- lsd -->
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-tn-green font-bold font-mono text-sm">lsd</span>
+              <span class="text-tn-sub text-xs">Modern ls replacement</span>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><button class="copy-btn" data-code="brew install lsd
+alias ls='lsd'
+alias ll='lsd -la'
+alias lt='lsd --tree'">Copy</button></div>
+              <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install lsd
+<span class="text-tn-sub"># Add to ~/.zshrc</span>
+<span class="text-tn-blue">alias</span> ls=<span class="text-tn-green">'lsd'</span>
+<span class="text-tn-blue">alias</span> ll=<span class="text-tn-green">'lsd -la'</span>
+<span class="text-tn-blue">alias</span> lt=<span class="text-tn-green">'lsd --tree'</span></pre>
+            </div>
+          </div>
+
+          <!-- Starship -->
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-tn-yellow font-bold font-mono text-sm">starship</span>
+              <span class="text-tn-sub text-xs">Cross-shell prompt</span>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><button class="copy-btn" data-code="brew install starship
+echo 'eval &quot;$(starship init zsh)&quot;' >> ~/.zshrc">Copy</button></div>
+              <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install starship
+<span class="text-tn-sub"># Add to ~/.zshrc</span>
+<span class="text-tn-blue">eval</span> <span class="text-tn-green">"$(starship init zsh)"</span></pre>
+            </div>
+          </div>
+
+          <!-- Fastfetch -->
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-tn-cyan font-bold font-mono text-sm">fastfetch</span>
+              <span class="text-tn-sub text-xs">System info on open</span>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><button class="copy-btn" data-code="brew install fastfetch
+# Add to ~/.zshrc
+fastfetch">Copy</button></div>
+              <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install fastfetch
+<span class="text-tn-sub"># Add to ~/.zshrc</span>
+fastfetch</pre>
+            </div>
+          </div>
+
+          <!-- CodexBar -->
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-tn-purple font-bold font-mono text-sm">codexbar</span>
+              <span class="text-tn-sub text-xs">AI token usage tracker</span>
+            </div>
+            <p class="text-tn-sub text-xs mb-3">
+              Install from <a href="https://github.com/steipete/CodexBar" target="_blank" class="text-tn-blue hover:underline">github.com/steipete/CodexBar</a>,
+              then log in to Claude and Gemini via the menu bar app.
+              The SketchyBar widget reads live usage automatically.
+            </p>
+            <div class="bg-tn-bg3 rounded-lg px-3 py-2 font-mono text-xs text-tn-sub">
+              codexbar usage --provider claude --format json
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Useful Commands -->
+      <section id="commands" class="section-fade mb-16">
+        <h2 class="section-title">Useful Commands</h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-2">SketchyBar</h3>
+            <div class="flex flex-col gap-2">
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Reload</span><button class="copy-btn" data-code="sketchybar --reload">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">sketchybar</span> --reload</pre></div>
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Restart</span><button class="copy-btn" data-code="brew services restart sketchybar">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">brew</span> services restart sketchybar</pre></div>
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Stop</span><button class="copy-btn" data-code="brew services stop sketchybar">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">brew</span> services stop sketchybar</pre></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-2">AeroSpace</h3>
+            <div class="flex flex-col gap-2">
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Reload config</span><button class="copy-btn" data-code="aerospace reload-config">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">aerospace</span> reload-config</pre></div>
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">List windows</span><button class="copy-btn" data-code="aerospace list-windows --all">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">aerospace</span> list-windows --all</pre></div>
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">List workspaces</span><button class="copy-btn" data-code="aerospace list-workspaces --all">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">aerospace</span> list-workspaces --all</pre></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer class="border-t border-tn-border pt-8 pb-4 text-center text-tn-sub text-xs">
+        <p>Built by <a href="https://github.com/rafay99-epic" target="_blank" class="text-tn-blue hover:underline">rafay99-epic</a> · MIT License</p>
+        <p class="mt-1">Tokyo Night · macOS · SketchyBar · AeroSpace · Ghostty</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <style>
+    .section-title { font-size: 1.5rem; font-weight: 700; color: #a9b1d6; margin-bottom: 0.75rem; }
+    .inline-code { background: #24283b; border: 1px solid #414868; border-radius: 4px; padding: 1px 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.8em; color: #7dcfff; }
+    .code-block-wrap { background: #24283b; border: 1px solid #414868; border-radius: 10px; overflow: hidden; }
+    .code-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid #2f3549; background: #1e2030; }
+    .code-body { padding: 14px 16px; overflow-x: auto; color: #a9b1d6; }
+    .copy-btn { font-size: 0.7rem; color: #565f89; border: 1px solid #414868; border-radius: 4px; padding: 2px 8px; cursor: pointer; background: transparent; transition: all 0.15s; }
+    .copy-btn:hover { color: #7aa2f7; border-color: #7aa2f7; background: rgba(122,162,247,0.08); }
+    .color-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid #414868; vertical-align: middle; margin-right: 6px; }
+    .tab-btn { font-size: 0.78rem; padding: 4px 12px; border-radius: 6px; border: 1px solid #414868; background: transparent; color: #565f89; cursor: pointer; transition: all 0.15s; }
+    .tab-btn:hover { color: #a9b1d6; border-color: #565f89; }
+    .active-tab { background: rgba(122,162,247,0.12) !important; color: #7aa2f7 !important; border-color: #7aa2f7 !important; }
+    .nav-link { display: flex; align-items: center; gap-8px; padding: 6px 10px; border-radius: 6px; border-left: 2px solid transparent; font-size: 0.82rem; color: #565f89; cursor: pointer; transition: all 0.15s; text-decoration: none; }
+    .nav-link:hover { color: #a9b1d6; background: rgba(122,162,247,0.06); }
+  </style>
+
+  <script>
+    // ── Nav data ─────────────────────────────────────────────────────────────
+    const navItems = [
+      { id: 'overview',   label: '⚡  Overview' },
+      { id: 'install',    label: '📦  Quick Install' },
+      { id: 'symlinks',   label: '🔗  Symlinks' },
+      { id: 'sketchybar', label: '🎨  SketchyBar' },
+      { id: 'aerospace',  label: '🪟  AeroSpace' },
+      { id: 'ghostty',    label: '👻  Ghostty' },
+      { id: 'shell',      label: '🐚  Shell Tools' },
+      { id: 'commands',   label: '⚙️   Commands' },
+    ];
+
+    // ── Build nav ─────────────────────────────────────────────────────────────
+    function buildNav(container) {
+      container.innerHTML = navItems.map(item => `
+        <a href="#${item.id}" class="nav-link" data-target="${item.id}">${item.label}</a>
+      `).join('');
+    }
+
+    buildNav(document.getElementById('sidebar-nav'));
+    buildNav(document.getElementById('mobile-nav-panel'));
+
+    // ── Active section via IntersectionObserver ───────────────────────────────
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.toggle('active', link.dataset.target === entry.target.id);
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -60% 0px' });
+
+    document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+
+    // ── Section fade-in ──────────────────────────────────────────────────────
+    const fadeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          fadeObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08 });
+
+    document.querySelectorAll('.section-fade').forEach(el => fadeObserver.observe(el));
+
+    // ── Copy buttons ──────────────────────────────────────────────────────────
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      if (!btn.dataset.code) return;
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(btn.dataset.code).then(() => {
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+          }, 1800);
+        });
+      });
+    });
+
+    // ── Tab switching ─────────────────────────────────────────────────────────
+    document.querySelectorAll('[id$="-tabs"]').forEach(tabGroup => {
+      tabGroup.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.dataset.tab;
+          // Deactivate all tabs in group
+          tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
+          btn.classList.add('active-tab');
+          // Find sibling panels — they share the same parent section
+          const section = tabGroup.closest('section');
+          section.querySelectorAll('.tab-panel').forEach(panel => {
+            panel.classList.toggle('hidden', panel.id !== targetId);
+          });
+        });
+      });
+    });
+
+    // ── Mobile menu ──────────────────────────────────────────────────────────
+    const mobileNav = document.getElementById('mobile-nav');
+    const menuToggle = document.getElementById('menu-toggle');
+    const navBackdrop = document.getElementById('nav-backdrop');
+
+    menuToggle.addEventListener('click', () => {
+      mobileNav.classList.toggle('hidden');
+    });
+    navBackdrop.addEventListener('click', () => {
+      mobileNav.classList.add('hidden');
+    });
+
+    // Close mobile nav when a link is clicked
+    mobileNav.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => mobileNav.classList.add('hidden'));
+    });
+  </script>
+
+</body>
+</html>
