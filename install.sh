@@ -2,10 +2,20 @@
 # =============================================================================
 # Prometheus Dotfiles — install.sh
 # =============================================================================
-# Usage:
-#   ./install.sh              — full install
-#   ./install.sh --dry-run    — preview what would happen, no changes made
-#   ./install.sh --help       — show usage
+#
+#  Clone the repo, run this script, answer the prompts. That's it.
+#
+#  Usage:
+#    ./install.sh            — interactive install
+#    ./install.sh --dry-run  — preview everything without making changes
+#    ./install.sh --help     — show this message
+#
+#  What it does:
+#    1. Asks if you want to install Homebrew + all applications
+#    2. If yes → installs Homebrew, then every tool used by these dotfiles
+#    3. Always  → symlinks all dotfiles into ~/.config
+#    4. Asks about optional GUI apps (Android Studio, VS Code, Chrome, etc.)
+#
 # =============================================================================
 
 set -Euo pipefail
@@ -13,6 +23,7 @@ IFS=$'\n\t'
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRY_RUN=false
+INSTALL_APPS=false
 ERRORS=()
 SKIPPED=()
 LINKED=()
@@ -21,9 +32,9 @@ INSTALLED=()
 # ── Colors ────────────────────────────────────────────────────────────────────
 if [[ -t 1 ]]; then
   RED='\033[0;31m'; YELLOW='\033[0;33m'; GREEN='\033[0;32m'
-  BLUE='\033[0;34m'; BOLD='\033[1m'; RESET='\033[0m'
+  BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
 else
-  RED=''; YELLOW=''; GREEN=''; BLUE=''; BOLD=''; RESET=''
+  RED=''; YELLOW=''; GREEN=''; BLUE=''; CYAN=''; BOLD=''; RESET=''
 fi
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -31,18 +42,37 @@ info()    { echo -e "  ${BLUE}→${RESET}  $*"; }
 success() { echo -e "  ${GREEN}✓${RESET}  $*"; }
 warn()    { echo -e "  ${YELLOW}⚠${RESET}  $*"; }
 error()   { echo -e "  ${RED}✗${RESET}  $*"; }
-heading() { echo -e "\n${BOLD}$*${RESET}"; }
+heading() { echo -e "\n${BOLD}${CYAN}▸  $*${RESET}"; echo -e "  ${CYAN}$(printf '%.0s─' {1..40})${RESET}"; }
 dry()     { echo -e "  ${YELLOW}(dry)${RESET} $*"; }
+
+# ── Prompt helper ─────────────────────────────────────────────────────────────
+# prompt "Question?" → returns 0 for Y, 1 for N
+prompt() {
+  local question="$1"
+  local answer
+
+  if [[ "$DRY_RUN" == true ]]; then
+    echo -e "  ${YELLOW}(dry)${RESET} Would ask: ${BOLD}$question${RESET} → assuming Yes"
+    return 0
+  fi
+
+  echo -en "\n  ${BOLD}${BLUE}?${RESET}  ${BOLD}$question${RESET} [Y/n] "
+  read -r answer </dev/tty 2>/dev/null || answer="y"
+  echo ""
+  [[ "${answer:-y}" =~ ^[Yy]$ ]]
+}
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=true ;;
     --help|-h)
+      echo ""
       echo "Usage: ./install.sh [--dry-run] [--help]"
       echo ""
       echo "  --dry-run   Preview all changes without making them"
       echo "  --help      Show this message"
+      echo ""
       exit 0
       ;;
     *) error "Unknown argument: $arg"; exit 1 ;;
@@ -50,13 +80,11 @@ for arg in "$@"; do
 done
 
 # ── Guards ────────────────────────────────────────────────────────────────────
-# macOS only
 if [[ "$(uname)" != "Darwin" ]]; then
   error "This script only supports macOS."
   exit 1
 fi
 
-# Must NOT be run as root
 if [[ "$EUID" -eq 0 ]]; then
   error "Do not run this script as root / sudo."
   exit 1
@@ -64,32 +92,29 @@ fi
 
 # ── Banner ────────────────────────────────────────────────────────────────────
 echo ""
-echo -e "${BOLD}╭────────────────────────────────────────╮${RESET}"
-echo -e "${BOLD}│        Prometheus Dotfiles Setup        │${RESET}"
-echo -e "${BOLD}│        github.com/rafay99-epic          │${RESET}"
-echo -e "${BOLD}╰────────────────────────────────────────╯${RESET}"
-[[ "$DRY_RUN" == true ]] && warn "DRY RUN — no changes will be made"
+echo -e "${BOLD}╭────────────────────────────────────────────╮${RESET}"
+echo -e "${BOLD}│       Prometheus Dotfiles — Setup           │${RESET}"
+echo -e "${BOLD}│       github.com/rafay99-epic               │${RESET}"
+echo -e "${BOLD}╰────────────────────────────────────────────╯${RESET}"
 echo ""
+echo -e "  ${GREEN}✓${RESET}  Dotfile symlinks     ${CYAN}(always)${RESET}"
+echo -e "  ${YELLOW}?${RESET}  Homebrew + packages  ${CYAN}(optional — you'll be asked)${RESET}"
+echo -e "  ${YELLOW}?${RESET}  GUI apps             ${CYAN}(optional — asked individually)${RESET}"
+echo ""
+[[ "$DRY_RUN" == true ]] && warn "DRY RUN — no changes will be made\n"
 
 # ── Symlink helper ────────────────────────────────────────────────────────────
-# link <src> <dst>
-#   - dst is already a symlink to src   → skip (already correct)
-#   - dst is a symlink to something else → error, tell user to remove it
-#   - dst is a real file/directory       → back up with timestamp, then link
-#   - dst does not exist                 → create symlink
 link() {
   local src="$1"
   local dst="$2"
   local label="${dst/#$HOME/\~}"
 
-  # Source must exist
   if [[ ! -e "$src" ]]; then
     error "Source not found: $src"
     ERRORS+=("Missing source: $src")
     return 1
   fi
 
-  # Already a correct symlink — nothing to do
   if [[ -L "$dst" ]]; then
     local current_target
     current_target="$(readlink "$dst")"
@@ -98,18 +123,17 @@ link() {
       SKIPPED+=("$label (already correct)")
       return 0
     else
-      error "Conflict: ${label} is a symlink → ${current_target}"
-      error "       Expected  → ${src}"
-      error "       Run: rm \"${dst}\" and re-run this script."
-      ERRORS+=("Symlink conflict: $dst → $current_target (expected $src)")
+      error "Conflict: ${label} → ${current_target}"
+      error "       Expected → ${src}"
+      error "       Run: rm \"${dst}\" and re-run."
+      ERRORS+=("Symlink conflict: $dst")
       return 1
     fi
   fi
 
-  # Real file or directory exists — back it up
   if [[ -e "$dst" ]]; then
     local backup="${dst}.bak.$(date +%Y%m%d_%H%M%S)"
-    warn "Backing up existing ${label} → ${backup/#$HOME/\~}"
+    warn "Backing up ${label} → ${backup/#$HOME/\~}"
     if [[ "$DRY_RUN" == false ]]; then
       mv "$dst" "$backup"
     else
@@ -117,11 +141,10 @@ link() {
     fi
   fi
 
-  # Create the symlink
   if [[ "$DRY_RUN" == false ]]; then
     mkdir -p "$(dirname "$dst")"
     ln -sf "$src" "$dst"
-    success "Linked: ${label} → ${src/#$HOME/\~}"
+    success "Linked: ${label}"
   else
     dry "ln -sf $src $dst"
   fi
@@ -129,7 +152,6 @@ link() {
 }
 
 # ── Brew package helper ───────────────────────────────────────────────────────
-# brew_install <formula> [--cask]
 brew_install() {
   local formula="$1"
   local flags="${2:-}"
@@ -174,108 +196,175 @@ brew_install() {
 }
 
 # =============================================================================
-# 1. Homebrew
+# Ask: install apps?
 # =============================================================================
-heading "1/6  Homebrew"
+if prompt "Install Homebrew and all applications?"; then
+  INSTALL_APPS=true
+else
+  info "Skipping app installation — will only set up symlinks."
+fi
 
-if ! command -v brew &>/dev/null; then
-  if [[ "$DRY_RUN" == false ]]; then
-    info "Installing Homebrew..."
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || {
-      error "Homebrew installation failed."
-      exit 1
-    }
-    # Add brew to PATH for Apple Silicon
-    if [[ -f /opt/homebrew/bin/brew ]]; then
-      eval "$(/opt/homebrew/bin/brew shellenv)"
+# =============================================================================
+# Step 1 — Homebrew  (only if user said yes)
+# =============================================================================
+if [[ "$INSTALL_APPS" == true ]]; then
+  heading "Homebrew"
+
+  if ! command -v brew &>/dev/null; then
+    if [[ "$DRY_RUN" == false ]]; then
+      info "Installing Homebrew..."
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || {
+        error "Homebrew installation failed."
+        exit 1
+      }
+      # Add brew to PATH immediately (Apple Silicon)
+      if [[ -f /opt/homebrew/bin/brew ]]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+      fi
+      success "Homebrew installed"
+    else
+      dry "/bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
     fi
-    success "Homebrew installed"
   else
-    dry "Install Homebrew"
-  fi
-else
-  success "Homebrew already installed ($(brew --version | head -1))"
-fi
-
-# =============================================================================
-# 2. Packages
-# =============================================================================
-heading "2/6  Packages"
-
-# Core tools
-brew_install lsd
-brew_install starship
-brew_install fastfetch
-brew_install jq
-
-# AeroSpace (tiling WM)
-if ! brew tap | grep -q "nikitabobko/tap"; then
-  [[ "$DRY_RUN" == false ]] && brew tap nikitabobko/tap --quiet
-fi
-brew_install nikitabobko/tap/aerospace --cask
-
-# SketchyBar
-if ! brew tap | grep -q "FelixKratz/formulae"; then
-  [[ "$DRY_RUN" == false ]] && brew tap FelixKratz/formulae --quiet
-fi
-brew_install sketchybar
-
-if [[ "$DRY_RUN" == false ]]; then
-  if ! brew services list | grep -q "sketchybar.*started"; then
-    info "Starting SketchyBar service..."
-    brew services start sketchybar
+    success "Homebrew already installed ($(brew --version | head -1))"
   fi
 fi
 
-# Ghostty terminal
-brew_install ghostty --cask
+# =============================================================================
+# Step 2 — Packages  (only if user said yes)
+# =============================================================================
+if [[ "$INSTALL_APPS" == true ]]; then
+  heading "Packages"
 
-# Sketchybar app font
-FONT_PATH="$HOME/Library/Fonts/sketchybar-app-font.ttf"
-FONT_URL="https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf"
-if [[ -f "$FONT_PATH" ]]; then
-  success "Already installed: sketchybar-app-font"
-  SKIPPED+=("sketchybar-app-font")
-elif [[ "$DRY_RUN" == false ]]; then
-  info "Installing sketchybar-app-font..."
-  curl -fsSL "$FONT_URL" -o "$FONT_PATH" || {
-    error "Failed to download sketchybar-app-font"
-    ERRORS+=("sketchybar-app-font download failed")
-  }
-  success "Installed: sketchybar-app-font"
-  INSTALLED+=("sketchybar-app-font")
-else
-  dry "Download sketchybar-app-font → $FONT_PATH"
-fi
+  # ── Shells ───────────────────────────────────────────────────────────────
+  brew_install fish
+  brew_install starship
+  brew_install fastfetch
 
-# JetBrains Mono Nerd Font (for Ghostty)
-if ls "$HOME/Library/Fonts/JetBrainsMonoNerd"* &>/dev/null 2>&1 || \
-   ls "/Library/Fonts/JetBrainsMonoNerd"* &>/dev/null 2>&1; then
-  success "Already installed: JetBrainsMono Nerd Font"
-  SKIPPED+=("JetBrainsMono Nerd Font")
-else
-  if ! brew tap | grep -q "homebrew/cask-fonts"; then
-    [[ "$DRY_RUN" == false ]] && brew tap homebrew/cask-fonts --quiet 2>/dev/null || true
+  # ── Better CLI tools ─────────────────────────────────────────────────────
+  brew_install bat
+  brew_install eza
+  brew_install lsd
+  brew_install fzf
+  brew_install thefuck
+  brew_install jq
+
+  # ── Runtime managers ─────────────────────────────────────────────────────
+  brew_install rbenv
+  brew_install nvm
+  brew_install fnm       # fish-native Node manager (preferred in fish)
+  brew_install bun
+  brew_install openjdk@17
+
+  # ── Mobile ───────────────────────────────────────────────────────────────
+  brew_install scrcpy    # Android screen mirror
+
+  # ── AeroSpace (tiling WM) ────────────────────────────────────────────────
+  if ! brew tap | grep -q "nikitabobko/tap"; then
+    [[ "$DRY_RUN" == false ]] && brew tap nikitabobko/tap --quiet
   fi
-  brew_install font-jetbrains-mono-nerd-font --cask || \
-    warn "Could not install JetBrainsMono Nerd Font — install manually from nerdfonts.com"
-fi
+  brew_install nikitabobko/tap/aerospace --cask
 
-# CodexBar (optional — AI usage tracker)
-if command -v codexbar &>/dev/null; then
-  success "Already installed: codexbar"
-  SKIPPED+=("codexbar")
-else
-  warn "CodexBar not found — download from https://github.com/steipete/CodexBar"
-  warn "The SketchyBar AI widget will show errors until it's installed."
+  # ── SketchyBar ───────────────────────────────────────────────────────────
+  if ! brew tap | grep -q "FelixKratz/formulae"; then
+    [[ "$DRY_RUN" == false ]] && brew tap FelixKratz/formulae --quiet
+  fi
+  brew_install sketchybar
+
+  if [[ "$DRY_RUN" == false ]]; then
+    if ! brew services list | grep -q "sketchybar.*started"; then
+      info "Starting SketchyBar service..."
+      brew services start sketchybar
+    fi
+  fi
+
+  # ── Terminal & editors ───────────────────────────────────────────────────
+  brew_install ghostty --cask
+  brew_install windsurf --cask
+
+  # ── AI & dev tools ───────────────────────────────────────────────────────
+  brew_install lm-studio --cask
+
+  # Claude Code (cc alias)
+  if command -v claude &>/dev/null; then
+    success "Already installed: claude (Claude Code)"
+    SKIPPED+=("claude")
+  elif command -v npm &>/dev/null; then
+    if [[ "$DRY_RUN" == false ]]; then
+      info "Installing Claude Code via npm..."
+      npm install -g @anthropic-ai/claude-code || warn "Could not install Claude Code"
+      INSTALLED+=("claude")
+    else
+      dry "npm install -g @anthropic-ai/claude-code"
+    fi
+  else
+    warn "npm not found — Claude Code (cc alias) not installed. Install Node first."
+  fi
+
+  # ── Fonts ─────────────────────────────────────────────────────────────────
+  # SketchyBar app font
+  FONT_PATH="$HOME/Library/Fonts/sketchybar-app-font.ttf"
+  FONT_URL="https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf"
+  if [[ -f "$FONT_PATH" ]]; then
+    success "Already installed: sketchybar-app-font"
+    SKIPPED+=("sketchybar-app-font")
+  elif [[ "$DRY_RUN" == false ]]; then
+    info "Installing sketchybar-app-font..."
+    curl -fsSL "$FONT_URL" -o "$FONT_PATH" || {
+      error "Failed to download sketchybar-app-font"
+      ERRORS+=("sketchybar-app-font download failed")
+    }
+    success "Installed: sketchybar-app-font"
+    INSTALLED+=("sketchybar-app-font")
+  else
+    dry "curl sketchybar-app-font → $FONT_PATH"
+  fi
+
+  # JetBrains Mono Nerd Font
+  if ls "$HOME/Library/Fonts/JetBrainsMonoNerd"* &>/dev/null 2>&1 || \
+     ls "/Library/Fonts/JetBrainsMonoNerd"* &>/dev/null 2>&1; then
+    success "Already installed: JetBrainsMono Nerd Font"
+    SKIPPED+=("JetBrainsMono Nerd Font")
+  else
+    if ! brew tap | grep -q "homebrew/cask-fonts"; then
+      [[ "$DRY_RUN" == false ]] && brew tap homebrew/cask-fonts --quiet 2>/dev/null || true
+    fi
+    brew_install font-jetbrains-mono-nerd-font --cask || \
+      warn "Could not install JetBrainsMono Nerd Font — install manually from nerdfonts.com"
+  fi
+
+  # CodexBar (AI usage tracker for SketchyBar)
+  if command -v codexbar &>/dev/null; then
+    success "Already installed: codexbar"
+    SKIPPED+=("codexbar")
+  else
+    warn "CodexBar not found — download from https://github.com/steipete/CodexBar"
+    warn "The SketchyBar AI widget will show errors until it is installed."
+  fi
+
+  # ── Register fish in /etc/shells ─────────────────────────────────────────
+  if command -v fish &>/dev/null; then
+    FISH_PATH="$(command -v fish)"
+    if ! grep -qF "$FISH_PATH" /etc/shells; then
+      if [[ "$DRY_RUN" == false ]]; then
+        info "Registering fish in /etc/shells (requires sudo)..."
+        echo "$FISH_PATH" | sudo tee -a /etc/shells > /dev/null
+        success "fish registered in /etc/shells"
+      else
+        dry "echo $FISH_PATH | sudo tee -a /etc/shells"
+      fi
+    else
+      success "fish already registered in /etc/shells"
+    fi
+  fi
 fi
 
 # =============================================================================
-# 3. Symlinks  (dotfiles → ~/.config)
+# Step 3 — Symlinks  (always — this is the core of dotfiles management)
 # =============================================================================
-heading "3/6  Symlinks"
+heading "Symlinks"
 
-# SketchyBar — whole directory
+# SketchyBar — whole directory symlink
 if [[ -d "$HOME/.config/sketchybar" && ! -L "$HOME/.config/sketchybar" ]]; then
   local_backup="$HOME/.config/sketchybar.bak.$(date +%Y%m%d_%H%M%S)"
   warn "Backing up existing ~/.config/sketchybar → $local_backup"
@@ -288,7 +377,7 @@ elif [[ -L "$HOME/.config/sketchybar" ]]; then
     SKIPPED+=("~/.config/sketchybar")
   else
     error "Conflict: ~/.config/sketchybar → $current"
-    error "       Expected  → $DOTFILES/sketchybar"
+    error "       Expected → $DOTFILES/sketchybar"
     error "       Run: rm ~/.config/sketchybar and re-run."
     ERRORS+=("Symlink conflict: ~/.config/sketchybar")
   fi
@@ -306,82 +395,39 @@ if [[ ! -L "$HOME/.config/sketchybar" ]]; then
 fi
 
 # Individual file symlinks
-link "$DOTFILES/aerospace/aerospace.toml"  "$HOME/.config/aerospace/aerospace.toml"
-link "$DOTFILES/lsd/config.yaml"           "$HOME/.config/lsd/config.yaml"
-link "$DOTFILES/starship/starship.toml"    "$HOME/.config/starship.toml"
-link "$DOTFILES/fastfetch/config.jsonc"    "$HOME/.config/fastfetch/config.jsonc"
-link "$DOTFILES/fastfetch/eldritch.png"    "$HOME/.config/fastfetch/eldritch.png"
-link "$DOTFILES/ghostty/config"            "$HOME/.config/ghostty/config"
+link "$DOTFILES/aerospace/aerospace.toml"      "$HOME/.config/aerospace/aerospace.toml"
+link "$DOTFILES/lsd/config.yaml"               "$HOME/.config/lsd/config.yaml"
+link "$DOTFILES/starship/starship.toml"        "$HOME/.config/starship.toml"
+link "$DOTFILES/fastfetch/config.jsonc"        "$HOME/.config/fastfetch/config.jsonc"
+link "$DOTFILES/fastfetch/eldritch.png"        "$HOME/.config/fastfetch/eldritch.png"
+link "$DOTFILES/ghostty/config"                "$HOME/.config/ghostty/config"
+link "$DOTFILES/zsh/.zshrc"                    "$HOME/.zshrc"
+link "$DOTFILES/fish/config.fish"              "$HOME/.config/fish/config.fish"
+link "$DOTFILES/fish/completions/bun.fish"     "$HOME/.config/fish/completions/bun.fish"
 
 # =============================================================================
-# 4. Shell setup
+# Step 4 — SketchyBar restart  (only if apps were installed)
 # =============================================================================
-heading "4/6  Shell"
+if [[ "$INSTALL_APPS" == true ]]; then
+  heading "SketchyBar"
 
-SHELL_RC=""
-if [[ -f "$HOME/.zshrc" ]]; then
-  SHELL_RC="$HOME/.zshrc"
-elif [[ -f "$HOME/.bashrc" ]]; then
-  SHELL_RC="$HOME/.bashrc"
-fi
-
-if [[ -z "$SHELL_RC" ]]; then
-  warn "No .zshrc or .bashrc found — skipping shell setup."
-else
-  if grep -q 'starship init' "$SHELL_RC"; then
-    success "Starship already configured in $SHELL_RC"
-    SKIPPED+=("starship init")
-  elif [[ "$DRY_RUN" == false ]]; then
-    printf '\n# Starship prompt\neval "$(starship init zsh)"\n' >> "$SHELL_RC"
-    success "Added Starship init to $SHELL_RC"
-    INSTALLED+=("starship init in $SHELL_RC")
+  if command -v sketchybar &>/dev/null; then
+    if [[ "$DRY_RUN" == false ]]; then
+      brew services restart sketchybar
+      sketchybar --reload 2>/dev/null || true
+      success "SketchyBar restarted"
+    else
+      dry "brew services restart sketchybar && sketchybar --reload"
+    fi
   else
-    dry "Add starship init to $SHELL_RC"
-  fi
-
-  if grep -q 'alias ls=' "$SHELL_RC"; then
-    success "lsd aliases already in $SHELL_RC"
-    SKIPPED+=("lsd aliases")
-  elif [[ "$DRY_RUN" == false ]]; then
-    printf '\n# lsd aliases\nalias ls="lsd"\nalias ll="lsd -la"\nalias lt="lsd --tree"\n' >> "$SHELL_RC"
-    success "Added lsd aliases to $SHELL_RC"
-    INSTALLED+=("lsd aliases in $SHELL_RC")
-  else
-    dry "Add lsd aliases to $SHELL_RC"
-  fi
-
-  if grep -q 'fastfetch' "$SHELL_RC"; then
-    success "fastfetch already in $SHELL_RC"
-    SKIPPED+=("fastfetch in shell")
-  elif [[ "$DRY_RUN" == false ]]; then
-    printf '\n# System info on shell open\nfastfetch\n' >> "$SHELL_RC"
-    success "Added fastfetch to $SHELL_RC"
-  else
-    dry "Add fastfetch to $SHELL_RC"
+    warn "sketchybar not found — skipping reload."
   fi
 fi
 
 # =============================================================================
-# 5. SketchyBar restart
+# Step 5 — Summary
 # =============================================================================
-heading "5/6  SketchyBar"
-
-if command -v sketchybar &>/dev/null; then
-  if [[ "$DRY_RUN" == false ]]; then
-    brew services restart sketchybar
-    sketchybar --reload 2>/dev/null || true
-    success "SketchyBar restarted"
-  else
-    dry "brew services restart sketchybar && sketchybar --reload"
-  fi
-else
-  warn "sketchybar not found — skipping reload."
-fi
-
-# =============================================================================
-# 6. Summary
-# =============================================================================
-heading "6/6  Summary"
+heading "Summary"
 echo ""
 
 if [[ ${#INSTALLED[@]} -gt 0 ]]; then
@@ -397,7 +443,7 @@ if [[ ${#LINKED[@]} -gt 0 ]]; then
 fi
 
 if [[ ${#SKIPPED[@]} -gt 0 ]]; then
-  echo -e "  ${YELLOW}Skipped — already up to date (${#SKIPPED[@]})${RESET}"
+  echo -e "  ${YELLOW}Already up to date (${#SKIPPED[@]})${RESET}"
   for item in "${SKIPPED[@]}"; do echo "    • $item"; done
   echo ""
 fi
@@ -410,9 +456,11 @@ if [[ ${#ERRORS[@]} -gt 0 ]]; then
   exit 1
 fi
 
-echo -e "${GREEN}${BOLD}╭────────────────────────────────────────╮${RESET}"
-echo -e "${GREEN}${BOLD}│         All done! Setup complete.       │${RESET}"
-echo -e "${GREEN}${BOLD}│                                         │${RESET}"
-echo -e "${GREEN}${BOLD}│  Open a new terminal tab and log out    │${RESET}"
-echo -e "${GREEN}${BOLD}│  then back in for all changes to apply. │${RESET}"
-echo -e "${GREEN}${BOLD}╰────────────────────────────────────────╯${RESET}"
+echo ""
+echo -e "${GREEN}${BOLD}╭──────────────────────────────────────────────╮${RESET}"
+echo -e "${GREEN}${BOLD}│          All done!  Setup complete.           │${RESET}"
+echo -e "${GREEN}${BOLD}│                                               │${RESET}"
+echo -e "${GREEN}${BOLD}│  Open a new terminal tab and log out/back in  │${RESET}"
+echo -e "${GREEN}${BOLD}│  for all changes to take effect.              │${RESET}"
+echo -e "${GREEN}${BOLD}╰──────────────────────────────────────────────╯${RESET}"
+echo ""

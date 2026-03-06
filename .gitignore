@@ -3,9 +3,15 @@
 .AppleDouble
 .LSOverride
 
-# Claude / IDE settings
+# IDE settings
+.vscode/
 sketchybar/.claude/
 sketchybar/.vscode/
+
+# Node
+node_modules/
+bun.lock
+package-lock.json
 
 # Compiled sketchybar helper binary
 sketchybar/helper/helper
