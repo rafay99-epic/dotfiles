@@ -404,6 +404,11 @@ link "$DOTFILES/ghostty/config"                "$HOME/.config/ghostty/config"
 link "$DOTFILES/zsh/.zshrc"                    "$HOME/.zshrc"
 link "$DOTFILES/fish/config.fish"              "$HOME/.config/fish/config.fish"
 link "$DOTFILES/fish/completions/bun.fish"     "$HOME/.config/fish/completions/bun.fish"
+link "$DOTFILES/fish/functions/aerospace-sync.fish" "$HOME/.config/fish/functions/aerospace-sync.fish"
+link "$DOTFILES/bin/aerospace-sync"                 "$HOME/.local/bin/aerospace-sync"
+if [[ "$DRY_RUN" == false ]]; then
+  chmod +x "$HOME/.local/bin/aerospace-sync"
+fi
 
 # =============================================================================
 # Step 4 — SketchyBar restart  (only if apps were installed)

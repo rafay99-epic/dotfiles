@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DOTFILES="$HOME/dotfiles"
+AEROSPACE_BIN="/opt/homebrew/bin/aerospace"
+CONFIG_TARGET="$(readlink "$HOME/.config/aerospace/aerospace.toml" 2>/dev/null || echo "$HOME/.config/aerospace/aerospace.toml")"
+LAPTOP_PROFILE="$DOTFILES/aerospace/laptop.toml"
+DOCKED_PROFILE="$DOTFILES/aerospace/docked.toml"
+
+[[ ! -x "$AEROSPACE_BIN" ]]  && echo "Error: aerospace not found at $AEROSPACE_BIN" >&2 && exit 1
+[[ ! -f "$LAPTOP_PROFILE" ]] && echo "Error: laptop.toml not found at $LAPTOP_PROFILE" >&2 && exit 1
+[[ ! -f "$DOCKED_PROFILE" ]] && echo "Error: docked.toml not found at $DOCKED_PROFILE" >&2 && exit 1
+
+MONITOR_COUNT="$("$AEROSPACE_BIN" list-monitors 2>/dev/null | wc -l | tr -d ' ')"
+
+if [[ "$MONITOR_COUNT" -ge 2 ]]; then
+  cp "$DOCKED_PROFILE" "$CONFIG_TARGET"
+  LABEL="docked (${MONITOR_COUNT} monitors)"
+else
+  cp "$LAPTOP_PROFILE" "$CONFIG_TARGET"
+  LABEL="laptop (${MONITOR_COUNT} monitor)"
+fi
+
+"$AEROSPACE_BIN" reload-config
+echo "aerospace-sync: applied $LABEL profile"
