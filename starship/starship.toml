@@ -1,184 +1,213 @@
-###############################################
-#    Name: Starhip Promote Configuration      #                                       
-#    Author: Prometheus                       #
-#    Version: 3.0                             #
-#    Description: StarShip Promote            #                
-###############################################
+# =============================================================================
+# Starship Prompt — Tokyo Night  (bracket style)
+# Author : Prometheus
+# Version: 5.0
+# Docs   : https://starship.rs
+# =============================================================================
+#
+#  Layout:
+#
+#    ╭─  ~/dots/sketchybar  main ● ✚ ⇡          node  dart
+#    ╰─❯
+#
+#  ╭─  top row: directory → git branch → git status │ tech stack (right)
+#  ╰─❯ bottom row: prompt (green = ok · red = error)
+#
+#  Git icons  (no numbers — read state, not counts):
+#    ✓  clean        ●  modified      ✚  staged
+#    ⇡  ahead        ⇣  behind        ⇕  diverged
+#    …  untracked    ✖  deleted       ⊙  stashed
+#       conflicts   »  renamed
+#
+# =============================================================================
 
-# Inserts a blank line between shell prompts
+palette     = 'tokyo_night'
 add_newline = true
 
-# Change the default prompt format
-format = """\
-[╭╴](238)$shell\
-$all(238)$character"""
+format = """
+[╭─](fg:muted)\
+$directory\
+$git_branch\
+$git_status\
+$git_state\
+$fill\
+$nodejs\
+$bun\
+$python\
+$rust\
+$golang\
+$java\
+$dart\
+$kotlin\
+$haskell\
+$docker_context\
+$conda\
+$line_break\
+[╰─](fg:muted)\
+$character"""
 
-[env_var.STARSHIP_DISTRO]
-format = '[$env_value](bold white)'  
-variable = "STARSHIP_DISTRO"
-disabled = false
+# ── Tokyo Night palette ───────────────────────────────────────────────────────
+[palettes.tokyo_night]
+bg      = '#1a1b26'
+surface = '#24283b'
+overlay = '#414868'
+muted   = '#565f89'
+fg      = '#a9b1d6'
+blue    = '#7aa2f7'
+purple  = '#bb9af7'
+cyan    = '#7dcfff'
+green   = '#9ece6a'
+yellow  = '#e0af68'
+red     = '#f7768e'
+orange  = '#ff9e64'
 
-[username]
-style_user = "white bold"
-style_root = "black bold"
-format = "[$user]($style) "
-disabled = true  # disable in powershell
-show_always = false
-
-[battery]
-full_symbol = "🔋"
-charging_symbol = "🔌"
-discharging_symbol = "⚡"
-
-[[battery.display]]
-threshold = 30
-style = "bold red"
+# =============================================================================
+# Core
+# =============================================================================
 
 [character]
-success_symbol = "[❯](bold green)" 
-error_symbol = "[✖](bold red) "
+success_symbol = '[❯](bold fg:green)'
+error_symbol   = '[❯](bold fg:red)'
+vimcmd_symbol  = '[❮](bold fg:purple)'
 
-[cmd_duration]
-min_time = 10_000  
-format = " took [$duration]($style)"
+[fill]
+symbol = ' '
+
+# =============================================================================
+# Directory
+# =============================================================================
 
 [directory]
-truncation_length = 5
-format = "[$path]($style)[$lock_symbol]($lock_style) "
-read_only = " "
+format            = '[ $path]($style)[$read_only]($read_only_style)  '
+style             = 'fg:blue bold'
+read_only         = ' '
+read_only_style   = 'fg:red'
+truncation_length = 4
+truncate_to_repo  = true
+home_symbol       = '~'
+
+[directory.substitutions]
+'Documents' = 'docs'
+'Downloads' = 'dl'
+'Desktop'   = 'desk'
+'dotfiles'  = 'dots'
+'Projects'  = 'proj'
+
+# =============================================================================
+# Git
+# =============================================================================
 
 [git_branch]
-format = " [$symbol$branch]($style) "
-symbol = "🍣 "
-style = "bold yellow"
-
-[git_commit]
-commit_hash_length = 10
-style = "bold white"
-
-[git_state]
-format = '[\($state( $progress_current of $progress_total)\)]($style) '
+format = '[$symbol$branch]($style) '
+symbol = ' '
+style  = 'fg:purple'
 
 [git_status]
-conflicted = "⚔️ "
-ahead = "🏎️ 💨 ×${count}"
-behind = "🐢 ×${count}"
-diverged = "🔱 🏎️ 💨 ×${ahead_count} 🐢 ×${behind_count}"
-untracked = "🛤️  ×${count}"
-stashed = "📦 "
-modified = "📝 ×${count}"
-staged = "🗃️  ×${count}"
-renamed = "📛 ×${count}"
-deleted = "🗑️  ×${count}"
-style = "bright-white"
-format = "$all_status$ahead_behind"
+# Pure icons — presence only, no counts
+format      = '([$all_status$ahead_behind]($style) )'
+style       = ''
+up_to_date  = '[✓](fg:green)'
+conflicted  = '[](fg:red)'
+ahead       = '[⇡](fg:green)'
+behind      = '[⇣](fg:yellow)'
+diverged    = '[⇕](fg:red)'
+untracked   = '[…](fg:muted)'
+stashed     = '[⊙](fg:cyan)'
+modified    = '[●](fg:yellow)'
+staged      = '[✚](fg:green)'
+renamed     = '[»](fg:cyan)'
+deleted     = '[✖](fg:red)'
 
-[hostname]
-ssh_only = true
-format = "<[$hostname]($style)>"
-trim_at = "-"
-style = "bold dimmed white"
-disabled = true
+[git_state]
+format      = '\[[$state( $progress_current/$progress_total)](fg:yellow)\] '
+rebase      = 'REBASE'
+merge       = 'MERGE'
+revert      = 'REVERT'
+cherry_pick = 'CHERRY'
+bisect      = 'BISECT'
+am          = 'AM'
+am_or_rebase = 'AM/REBASE'
 
-[julia]
-format = "[$symbol$version]($style) "
-symbol = "ஃ "
-style = "bold green"
-
-[memory_usage]
-format = "$symbol[${ram}( | ${swap})]($style) "
-threshold = 70
-style = "bold dimmed white"
-disabled = false
-
-[perl]
-symbol = " "
-
-[php]
-symbol = " "
-
-[python]
-format = "[$symbol$version]($style) "
-style = "bold green"
-symbol = " "
-pyenv_prefix = "venv "
-python_binary = ["./venv/bin/python", "python", "python3", "python2"]
-detect_extensions = ["py"]
-version_format = "v${raw}"
-
-[gcloud]
-format = 'on [$symbol$account(@$domain)(\($project\))]($style) '
-symbol = "☁️  "
-
-[rust]
-format = "[$symbol$version]($style) "
-style = "bold green"
-symbol = "🦀 "
-
-[time]
-time_format = "%T"
-format = "🕙$time($style) "
-style = "bright-white"
-disabled = false
-
-[conda]
-format = "[$symbol$environment](dimmed green) "
-symbol = " "
-style="green bold"
-
-[elixir]
-symbol = "🔮 "
-
-[swift]
-symbol = "ﯣ "
-format = "via [🏎  $version](red bold)"
-
-[java]
-symbol = " "
-
-[golang]
-symbol = " "
-
-[aws]
-symbol = "  "
-
-[dart]
-symbol = " "
-
-[shell]
-fish_indicator = ""
-# powershell_indicator = "_"
-powershell_indicator = " "
-zsh_indicator = ""
-bash_indicator = ""
-unknown_indicator = "mystery shell"
-style = "cyan bold"
-disabled = false
-
-[sudo]
-style = "bold green"
-symbol = " 👩‍💻 "
-disabled = false
+# =============================================================================
+# Tech stack  (right side — only shown when detected in current project)
+# =============================================================================
 
 [nodejs]
-format = "via [ Node.js $version](bold green) "
-detect_files = ["package.json", ".node-version"]
-detect_folders = ["node_modules"]
+format         = '[ $symbol$version](fg:green) '
+symbol         = ' '
+version_format = 'v${major}'
+detect_files   = ['package.json', '.node-version', '.nvmrc']
+detect_folders = ['node_modules']
 
-[ruby]
-symbol = " "
+[bun]
+format         = '[ $symbol$version](fg:yellow) '
+symbol         = '󰿅 '
+version_format = 'v${major}.${minor}'
 
-[cmake]
-symbol = "喝 "
-format = "via [喝 $version](bold green) "
+[python]
+format         = '[ $symbol$version( \($virtualenv\))](fg:yellow) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+detect_files   = ['requirements.txt', 'pyproject.toml', 'setup.py', '.python-version', 'Pipfile']
+
+[rust]
+format         = '[ $symbol$version](fg:orange) '
+symbol         = '󱘗 '
+version_format = 'v${major}.${minor}'
+
+[golang]
+format         = '[ $symbol$version](fg:cyan) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[java]
+format         = '[ $symbol$version](fg:red) '
+symbol         = ' '
+version_format = 'v${major}'
+
+[dart]
+format         = '[ $symbol$version](fg:blue) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[kotlin]
+format         = '[ $symbol$version](fg:purple) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
 
 [haskell]
-symbol = "λ "
+format         = '[ $symbol$version](fg:purple) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
 
-[c]
-symbol = " "
-format = '[ $symbol ($version) ]($style)'
+[docker_context]
+format          = '[ $symbol$context](fg:cyan) '
+symbol          = ' '
+only_with_files = true
 
-[nim]
-symbol = " "
-format = '[ $symbol ($version) ]($style)'
+[conda]
+format      = '[ $symbol$environment](fg:green) '
+symbol      = ' '
+ignore_base = true
+
+# =============================================================================
+# Disabled
+# =============================================================================
+
+[username]
+disabled = true
+
+[hostname]
+disabled = true
+
+[time]
+disabled = true
+
+[battery]
+disabled = true
+
+[memory_usage]
+disabled = true
+
+[cmd_duration]
+disabled = true
