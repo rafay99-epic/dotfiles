@@ -12,17 +12,18 @@
 
 ## Quick Install
 
-Clone the repo and run the installer in one command:
+Paste this into your terminal — no cloning, no setup, just one command:
 
 ```bash
-git clone https://github.com/rafay99-epic/dotfiles.git ~/dotfiles && bash ~/dotfiles/install.sh
+curl -fsSL https://dotfiles.rafay99.com/install.sh | bash
 ```
 
 The script will:
 
-1. Ask if you want to install Homebrew and all packages
-2. If yes — install Homebrew, then every tool used by these dotfiles
-3. Always — symlink all configs into `~/.config`
+1. Clone this repo into `~/dotfiles`
+2. Ask if you want to install Homebrew and all packages
+3. If yes — install Homebrew, then every tool used by these dotfiles
+4. Always — symlink all configs into `~/.config`
 
 After it finishes, open a new terminal tab and log out / back in.
 
