@@ -17,18 +17,14 @@ ITEM_DIR="$CONFIG_DIR/items"
 # If you are looking for other colors, see the color picker:
 # https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
 
-sketchybar --bar height=46           \
-                 blur_radius=30      \
+sketchybar --bar height=36           \
                  position=top        \
                  sticky=off          \
                  padding_left=10     \
                  padding_right=10    \
-                 color=0xcc1a1b26    \
-                 corner_radius=10    \
-                 y_offset=10         \
-                 margin=10           \
-                 border_width=1      \
-                 border_color=0x40a9b1d6
+                 color=0x00000000    \
+                 y_offset=0          \
+                 margin=10
 
 ##### Changing Defaults #####
 # We now change some default values that are applied to all further items
@@ -39,16 +35,12 @@ sketchybar --default icon.font="$FONT:Semibold:15.0"          \
                      icon.color=$WHITE                         \
                      label.font="$FONT:Semibold:13.0"          \
                      label.color=$WHITE                        \
-                     background.color=$ITEM_BG_COLOR           \
-                     background.corner_radius=6                \
-                     background.height=26                      \
-                     background.border_width=1                 \
-                     background.border_color=0xff414868        \
-                     padding_left=5                            \
-                     padding_right=5                           \
+                     background.drawing=off                    \
+                     padding_left=4                            \
+                     padding_right=4                           \
                      label.padding_left=4                      \
-                     label.padding_right=10                    \
-                     icon.padding_left=10                      \
+                     label.padding_right=8                     \
+                     icon.padding_left=8                       \
                      icon.padding_right=4
 
 # -- Left Side Items --
@@ -65,6 +57,33 @@ source $ITEM_DIR/battery.sh
 source $ITEM_DIR/wifi.sh
 source $ITEM_DIR/codexbar.sh
 
+
+##### Notch-Aware Split Bar #####
+# The main bar is transparent. Two bracket "pills" provide the visual background:
+#   left_bar  — left side of the notch  (positions: left → q)
+#   right_bar — right side of the notch (positions: e → right)
+# Zero-width invisible anchors pin each end of the brackets to the screen edges.
+
+sketchybar --add item left_anchor  left  --set left_anchor  width=0 \
+           --add item q_anchor     q     --set q_anchor     width=0 \
+           --add item e_anchor     e     --set e_anchor     width=0 \
+           --add item right_anchor right --set right_anchor width=0
+
+sketchybar --add bracket left_bar  left_anchor \
+                                   space.1 space.2 space.3 space.4 space.5 \
+                                   space.6 space.7 space.8 space.9 space.10 \
+                                   space_separator front_app \
+                                   q_anchor \
+           --set left_bar background.color=0x881a1b26        \
+                          background.corner_radius=12         \
+                          background.blur_radius=20
+
+sketchybar --add bracket right_bar e_anchor \
+                                   media calendar volume battery wifi codexbar \
+                                   right_anchor \
+           --set right_bar background.color=0x881a1b26        \
+                           background.corner_radius=12         \
+                           background.blur_radius=20
 
 ##### Finalizing Setup #####
 # The below command is only needed at the end of the initial configuration to
