@@ -80,3 +80,38 @@ alt-shift-h = ['join-with left', 'mode main']
 alt-shift-j = ['join-with down', 'mode main']
 alt-shift-k = ['join-with up', 'mode main']
 alt-shift-l = ['join-with right', 'mode main']
+
+# ── Window detection ───────────────────────────────────────────────────────
+#
+# THE PROBLEM: macOS native tabs (Ghostty Cmd+T, Finder Cmd+T) are separate
+# OS-level windows. AeroSpace can't tell a "tab" apart from a real new window,
+# so it tiles them side-by-side — splitting your layout unexpectedly.
+#
+# THE FIX:
+#   • Ghostty windows restored at startup → tile normally (during-aerospace-startup = true)
+#   • Ghostty windows opened later (tabs) → float so they don't retile your layout
+#   • Finder windows → always float (Finder is not a tiling-friendly app)
+#
+# WORKFLOW TIP — for splits inside one Ghostty tile, use Ghostty's own splits:
+#   Cmd+D         split right       (stays inside one AeroSpace tile)
+#   Cmd+Shift+D   split down
+#   Cmd+Alt+H/J/K/L  navigate splits
+#
+# To manually un-float any window: Alt+Shift+; → F
+
+# Ghostty at startup: tile it normally
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+if.during-aerospace-startup = true
+run = 'layout tiling'
+
+# Ghostty after startup (new tabs / new windows): float so layout is not disturbed
+[[on-window-detected]]
+if.app-id = 'com.mitchellh.ghostty'
+if.during-aerospace-startup = false
+run = 'layout floating'
+
+# Finder: always float — it opens random windows (Copy dialogs, new folders, etc.)
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = 'layout floating'
