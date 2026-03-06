@@ -104,22 +104,22 @@ keybind = ctrl+tab=next_tab
 keybind = ctrl+shift+tab=previous_tab
 
 # Jump directly to tab 1–8
-keybind = super+1=jump_to_tab:1
-keybind = super+2=jump_to_tab:2
-keybind = super+3=jump_to_tab:3
-keybind = super+4=jump_to_tab:4
-keybind = super+5=jump_to_tab:5
-keybind = super+6=jump_to_tab:6
-keybind = super+7=jump_to_tab:7
-keybind = super+8=jump_to_tab:8
+keybind = super+1=goto_tab:1
+keybind = super+2=goto_tab:2
+keybind = super+3=goto_tab:3
+keybind = super+4=goto_tab:4
+keybind = super+5=goto_tab:5
+keybind = super+6=goto_tab:6
+keybind = super+7=goto_tab:7
+keybind = super+8=goto_tab:8
 
 # ── Splits ────────────────────────────────────────────────
 keybind = super+d=new_split:right
 keybind = super+shift+d=new_split:down
 keybind = super+alt+h=goto_split:left
 keybind = super+alt+l=goto_split:right
-keybind = super+alt+k=goto_split:top
-keybind = super+alt+j=goto_split:bottom
+keybind = super+alt+k=goto_split:up
+keybind = super+alt+j=goto_split:down
 
 # ── Clipboard ─────────────────────────────────────────────
 keybind = super+c=copy_to_clipboard
@@ -128,7 +128,7 @@ keybind = super+v=paste_from_clipboard
 # ── Font size ─────────────────────────────────────────────
 keybind = super+equal=increase_font_size:1
 keybind = super+minus=decrease_font_size:1
-keybind = super+zero=reset_font_size
+keybind = super+0=reset_font_size
 
 # ── Utility ───────────────────────────────────────────────
 keybind = super+k=clear_screen
