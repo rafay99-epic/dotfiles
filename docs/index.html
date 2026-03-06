@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Prometheus Dotfiles</title>
+  <meta name="description" content="Prometheus Dotfiles — minimal macOS setup with Tokyo Night theme, AeroSpace tiling WM, SketchyBar, Ghostty terminal, Zsh and Fish shell configs." />
+  <meta property="og:title" content="Prometheus Dotfiles" />
+  <meta property="og:description" content="Minimal macOS setup — Tokyo Night themed from terminal to taskbar." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -11,24 +15,13 @@
         extend: {
           colors: {
             tn: {
-              bg:      '#1a1b26',
-              bg2:     '#24283b',
-              bg3:     '#2f3549',
-              border:  '#414868',
-              fg:      '#a9b1d6',
-              sub:     '#565f89',
-              blue:    '#7aa2f7',
-              purple:  '#bb9af7',
-              cyan:    '#7dcfff',
-              green:   '#9ece6a',
-              yellow:  '#e0af68',
-              red:     '#f7768e',
-              orange:  '#ff9e64',
+              bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868',
+              fg:'#a9b1d6', sub:'#7a85b8', blue:'#7aa2f7', purple:'#bb9af7',
+              cyan:'#7dcfff', green:'#9ece6a', yellow:'#e0af68',
+              red:'#f7768e', orange:'#ff9e64',
             }
           },
-          fontFamily: {
-            mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
-          }
+          fontFamily: { mono: ['JetBrains Mono', 'Fira Code', 'monospace'] }
         }
       }
     }
@@ -36,128 +29,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-  <style>
-    /* ── Tokyo Night CSS variables ─────────────────────────────────────────── */
-    :root {
-      --tn-bg:       #1a1b26;
-      --tn-bg2:      #24283b;
-      --tn-bg3:      #2f3549;
-      --tn-bg-code:  #1e2030;
-      --tn-border:   #414868;
-      --tn-fg:       #a9b1d6;
-      --tn-sub:      #565f89;
-      --tn-blue:     #7aa2f7;
-      --tn-purple:   #bb9af7;
-      --tn-cyan:     #7dcfff;
-      --tn-green:    #9ece6a;
-      --tn-yellow:   #e0af68;
-      --tn-red:      #f7768e;
-      --tn-orange:   #ff9e64;
-      --tn-blue-r:   122; --tn-blue-g: 162; --tn-blue-b: 247;
-      --tn-hero-gradient: linear-gradient(135deg, #7aa2f7 0%, #bb9af7 50%, #7dcfff 100%);
-      --tn-theme-transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
-    }
-
-    /* ── Tokyo Night Day (light) ────────────────────────────────────────────── */
-    .light-mode {
-      --tn-bg:       #e1e2e7;
-      --tn-bg2:      #d0d1db;
-      --tn-bg3:      #c4c5cd;
-      --tn-bg-code:  #bbbdc8;
-      --tn-border:   #9699b6;
-      --tn-fg:       #343b58;
-      --tn-sub:      #6172b0;
-      --tn-blue:     #2e7de9;
-      --tn-purple:   #7847bd;
-      --tn-cyan:     #007197;
-      --tn-green:    #587539;
-      --tn-yellow:   #8c6c3e;
-      --tn-red:      #f52a65;
-      --tn-orange:   #b15c00;
-      --tn-blue-r:   46; --tn-blue-g: 125; --tn-blue-b: 233;
-      --tn-hero-gradient: linear-gradient(135deg, #2e7de9 0%, #7847bd 50%, #007197 100%);
-    }
-
-    /* ── Tailwind class overrides for light mode ────────────────────────────── */
-    /* Backgrounds */
-    .light-mode .bg-tn-bg    { background-color: #e1e2e7 !important; }
-    .light-mode .bg-tn-bg2   { background-color: #d0d1db !important; }
-    .light-mode .bg-tn-bg3   { background-color: #c4c5cd !important; }
-    /* Mobile header bg-tn-bg/95 */
-    .light-mode header.sticky { background-color: rgba(225,226,231,0.95) !important; }
-    /* Text */
-    .light-mode .text-tn-fg     { color: #343b58 !important; }
-    .light-mode .text-tn-sub    { color: #6172b0 !important; }
-    .light-mode .text-tn-blue   { color: #2e7de9 !important; }
-    .light-mode .text-tn-purple { color: #7847bd !important; }
-    .light-mode .text-tn-cyan   { color: #007197 !important; }
-    .light-mode .text-tn-green  { color: #587539 !important; }
-    .light-mode .text-tn-yellow { color: #8c6c3e !important; }
-    .light-mode .text-tn-red    { color: #f52a65 !important; }
-    .light-mode .text-tn-orange { color: #b15c00 !important; }
-    /* Borders */
-    .light-mode .border-tn-border       { border-color: #9699b6 !important; }
-    .light-mode .border-tn-blue\/50     { border-color: rgba(46,125,233,0.5) !important; }
-    .light-mode .border-tn-blue\/20     { border-color: rgba(46,125,233,0.2) !important; }
-    .light-mode .border-tn-yellow\/30   { border-color: rgba(140,108,62,0.3) !important; }
-    .light-mode .border-tn-purple\/50   { border-color: rgba(120,71,189,0.5) !important; }
-    .light-mode .border-tn-cyan\/50     { border-color: rgba(0,113,151,0.5) !important; }
-    .light-mode .border-tn-green\/50    { border-color: rgba(88,117,57,0.5) !important; }
-    .light-mode .border-tn-yellow\/50   { border-color: rgba(140,108,62,0.5) !important; }
-    .light-mode .border-tn-orange\/50   { border-color: rgba(177,92,0,0.5) !important; }
-    /* Hover border variants */
-    .light-mode .hover\:border-tn-blue\/50:hover   { border-color: rgba(46,125,233,0.5) !important; }
-    .light-mode .hover\:border-tn-purple\/50:hover { border-color: rgba(120,71,189,0.5) !important; }
-    .light-mode .hover\:border-tn-cyan\/50:hover   { border-color: rgba(0,113,151,0.5) !important; }
-    .light-mode .hover\:border-tn-green\/50:hover  { border-color: rgba(88,117,57,0.5) !important; }
-    .light-mode .hover\:border-tn-yellow\/50:hover { border-color: rgba(140,108,62,0.5) !important; }
-    .light-mode .hover\:border-tn-orange\/50:hover { border-color: rgba(177,92,0,0.5) !important; }
-    /* Backdrop */
-    .light-mode #nav-backdrop { background-color: rgba(52,59,88,0.5) !important; }
-
-    * { scroll-behavior: smooth; }
-    body { font-family: 'Inter', sans-serif; transition: var(--tn-theme-transition); }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--tn-bg); }
-    ::-webkit-scrollbar-thumb { background: var(--tn-border); border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--tn-sub); }
-
-    /* Code blocks */
-    pre { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.82rem; line-height: 1.7; }
-
-    /* Sidebar active state */
-    .nav-link.active { color: var(--tn-blue); background: rgba(var(--tn-blue-r),var(--tn-blue-g),var(--tn-blue-b),0.1); border-left-color: var(--tn-blue); }
-
-    /* Gradient hero text */
-    .hero-gradient { background: var(--tn-hero-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-
-    /* Glow on hover cards */
-    .tool-card:hover { box-shadow: 0 0 0 1px var(--tn-blue), 0 4px 24px rgba(var(--tn-blue-r),var(--tn-blue-g),var(--tn-blue-b),0.08); }
-
-    /* Copy feedback */
-    .copy-btn.copied { color: var(--tn-green) !important; border-color: var(--tn-green) !important; }
-
-    /* Section fade */
-    .section-fade { opacity: 0; transform: translateY(16px); transition: opacity 0.4s ease, transform 0.4s ease; }
-    .section-fade.visible { opacity: 1; transform: translateY(0); }
-
-    /* Tables */
-    table { border-collapse: collapse; width: 100%; }
-    th { color: var(--tn-blue); font-weight: 600; text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--tn-border); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    td { padding: 10px 14px; border-bottom: 1px solid var(--tn-bg3); font-size: 0.875rem; }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(var(--tn-blue-r),var(--tn-blue-g),var(--tn-blue-b),0.04); }
-
-    /* Kbd */
-    kbd { background: var(--tn-bg2); border: 1px solid var(--tn-border); border-radius: 4px; padding: 1px 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--tn-fg); }
-
-    /* Theme toggle transition */
-    #desktop-sidebar, header, nav, main, aside, footer, section { transition: var(--tn-theme-transition); }
-  </style>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="bg-tn-bg text-tn-fg min-h-screen">
+
+  <!-- Reading progress bar -->
+  <div id="progress-bar"></div>
 
   <!-- Mobile header -->
   <header class="lg:hidden sticky top-0 z-50 bg-tn-bg/95 backdrop-blur-md border-b border-tn-border px-5 py-3.5 flex items-center justify-between">
@@ -180,7 +57,6 @@
   <div id="mobile-nav" class="lg:hidden fixed inset-0 z-40" aria-hidden="true" style="display:none">
     <div id="nav-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" style="opacity:0;transition:opacity 0.25s ease"></div>
     <nav id="mobile-nav-panel" class="absolute left-0 top-0 bottom-0 w-72 bg-tn-bg border-r border-tn-border flex flex-col" style="transform:translateX(-100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1)">
-      <!-- Drawer header -->
       <div class="flex items-center justify-between px-5 py-4 border-b border-tn-border shrink-0">
         <div class="flex items-center gap-2">
           <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
@@ -190,9 +66,7 @@
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
-      <!-- Nav links -->
       <div id="mobile-nav-links" class="flex-1 overflow-y-auto py-4 px-3"></div>
-      <!-- Drawer footer -->
       <div class="shrink-0 px-5 py-4 border-t border-tn-border">
         <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-tn-sub hover:text-tn-fg text-xs transition-colors">
           <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -203,9 +77,8 @@
   </div>
 
   <div class="flex">
-    <!-- Sidebar -->
+    <!-- Desktop sidebar -->
     <aside id="desktop-sidebar" class="hidden lg:flex flex-col shrink-0 h-screen sticky top-0 border-r border-tn-border overflow-y-auto overflow-x-hidden py-6 px-3">
-      <!-- Brand + toggle -->
       <div class="flex items-center justify-between mb-6 px-2 min-w-0">
         <div class="flex items-center gap-2 sidebar-expanded-only min-w-0">
           <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
@@ -235,10 +108,10 @@
       </div>
     </aside>
 
-    <!-- Main -->
+    <!-- Main content -->
     <main class="flex-1 min-w-0 px-5 lg:px-12 py-8 lg:py-10 max-w-4xl mx-auto w-full">
 
-      <!-- Hero -->
+      <!-- ── Overview ──────────────────────────────────────────────────────── -->
       <section id="overview" class="section-fade mb-16">
         <div class="flex items-center gap-3 mb-4">
           <i data-lucide="zap" class="w-10 h-10 text-tn-blue shrink-0"></i>
@@ -248,64 +121,62 @@
           Minimal, fast macOS setup — Tokyo Night themed from terminal to taskbar.
           One install script. Everything symlinked. Always in sync with git.
         </p>
-        <div class="flex flex-wrap gap-2 mb-8">
+        <div class="flex flex-wrap gap-2 mb-6">
           <span class="badge bg-tn-bg2 border border-tn-border text-tn-blue text-xs px-3 py-1 rounded-full">macOS Sequoia</span>
           <span class="badge bg-tn-bg2 border border-tn-border text-tn-purple text-xs px-3 py-1 rounded-full">Tokyo Night</span>
           <span class="badge bg-tn-bg2 border border-tn-border text-tn-green text-xs px-3 py-1 rounded-full">MIT License</span>
           <span class="badge bg-tn-bg2 border border-tn-border text-tn-cyan text-xs px-3 py-1 rounded-full">Shell · Bash</span>
         </div>
 
-        <!-- Tool cards -->
+        <div class="flex flex-wrap gap-3 mb-8">
+          <a href="#install" class="inline-flex items-center gap-2 bg-tn-blue text-white font-semibold text-sm px-5 py-2.5 rounded-lg hover:opacity-90 transition-opacity no-underline">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Get Started
+          </a>
+          <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-tn-bg2 border border-tn-border text-tn-fg font-semibold text-sm px-5 py-2.5 rounded-lg hover:border-tn-blue/50 transition-colors no-underline">
+            <i data-lucide="github" class="w-4 h-4"></i>
+            View on GitHub
+          </a>
+        </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <a href="#sketchybar" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-blue/50 no-underline">
             <i data-lucide="palette" class="w-5 h-5 text-tn-blue mt-0.5 shrink-0"></i>
-            <div>
-              <div class="font-semibold text-tn-fg text-sm">SketchyBar</div>
-              <div class="text-tn-sub text-xs mt-0.5">Floating notch-aware menu bar · Tokyo Night</div>
-            </div>
+            <div><div class="font-semibold text-tn-fg text-sm">SketchyBar</div><div class="text-tn-sub text-xs mt-0.5">Floating notch-aware menu bar · Tokyo Night</div></div>
           </a>
           <a href="#aerospace" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-purple/50 no-underline">
             <i data-lucide="layout-grid" class="w-5 h-5 text-tn-purple mt-0.5 shrink-0"></i>
-            <div>
-              <div class="font-semibold text-tn-fg text-sm">AeroSpace</div>
-              <div class="text-tn-sub text-xs mt-0.5">i3-inspired tiling window manager</div>
-            </div>
+            <div><div class="font-semibold text-tn-fg text-sm">AeroSpace</div><div class="text-tn-sub text-xs mt-0.5">i3-inspired tiling window manager · dual-config</div></div>
           </a>
           <a href="#ghostty" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-cyan/50 no-underline">
             <i data-lucide="terminal" class="w-5 h-5 text-tn-cyan mt-0.5 shrink-0"></i>
-            <div>
-              <div class="font-semibold text-tn-fg text-sm">Ghostty</div>
-              <div class="text-tn-sub text-xs mt-0.5">GPU terminal · tabs · splits · blur</div>
-            </div>
+            <div><div class="font-semibold text-tn-fg text-sm">Ghostty</div><div class="text-tn-sub text-xs mt-0.5">GPU terminal · tabs · splits · blur</div></div>
           </a>
           <a href="#shell" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-green/50 no-underline">
             <i data-lucide="layers" class="w-5 h-5 text-tn-green mt-0.5 shrink-0"></i>
-            <div>
-              <div class="font-semibold text-tn-fg text-sm">Shell Tools</div>
-              <div class="text-tn-sub text-xs mt-0.5">lsd · Starship · Fastfetch · CodexBar</div>
-            </div>
+            <div><div class="font-semibold text-tn-fg text-sm">Shell Tools</div><div class="text-tn-sub text-xs mt-0.5">lsd · Starship · Fastfetch · CodexBar</div></div>
           </a>
           <a href="#zsh" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-yellow/50 no-underline">
             <i data-lucide="settings-2" class="w-5 h-5 text-tn-yellow mt-0.5 shrink-0"></i>
-            <div>
-              <div class="font-semibold text-tn-fg text-sm">Zsh</div>
-              <div class="text-tn-sub text-xs mt-0.5">Starship · fzf · aliases · plugins</div>
-            </div>
+            <div><div class="font-semibold text-tn-fg text-sm">Zsh</div><div class="text-tn-sub text-xs mt-0.5">Starship · fzf · aliases · plugins</div></div>
           </a>
           <a href="#fish" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start transition-all duration-200 hover:border-tn-orange/50 no-underline">
             <i data-lucide="waves" class="w-5 h-5 text-tn-orange mt-0.5 shrink-0"></i>
-            <div>
-              <div class="font-semibold text-tn-fg text-sm">Fish</div>
-              <div class="text-tn-sub text-xs mt-0.5">Starship · lsd · git aliases</div>
-            </div>
+            <div><div class="font-semibold text-tn-fg text-sm">Fish</div><div class="text-tn-sub text-xs mt-0.5">Starship · lsd · git aliases</div></div>
           </a>
         </div>
       </section>
 
-      <!-- Quick Install -->
+      <!-- ── Quick Install ─────────────────────────────────────────────────── -->
       <section id="install" class="section-fade mb-16">
         <h2 class="section-title">Quick Install</h2>
         <p class="text-tn-sub mb-4">Clone the repo, run the script. It handles Homebrew, packages, symlinks, and shell config.</p>
+
+        <div class="mb-4 bg-tn-bg2 border border-tn-yellow/30 rounded-xl p-4 flex gap-3">
+          <i data-lucide="triangle-alert" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">After install, <strong class="text-tn-fg">open a new terminal tab</strong> and <strong class="text-tn-fg">log out / log back in</strong> so AeroSpace and SketchyBar launch at login.</div>
+        </div>
+
         <div class="code-block-wrap">
           <div class="code-header">
             <span class="text-tn-sub text-xs">bash</span>
@@ -325,35 +196,22 @@ chmod +x install.sh
 
         <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="code-block-wrap">
-            <div class="code-header">
-              <span class="text-tn-sub text-xs">Preview changes (dry run)</span>
-              <button class="copy-btn" data-code="./install.sh --dry-run">Copy</button>
-            </div>
+            <div class="code-header"><span class="text-tn-sub text-xs">Preview changes (dry run)</span><button class="copy-btn" data-code="./install.sh --dry-run">Copy</button></div>
             <pre class="code-body"><span class="text-tn-green">./install.sh</span> --dry-run</pre>
           </div>
           <div class="code-block-wrap">
-            <div class="code-header">
-              <span class="text-tn-sub text-xs">Help</span>
-              <button class="copy-btn" data-code="./install.sh --help">Copy</button>
-            </div>
+            <div class="code-header"><span class="text-tn-sub text-xs">Help</span><button class="copy-btn" data-code="./install.sh --help">Copy</button></div>
             <pre class="code-body"><span class="text-tn-green">./install.sh</span> --help</pre>
           </div>
         </div>
 
-        <div class="mt-6 bg-tn-bg2 border border-tn-yellow/30 rounded-xl p-4 flex gap-3">
-          <i data-lucide="triangle-alert" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
-          <div class="text-sm text-tn-sub">
-            After install, <strong class="text-tn-fg">open a new terminal tab</strong> and <strong class="text-tn-fg">log out / log back in</strong> so AeroSpace and SketchyBar launch at login.
-          </div>
-        </div>
       </section>
 
-      <!-- Applications -->
+      <!-- ── Applications ──────────────────────────────────────────────────── -->
       <section id="apps" class="section-fade mb-16">
         <h2 class="section-title">Applications</h2>
-        <p class="text-tn-sub mb-6">Every tool used across the Zsh and Fish shell configs. All installable via Homebrew — the install script handles the full list automatically.</p>
+        <p class="text-tn-sub mb-6">Every tool used across the Zsh and Fish shell configs. All installable via Homebrew.</p>
 
-        <!-- One-shot install -->
         <div class="code-block-wrap mb-8">
           <div class="code-header">
             <span class="text-tn-sub text-xs">Install everything at once</span>
@@ -367,156 +225,68 @@ npm install -g @anthropic-ai/claude-code">Copy</button>
 <span class="text-tn-blue">npm</span> install -g @anthropic-ai/claude-code</pre>
         </div>
 
-        <!-- CLI tools -->
         <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">CLI Tools</h3>
         <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
           <table>
             <thead><tr><th>Tool</th><th>Purpose</th><th>Install</th></tr></thead>
             <tbody>
-              <tr>
-                <td class="font-mono text-tn-blue text-xs">starship</td>
-                <td class="text-tn-sub">Cross-shell prompt (used in both Zsh and Fish)</td>
-                <td><button class="copy-btn" data-code="brew install starship">brew install starship</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-blue text-xs">fastfetch</td>
-                <td class="text-tn-sub">System info displayed on every shell open</td>
-                <td><button class="copy-btn" data-code="brew install fastfetch">brew install fastfetch</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-blue text-xs">bat</td>
-                <td class="text-tn-sub">Syntax-highlighted cat replacement (<code class="inline-code">cat</code> alias)</td>
-                <td><button class="copy-btn" data-code="brew install bat">brew install bat</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-blue text-xs">eza</td>
-                <td class="text-tn-sub">Modern ls with icons (<code class="inline-code">ls</code> alias)</td>
-                <td><button class="copy-btn" data-code="brew install eza">brew install eza</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-blue text-xs">lsd</td>
-                <td class="text-tn-sub">Alternative ls replacement (referenced in Fish aliases)</td>
-                <td><button class="copy-btn" data-code="brew install lsd">brew install lsd</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-blue text-xs">fzf</td>
-                <td class="text-tn-sub">Fuzzy finder — Ctrl+R history, Ctrl+T file search</td>
-                <td><button class="copy-btn" data-code="brew install fzf">brew install fzf</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-blue text-xs">thefuck</td>
-                <td class="text-tn-sub">Corrects previous mistyped command</td>
-                <td><button class="copy-btn" data-code="brew install thefuck">brew install thefuck</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-blue text-xs">scrcpy</td>
-                <td class="text-tn-sub">Android screen mirror / recording (<code class="inline-code">scrcpy120</code> alias)</td>
-                <td><button class="copy-btn" data-code="brew install scrcpy">brew install scrcpy</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-blue text-xs">fish</td>
-                <td class="text-tn-sub">Friendly interactive shell</td>
-                <td><button class="copy-btn" data-code="brew install fish">brew install fish</button></td>
-              </tr>
+              <tr><td class="font-mono text-tn-blue text-xs">starship</td><td class="text-tn-sub">Cross-shell prompt (Zsh and Fish)</td><td><button class="copy-btn" data-code="brew install starship">brew install starship</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">fastfetch</td><td class="text-tn-sub">System info on every shell open</td><td><button class="copy-btn" data-code="brew install fastfetch">brew install fastfetch</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">bat</td><td class="text-tn-sub">Syntax-highlighted <code class="inline-code">cat</code> replacement</td><td><button class="copy-btn" data-code="brew install bat">brew install bat</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">eza</td><td class="text-tn-sub">Modern <code class="inline-code">ls</code> with icons</td><td><button class="copy-btn" data-code="brew install eza">brew install eza</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">lsd</td><td class="text-tn-sub">Alternative ls replacement (Fish aliases)</td><td><button class="copy-btn" data-code="brew install lsd">brew install lsd</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">fzf</td><td class="text-tn-sub">Fuzzy finder — Ctrl+R history, Ctrl+T files</td><td><button class="copy-btn" data-code="brew install fzf">brew install fzf</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">thefuck</td><td class="text-tn-sub">Corrects previous mistyped command</td><td><button class="copy-btn" data-code="brew install thefuck">brew install thefuck</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">scrcpy</td><td class="text-tn-sub">Android screen mirror / recording</td><td><button class="copy-btn" data-code="brew install scrcpy">brew install scrcpy</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">fish</td><td class="text-tn-sub">Friendly interactive shell</td><td><button class="copy-btn" data-code="brew install fish">brew install fish</button></td></tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Runtime managers -->
         <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Runtime Managers</h3>
         <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
           <table>
             <thead><tr><th>Tool</th><th>Purpose</th><th>Install</th></tr></thead>
             <tbody>
-              <tr>
-                <td class="font-mono text-tn-purple text-xs">rbenv</td>
-                <td class="text-tn-sub">Ruby version manager</td>
-                <td><button class="copy-btn" data-code="brew install rbenv">brew install rbenv</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-purple text-xs">nvm</td>
-                <td class="text-tn-sub">Node version manager (Zsh). Fish: use <code class="inline-code">nvm.fish</code> plugin</td>
-                <td><button class="copy-btn" data-code="brew install nvm">brew install nvm</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-purple text-xs">bun</td>
-                <td class="text-tn-sub">Fast JavaScript runtime and package manager</td>
-                <td><button class="copy-btn" data-code="brew install bun">brew install bun</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-purple text-xs">openjdk@17</td>
-                <td class="text-tn-sub">Java 17 (required for Flutter / Android builds)</td>
-                <td><button class="copy-btn" data-code="brew install openjdk@17">brew install openjdk@17</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-purple text-xs">conda</td>
-                <td class="text-tn-sub">Python environment manager (Anaconda distribution)</td>
-                <td><button class="copy-btn" data-code="brew install --cask anaconda">brew install --cask anaconda</button></td>
-              </tr>
+              <tr><td class="font-mono text-tn-purple text-xs">rbenv</td><td class="text-tn-sub">Ruby version manager</td><td><button class="copy-btn" data-code="brew install rbenv">brew install rbenv</button></td></tr>
+              <tr><td class="font-mono text-tn-purple text-xs">nvm</td><td class="text-tn-sub">Node version manager (Zsh)</td><td><button class="copy-btn" data-code="brew install nvm">brew install nvm</button></td></tr>
+              <tr><td class="font-mono text-tn-purple text-xs">bun</td><td class="text-tn-sub">Fast JavaScript runtime and package manager</td><td><button class="copy-btn" data-code="brew install bun">brew install bun</button></td></tr>
+              <tr><td class="font-mono text-tn-purple text-xs">openjdk@17</td><td class="text-tn-sub">Java 17 (required for Flutter / Android builds)</td><td><button class="copy-btn" data-code="brew install openjdk@17">brew install openjdk@17</button></td></tr>
+              <tr><td class="font-mono text-tn-purple text-xs">conda</td><td class="text-tn-sub">Python environment manager (Anaconda)</td><td><button class="copy-btn" data-code="brew install --cask anaconda">brew install --cask anaconda</button></td></tr>
             </tbody>
           </table>
         </div>
 
-        <!-- GUI Apps -->
         <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">GUI Apps</h3>
         <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
           <table>
             <thead><tr><th>App</th><th>Purpose</th><th>Install</th></tr></thead>
             <tbody>
-              <tr>
-                <td class="font-mono text-tn-cyan text-xs">flutter</td>
-                <td class="text-tn-sub">Flutter SDK — cross-platform mobile / desktop framework</td>
-                <td><button class="copy-btn" data-code="brew install --cask flutter">brew install --cask flutter</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-cyan text-xs">lm-studio</td>
-                <td class="text-tn-sub">Run local LLMs — CLI via <code class="inline-code">lms</code></td>
-                <td><button class="copy-btn" data-code="brew install --cask lm-studio">brew install --cask lm-studio</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-cyan text-xs">windsurf</td>
-                <td class="text-tn-sub">AI-powered IDE by Codeium</td>
-                <td><button class="copy-btn" data-code="brew install --cask windsurf">brew install --cask windsurf</button></td>
-              </tr>
+              <tr><td class="font-mono text-tn-cyan text-xs">flutter</td><td class="text-tn-sub">Flutter SDK — cross-platform mobile / desktop</td><td><button class="copy-btn" data-code="brew install --cask flutter">brew install --cask flutter</button></td></tr>
+              <tr><td class="font-mono text-tn-cyan text-xs">lm-studio</td><td class="text-tn-sub">Run local LLMs — CLI via <code class="inline-code">lms</code></td><td><button class="copy-btn" data-code="brew install --cask lm-studio">brew install --cask lm-studio</button></td></tr>
+              <tr><td class="font-mono text-tn-cyan text-xs">windsurf</td><td class="text-tn-sub">AI-powered IDE by Codeium</td><td><button class="copy-btn" data-code="brew install --cask windsurf">brew install --cask windsurf</button></td></tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Not on Homebrew -->
         <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Manually Installed</h3>
         <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
           <table>
             <thead><tr><th>Tool</th><th>How to install</th></tr></thead>
             <tbody>
-              <tr>
-                <td class="font-mono text-tn-yellow text-xs">claude (cc)</td>
-                <td><button class="copy-btn" data-code="npm install -g @anthropic-ai/claude-code">npm install -g @anthropic-ai/claude-code</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-yellow text-xs">nvm.fish</td>
-                <td><button class="copy-btn" data-code="fisher install jorgebucaran/nvm.fish">fisher install jorgebucaran/nvm.fish</button></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-yellow text-xs">opencode</td>
-                <td class="text-tn-sub">Install from <code class="inline-code">opencode.ai</code></td>
-              </tr>
-              <tr>
-                <td class="font-mono text-tn-yellow text-xs">kiro</td>
-                <td class="text-tn-sub">AI IDE — install from <code class="inline-code">kiro.dev</code></td>
-              </tr>
+              <tr><td class="font-mono text-tn-yellow text-xs">claude (cc)</td><td><button class="copy-btn" data-code="npm install -g @anthropic-ai/claude-code">npm install -g @anthropic-ai/claude-code</button></td></tr>
+              <tr><td class="font-mono text-tn-yellow text-xs">nvm.fish</td><td><button class="copy-btn" data-code="fisher install jorgebucaran/nvm.fish">fisher install jorgebucaran/nvm.fish</button></td></tr>
+              <tr><td class="font-mono text-tn-yellow text-xs">opencode</td><td class="text-tn-sub">Install from <code class="inline-code">opencode.ai</code></td></tr>
+              <tr><td class="font-mono text-tn-yellow text-xs">kiro</td><td class="text-tn-sub">AI IDE — install from <code class="inline-code">kiro.dev</code></td></tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- Symlinks -->
+      <!-- ── Symlinks ───────────────────────────────────────────────────────── -->
       <section id="symlinks" class="section-fade mb-16">
         <h2 class="section-title">How Symlinks Work</h2>
-        <p class="text-tn-sub mb-4">
-          The dotfiles repo <em class="text-tn-fg not-italic font-medium">is</em> the source of truth.
-          Every config file is symlinked from <code class="inline-code">~/.config/</code> back into this repo —
-          so edits are instantly live <em>and</em> automatically tracked by git.
-        </p>
+        <p class="text-tn-sub mb-4">The dotfiles repo <em class="text-tn-fg not-italic font-medium">is</em> the source of truth. Every config file is symlinked from <code class="inline-code">~/.config/</code> back into this repo — so edits are instantly live and automatically tracked by git.</p>
         <div class="code-block-wrap">
           <div class="code-header"><span class="text-tn-sub text-xs">symlink map</span></div>
           <pre class="code-body"><span class="text-tn-blue">~/.config/sketchybar</span>             <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/sketchybar/</span>
@@ -535,7 +305,9 @@ npm install -g @anthropic-ai/claude-code">Copy</button>
 readlink ~/.config/aerospace/aerospace.toml
 readlink ~/.config/ghostty/config
 readlink ~/.config/starship.toml
-readlink ~/.config/lsd/config.yaml">Copy</button>
+readlink ~/.config/lsd/config.yaml
+readlink ~/.zshrc
+readlink ~/.config/fish/config.fish">Copy</button>
           </div>
           <pre class="code-body"><span class="text-tn-blue">readlink</span> ~/.config/sketchybar
 <span class="text-tn-blue">readlink</span> ~/.config/aerospace/aerospace.toml
@@ -547,7 +319,7 @@ readlink ~/.config/lsd/config.yaml">Copy</button>
         </div>
       </section>
 
-      <!-- SketchyBar -->
+      <!-- ── SketchyBar ─────────────────────────────────────────────────────── -->
       <section id="sketchybar" class="section-fade mb-16">
         <div class="flex items-center gap-3 mb-2">
           <i data-lucide="palette" class="w-6 h-6 text-tn-blue shrink-0"></i>
@@ -555,7 +327,6 @@ readlink ~/.config/lsd/config.yaml">Copy</button>
         </div>
         <p class="text-tn-sub mb-6">Floating, notch-aware menu bar replacement. Two frosted-glass pills sit on either side of the MacBook notch.</p>
 
-        <!-- Features list -->
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
           <div class="bg-tn-bg2 border border-tn-border rounded-lg p-3 text-center">
             <div class="text-tn-blue font-mono text-xs mb-1">SPACES</div>
@@ -599,47 +370,36 @@ sketchybar --reload">Copy</button>
 <span class="text-tn-blue">sketchybar</span> --reload</pre>
         </div>
 
-        <!-- Reload commands -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">Reload config</span><button class="copy-btn" data-code="sketchybar --reload">Copy</button></div>
-            <pre class="code-body"><span class="text-tn-blue">sketchybar</span> --reload</pre>
-          </div>
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">Restart service</span><button class="copy-btn" data-code="brew services restart sketchybar">Copy</button></div>
-            <pre class="code-body"><span class="text-tn-blue">brew</span> services restart sketchybar</pre>
-          </div>
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">Check status</span><button class="copy-btn" data-code="brew services list | grep sketchybar">Copy</button></div>
-            <pre class="code-body"><span class="text-tn-blue">brew</span> services list | grep sketchybar</pre>
-          </div>
+          <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Reload config</span><button class="copy-btn" data-code="sketchybar --reload">Copy</button></div><pre class="code-body"><span class="text-tn-blue">sketchybar</span> --reload</pre></div>
+          <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Restart service</span><button class="copy-btn" data-code="brew services restart sketchybar">Copy</button></div><pre class="code-body"><span class="text-tn-blue">brew</span> services restart sketchybar</pre></div>
+          <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Check status</span><button class="copy-btn" data-code="brew services list | grep sketchybar">Copy</button></div><pre class="code-body"><span class="text-tn-blue">brew</span> services list | grep sketchybar</pre></div>
         </div>
 
-        <!-- Color scheme -->
         <h3 class="text-tn-fg font-semibold mb-3 text-sm uppercase tracking-wider text-tn-sub">Color Scheme</h3>
-        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-2">
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
           <table>
             <thead><tr><th>Variable</th><th>Color</th><th>Use</th></tr></thead>
             <tbody>
-              <tr><td class="font-mono text-tn-sub text-xs">BAR_COLOR</td><td><span class="color-swatch" style="background:#1a1b26"></span> <span class="text-tn-fg">#1a1b26</span></td><td class="text-tn-sub">Bar / pill background</td></tr>
-              <tr><td class="font-mono text-tn-sub text-xs">ACCENT_COLOR</td><td><span class="color-swatch" style="background:#7aa2f7"></span> <span class="text-tn-blue">#7aa2f7</span></td><td class="text-tn-sub">Active space · Wi-Fi</td></tr>
-              <tr><td class="font-mono text-tn-sub text-xs">PURPLE</td><td><span class="color-swatch" style="background:#bb9af7"></span> <span class="text-tn-purple">#bb9af7</span></td><td class="text-tn-sub">Calendar icon</td></tr>
-              <tr><td class="font-mono text-tn-sub text-xs">CYAN</td><td><span class="color-swatch" style="background:#7dcfff"></span> <span class="text-tn-cyan">#7dcfff</span></td><td class="text-tn-sub">Volume icon</td></tr>
-              <tr><td class="font-mono text-tn-sub text-xs">GREEN</td><td><span class="color-swatch" style="background:#9ece6a"></span> <span class="text-tn-green">#9ece6a</span></td><td class="text-tn-sub">Battery full · AI low</td></tr>
-              <tr><td class="font-mono text-tn-sub text-xs">YELLOW</td><td><span class="color-swatch" style="background:#e0af68"></span> <span class="text-tn-yellow">#e0af68</span></td><td class="text-tn-sub">Battery mid · AI mid</td></tr>
-              <tr><td class="font-mono text-tn-sub text-xs">RED</td><td><span class="color-swatch" style="background:#f7768e"></span> <span class="text-tn-red">#f7768e</span></td><td class="text-tn-sub">Battery low · AI high</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">BAR_COLOR</td><td><span class="color-swatch" style="background:#1a1b26"></span><span class="text-tn-fg">#1a1b26</span></td><td class="text-tn-sub">Bar / pill background</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">ACCENT_COLOR</td><td><span class="color-swatch" style="background:#7aa2f7"></span><span class="text-tn-blue">#7aa2f7</span></td><td class="text-tn-sub">Active space · Wi-Fi</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">PURPLE</td><td><span class="color-swatch" style="background:#bb9af7"></span><span class="text-tn-purple">#bb9af7</span></td><td class="text-tn-sub">Calendar icon</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">CYAN</td><td><span class="color-swatch" style="background:#7dcfff"></span><span class="text-tn-cyan">#7dcfff</span></td><td class="text-tn-sub">Volume icon</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">GREEN</td><td><span class="color-swatch" style="background:#9ece6a"></span><span class="text-tn-green">#9ece6a</span></td><td class="text-tn-sub">Battery full · AI low</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">YELLOW</td><td><span class="color-swatch" style="background:#e0af68"></span><span class="text-tn-yellow">#e0af68</span></td><td class="text-tn-sub">Battery mid · AI mid</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">RED</td><td><span class="color-swatch" style="background:#f7768e"></span><span class="text-tn-red">#f7768e</span></td><td class="text-tn-sub">Battery low · AI high</td></tr>
             </tbody>
           </table>
         </div>
       </section>
 
-      <!-- AeroSpace -->
+      <!-- ── AeroSpace ──────────────────────────────────────────────────────── -->
       <section id="aerospace" class="section-fade mb-16">
         <div class="flex items-center gap-3 mb-2">
           <i data-lucide="layout-grid" class="w-6 h-6 text-tn-purple shrink-0"></i>
           <h2 class="section-title mb-0">AeroSpace</h2>
         </div>
-        <p class="text-tn-sub mb-6">i3-inspired tiling window manager for macOS. Vim-style keybindings, workspace-based layout.</p>
+        <p class="text-tn-sub mb-6">i3-inspired tiling window manager for macOS. Vim-style keybindings, workspace-based layout. Supports dual-monitor profiles via <code class="inline-code">aerospace-sync</code>.</p>
 
         <div class="code-block-wrap mb-6">
           <div class="code-header">
@@ -655,8 +415,7 @@ ln -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml">C
 <span class="text-tn-blue">ln</span> -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml</pre>
         </div>
 
-        <!-- Keybindings tabs -->
-        <div class="mb-2">
+        <div class="mb-6">
           <div class="flex gap-1 mb-3" id="aerospace-tabs">
             <button class="tab-btn active-tab" data-tab="aerospace-nav">Navigation</button>
             <button class="tab-btn" data-tab="aerospace-ws">Workspaces</button>
@@ -669,8 +428,8 @@ ln -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml">C
               <tbody>
                 <tr><td><kbd>Alt + H/J/K/L</kbd></td><td class="text-tn-sub">Focus window left / down / up / right</td></tr>
                 <tr><td><kbd>Alt + Shift + H/J/K/L</kbd></td><td class="text-tn-sub">Move window</td></tr>
-                <tr><td><kbd>Alt + /</kbd></td><td class="text-tn-sub">Toggle tile layout</td></tr>
-                <tr><td><kbd>Alt + ,</kbd></td><td class="text-tn-sub">Toggle accordion layout</td></tr>
+                <tr><td><kbd>Alt + T</kbd></td><td class="text-tn-sub">Horizontal tiles (side-by-side)</td></tr>
+                <tr><td><kbd>Alt + F</kbd></td><td class="text-tn-sub">Toggle floating / tiling</td></tr>
                 <tr><td><kbd>Alt + Shift + -</kbd></td><td class="text-tn-sub">Resize smart –50</td></tr>
                 <tr><td><kbd>Alt + Shift + =</kbd></td><td class="text-tn-sub">Resize smart +50</td></tr>
               </tbody>
@@ -685,6 +444,7 @@ ln -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml">C
                 <tr><td><kbd>Alt + Shift + 1–9</kbd></td><td class="text-tn-sub">Move window to workspace</td></tr>
                 <tr><td><kbd>Alt + Tab</kbd></td><td class="text-tn-sub">Previous workspace (back and forth)</td></tr>
                 <tr><td><kbd>Alt + Shift + Tab</kbd></td><td class="text-tn-sub">Move workspace to next monitor</td></tr>
+                <tr><td><kbd>Alt + D</kbd></td><td class="text-tn-sub">Sync profile (laptop / docked auto-detect)</td></tr>
               </tbody>
             </table>
           </div>
@@ -703,7 +463,7 @@ ln -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml">C
           </div>
         </div>
 
-        <div class="mt-4 bg-tn-bg2 border border-tn-blue/20 rounded-xl p-4 flex gap-3">
+        <div class="bg-tn-bg2 border border-tn-blue/20 rounded-xl p-4 flex gap-3">
           <i data-lucide="info" class="w-5 h-5 text-tn-blue shrink-0 mt-0.5"></i>
           <div class="text-sm text-tn-sub">
             <strong class="text-tn-fg">Ghostty tabs</strong> are OS-level windows. AeroSpace floats post-startup Ghostty windows automatically so new tabs don't break your layout. Use <kbd>⌘ D</kbd> / <kbd>⌘ ⇧ D</kbd> for splits inside a single tile.
@@ -711,7 +471,123 @@ ln -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml">C
         </div>
       </section>
 
-      <!-- Ghostty -->
+      <!-- ── Multi-Config Profiles ──────────────────────────────────────────── -->
+      <section id="profiles" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="monitor" class="w-6 h-6 text-tn-cyan shrink-0"></i>
+          <h2 class="section-title mb-0">Multi-Config Profiles</h2>
+        </div>
+        <p class="text-tn-sub mb-4">AeroSpace has no per-monitor gap support, so two separate config files handle the different setups. The <code class="inline-code">aerospace-sync</code> script auto-detects your monitor count and applies the right profile.</p>
+
+        <div class="mb-6 bg-tn-bg2 border border-tn-yellow/30 rounded-xl p-4 flex gap-3">
+          <i data-lucide="triangle-alert" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">In System Settings → Displays, drag the menu bar to your preferred external monitor so it is always <code class="inline-code">main</code> when docked. This is required for workspace-to-monitor assignments to be consistent.</div>
+        </div>
+
+        <!-- Profile comparison -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div class="profile-card">
+            <div class="profile-card-header">
+              <i data-lucide="laptop" class="w-5 h-5 text-tn-blue shrink-0"></i>
+              <div>
+                <div class="font-semibold text-tn-fg text-sm">Laptop Profile</div>
+                <div class="text-tn-sub text-xs font-mono">aerospace/laptop.toml</div>
+              </div>
+            </div>
+            <div class="profile-card-body">
+              <div class="profile-stat"><span class="profile-stat-key">outer.top</span><span class="profile-stat-val text-tn-blue">8</span></div>
+              <div class="profile-stat"><span class="profile-stat-key">workspace assignment</span><span class="profile-stat-val text-tn-sub">none</span></div>
+              <div class="profile-stat"><span class="profile-stat-key">monitors</span><span class="profile-stat-val text-tn-blue">1 (built-in)</span></div>
+              <p class="text-tn-sub text-xs mt-3">macOS manages the notch offset automatically. Minimal top gap keeps content flush to the bar.</p>
+            </div>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card-header">
+              <i data-lucide="monitor" class="w-5 h-5 text-tn-purple shrink-0"></i>
+              <div>
+                <div class="font-semibold text-tn-fg text-sm">Docked Profile</div>
+                <div class="text-tn-sub text-xs font-mono">aerospace/docked.toml</div>
+              </div>
+            </div>
+            <div class="profile-card-body">
+              <div class="profile-stat"><span class="profile-stat-key">outer.top</span><span class="profile-stat-val text-tn-purple">35</span></div>
+              <div class="profile-stat"><span class="profile-stat-key">workspaces 1–5</span><span class="profile-stat-val text-tn-purple">main monitor</span></div>
+              <div class="profile-stat"><span class="profile-stat-key">workspaces 6–9</span><span class="profile-stat-val text-tn-purple">secondary monitor</span></div>
+              <p class="text-tn-sub text-xs mt-3">Top gap of 35px clears SketchyBar (height 36 + margin 10, bottom at y=46) on external monitors.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 ways to switch -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-4">Three Ways to Switch</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div class="switch-card">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="terminal" class="w-4 h-4 text-tn-green shrink-0"></i>
+              <span class="font-semibold text-tn-fg text-sm">Terminal</span>
+            </div>
+            <p class="text-tn-sub text-xs mb-3">Run either alias from Zsh or Fish. Both call the same script.</p>
+            <div class="code-block-wrap">
+              <div class="code-header"><button class="copy-btn" data-code="dock">Copy</button></div>
+              <pre class="code-body text-xs"><span class="text-tn-green">dock</span>    <span class="text-tn-sub"># or undock</span></pre>
+            </div>
+          </div>
+          <div class="switch-card">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="keyboard" class="w-4 h-4 text-tn-blue shrink-0"></i>
+              <span class="font-semibold text-tn-fg text-sm">Keybinding</span>
+            </div>
+            <p class="text-tn-sub text-xs mb-3">Works from anywhere — no terminal needed. Bound directly in AeroSpace.</p>
+            <div class="bg-tn-bg3 rounded-lg px-4 py-3 flex items-center justify-center">
+              <kbd class="text-base">Alt + D</kbd>
+            </div>
+          </div>
+          <div class="switch-card">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="cpu" class="w-4 h-4 text-tn-purple shrink-0"></i>
+              <span class="font-semibold text-tn-fg text-sm">Auto-detect</span>
+            </div>
+            <p class="text-tn-sub text-xs mb-3">The script counts connected monitors and picks the right profile every time.</p>
+            <div class="code-block-wrap">
+              <div class="code-header"><button class="copy-btn" data-code="aerospace-sync">Copy</button></div>
+              <pre class="code-body text-xs"><span class="text-tn-blue">aerospace-sync</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- How the script works -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">How aerospace-sync Works</h3>
+        <div class="code-block-wrap mb-4">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">bin/aerospace-sync</span>
+            <button class="copy-btn" data-code="ln -sf ~/dotfiles/bin/aerospace-sync ~/.local/bin/aerospace-sync
+chmod +x ~/.local/bin/aerospace-sync">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-sub"># Counts monitors via aerospace list-monitors</span>
+<span class="text-tn-sub"># 1 monitor  →  copies laptop.toml  →  outer.top = 8</span>
+<span class="text-tn-sub"># 2+ monitors →  copies docked.toml →  outer.top = 35, workspace assignments</span>
+
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/bin/aerospace-sync ~/.local/bin/aerospace-sync
+<span class="text-tn-blue">chmod</span> +x ~/.local/bin/aerospace-sync</pre>
+        </div>
+
+        <!-- Shell aliases -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">Zsh aliases (~/.zshrc)</span></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">alias</span> dock=<span class="text-tn-green">'aerospace-sync'</span>
+<span class="text-tn-blue">alias</span> undock=<span class="text-tn-green">'aerospace-sync'</span></pre>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">Fish aliases (config.fish)</span></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">alias</span> dock=<span class="text-tn-green">'aerospace-sync'</span>
+<span class="text-tn-blue">alias</span> undock=<span class="text-tn-green">'aerospace-sync'</span></pre>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── Ghostty ────────────────────────────────────────────────────────── -->
       <section id="ghostty" class="section-fade mb-16">
         <div class="flex items-center gap-3 mb-2">
           <i data-lucide="terminal" class="w-6 h-6 text-tn-cyan shrink-0"></i>
@@ -731,7 +607,6 @@ ln -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config">Copy</button>
 <span class="text-tn-blue">ln</span> -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config</pre>
         </div>
 
-        <!-- Features table -->
         <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
           <table>
             <thead><tr><th>Feature</th><th>Value</th></tr></thead>
@@ -746,7 +621,6 @@ ln -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config">Copy</button>
           </table>
         </div>
 
-        <!-- Keybindings tabs -->
         <div class="flex gap-1 mb-3" id="ghostty-tabs">
           <button class="tab-btn active-tab" data-tab="ghostty-tabs-panel">Tabs</button>
           <button class="tab-btn" data-tab="ghostty-splits">Splits</button>
@@ -754,45 +628,34 @@ ln -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config">Copy</button>
         </div>
 
         <div id="ghostty-tabs-panel" class="tab-panel bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
-          <table>
-            <thead><tr><th>Key</th><th>Action</th></tr></thead>
-            <tbody>
-              <tr><td><kbd>⌘ T</kbd></td><td class="text-tn-sub">New tab</td></tr>
-              <tr><td><kbd>⌘ W</kbd></td><td class="text-tn-sub">Close tab / split</td></tr>
-              <tr><td><kbd>⌘ ]</kbd> / <kbd>⌘ [</kbd></td><td class="text-tn-sub">Next / previous tab</td></tr>
-              <tr><td><kbd>⌘ 1–8</kbd></td><td class="text-tn-sub">Jump to tab</td></tr>
-              <tr><td><kbd>Ctrl + Tab</kbd></td><td class="text-tn-sub">Next tab</td></tr>
-            </tbody>
-          </table>
+          <table><thead><tr><th>Key</th><th>Action</th></tr></thead><tbody>
+            <tr><td><kbd>⌘ T</kbd></td><td class="text-tn-sub">New tab</td></tr>
+            <tr><td><kbd>⌘ W</kbd></td><td class="text-tn-sub">Close tab / split</td></tr>
+            <tr><td><kbd>⌘ ]</kbd> / <kbd>⌘ [</kbd></td><td class="text-tn-sub">Next / previous tab</td></tr>
+            <tr><td><kbd>⌘ 1–8</kbd></td><td class="text-tn-sub">Jump to tab</td></tr>
+            <tr><td><kbd>Ctrl + Tab</kbd></td><td class="text-tn-sub">Next tab</td></tr>
+          </tbody></table>
         </div>
-
         <div id="ghostty-splits" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
-          <table>
-            <thead><tr><th>Key</th><th>Action</th></tr></thead>
-            <tbody>
-              <tr><td><kbd>⌘ D</kbd></td><td class="text-tn-sub">Split right</td></tr>
-              <tr><td><kbd>⌘ ⇧ D</kbd></td><td class="text-tn-sub">Split down</td></tr>
-              <tr><td><kbd>⌘ ⌥ H/J/K/L</kbd></td><td class="text-tn-sub">Navigate splits</td></tr>
-            </tbody>
-          </table>
+          <table><thead><tr><th>Key</th><th>Action</th></tr></thead><tbody>
+            <tr><td><kbd>⌘ D</kbd></td><td class="text-tn-sub">Split right</td></tr>
+            <tr><td><kbd>⌘ ⇧ D</kbd></td><td class="text-tn-sub">Split down</td></tr>
+            <tr><td><kbd>⌘ ⌥ H/J/K/L</kbd></td><td class="text-tn-sub">Navigate splits</td></tr>
+          </tbody></table>
         </div>
-
         <div id="ghostty-misc" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
-          <table>
-            <thead><tr><th>Key</th><th>Action</th></tr></thead>
-            <tbody>
-              <tr><td><kbd>⌘ K</kbd></td><td class="text-tn-sub">Clear screen</td></tr>
-              <tr><td><kbd>⌘ ↩</kbd></td><td class="text-tn-sub">Toggle fullscreen</td></tr>
-              <tr><td><kbd>⌘ =</kbd> / <kbd>⌘ -</kbd></td><td class="text-tn-sub">Font size up / down</td></tr>
-              <tr><td><kbd>⌘ 0</kbd></td><td class="text-tn-sub">Reset font size</td></tr>
-              <tr><td><kbd>⌘ N</kbd></td><td class="text-tn-sub">New window</td></tr>
-              <tr><td><kbd>⌘ ,</kbd></td><td class="text-tn-sub">Open config</td></tr>
-            </tbody>
-          </table>
+          <table><thead><tr><th>Key</th><th>Action</th></tr></thead><tbody>
+            <tr><td><kbd>⌘ K</kbd></td><td class="text-tn-sub">Clear screen</td></tr>
+            <tr><td><kbd>⌘ ↩</kbd></td><td class="text-tn-sub">Toggle fullscreen</td></tr>
+            <tr><td><kbd>⌘ =</kbd> / <kbd>⌘ -</kbd></td><td class="text-tn-sub">Font size up / down</td></tr>
+            <tr><td><kbd>⌘ 0</kbd></td><td class="text-tn-sub">Reset font size</td></tr>
+            <tr><td><kbd>⌘ N</kbd></td><td class="text-tn-sub">New window</td></tr>
+            <tr><td><kbd>⌘ ,</kbd></td><td class="text-tn-sub">Open config</td></tr>
+          </tbody></table>
         </div>
       </section>
 
-      <!-- Shell Tools -->
+      <!-- ── Shell Tools ────────────────────────────────────────────────────── -->
       <section id="shell" class="section-fade mb-16">
         <div class="flex items-center gap-3 mb-2">
           <i data-lucide="layers" class="w-6 h-6 text-tn-green shrink-0"></i>
@@ -801,78 +664,141 @@ ln -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config">Copy</button>
         <p class="text-tn-sub mb-6">lsd · Starship prompt · Fastfetch · CodexBar AI tracker</p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- lsd -->
           <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="text-tn-green font-bold font-mono text-sm">lsd</span>
-              <span class="text-tn-sub text-xs">Modern ls replacement</span>
-            </div>
-            <div class="code-block-wrap">
-              <div class="code-header"><button class="copy-btn" data-code="brew install lsd
+            <div class="flex items-center gap-2 mb-3"><span class="text-tn-green font-bold font-mono text-sm">lsd</span><span class="text-tn-sub text-xs">Modern ls replacement</span></div>
+            <div class="code-block-wrap"><div class="code-header"><button class="copy-btn" data-code="brew install lsd
 alias ls='lsd'
 alias ll='lsd -la'
 alias lt='lsd --tree'">Copy</button></div>
-              <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install lsd
-<span class="text-tn-sub"># Add to ~/.zshrc</span>
+            <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install lsd
 <span class="text-tn-blue">alias</span> ls=<span class="text-tn-green">'lsd'</span>
 <span class="text-tn-blue">alias</span> ll=<span class="text-tn-green">'lsd -la'</span>
-<span class="text-tn-blue">alias</span> lt=<span class="text-tn-green">'lsd --tree'</span></pre>
-            </div>
+<span class="text-tn-blue">alias</span> lt=<span class="text-tn-green">'lsd --tree'</span></pre></div>
           </div>
-
-          <!-- Starship -->
           <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="text-tn-yellow font-bold font-mono text-sm">starship</span>
-              <span class="text-tn-sub text-xs">Cross-shell prompt</span>
-            </div>
-            <div class="code-block-wrap">
-              <div class="code-header"><button class="copy-btn" data-code="brew install starship
+            <div class="flex items-center gap-2 mb-3"><span class="text-tn-yellow font-bold font-mono text-sm">starship</span><span class="text-tn-sub text-xs">Cross-shell prompt</span></div>
+            <div class="code-block-wrap"><div class="code-header"><button class="copy-btn" data-code="brew install starship
 echo 'eval &quot;$(starship init zsh)&quot;' >> ~/.zshrc">Copy</button></div>
-              <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install starship
-<span class="text-tn-sub"># Add to ~/.zshrc</span>
-<span class="text-tn-blue">eval</span> <span class="text-tn-green">"$(starship init zsh)"</span></pre>
-            </div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install starship
+<span class="text-tn-blue">eval</span> <span class="text-tn-green">"$(starship init zsh)"</span></pre></div>
           </div>
-
-          <!-- Fastfetch -->
           <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="text-tn-cyan font-bold font-mono text-sm">fastfetch</span>
-              <span class="text-tn-sub text-xs">System info on open</span>
-            </div>
-            <div class="code-block-wrap">
-              <div class="code-header"><button class="copy-btn" data-code="brew install fastfetch
-# Add to ~/.zshrc
+            <div class="flex items-center gap-2 mb-3"><span class="text-tn-cyan font-bold font-mono text-sm">fastfetch</span><span class="text-tn-sub text-xs">System info on open</span></div>
+            <div class="code-block-wrap"><div class="code-header"><button class="copy-btn" data-code="brew install fastfetch
 fastfetch">Copy</button></div>
-              <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install fastfetch
-<span class="text-tn-sub"># Add to ~/.zshrc</span>
-fastfetch</pre>
+            <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install fastfetch
+fastfetch <span class="text-tn-sub"># add to .zshrc</span></pre></div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3"><span class="text-tn-purple font-bold font-mono text-sm">codexbar</span><span class="text-tn-sub text-xs">AI token usage tracker</span></div>
+            <p class="text-tn-sub text-xs mb-3">Install from <a href="https://github.com/steipete/CodexBar" target="_blank" rel="noopener noreferrer" class="text-tn-blue hover:underline">github.com/steipete/CodexBar</a>, then log in to Claude and Gemini via the menu bar app.</p>
+            <div class="bg-tn-bg3 rounded-lg px-3 py-2 font-mono text-xs text-tn-sub">codexbar usage --provider claude --format json</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Zsh ───────────────────────────────────────────────────────────── -->
+      <section id="zsh" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="settings-2" class="w-6 h-6 text-tn-yellow shrink-0"></i>
+          <h2 class="section-title mb-0">Zsh</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Default shell on macOS. Starship prompt, fzf fuzzy finder, lsd/eza aliases, git shortcuts, and fastfetch on open.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header"><span class="text-tn-sub text-xs">Setup</span><button class="copy-btn" data-code="ln -sf ~/dotfiles/zsh/.zshrc ~/.zshrc">Copy</button></div>
+          <pre class="code-body"><span class="text-tn-blue">ln</span> -sf ~/dotfiles/zsh/.zshrc ~/.zshrc</pre>
+        </div>
+
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">What's included</h3>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table><thead><tr><th>Feature</th><th>Details</th></tr></thead><tbody>
+            <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — cross-shell, fast, Tokyo Night compatible</td></tr>
+            <tr><td class="text-tn-fg">Fuzzy finder</td><td class="text-tn-sub">fzf with custom Tokyo Night colour scheme</td></tr>
+            <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">eza with icons — <code class="inline-code">ls</code> alias</td></tr>
+            <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — syntax-highlighted output</td></tr>
+            <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch runs on every new shell open</td></tr>
+            <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">nvm · conda · rbenv · bun</td></tr>
+            <tr><td class="text-tn-fg">Plugin</td><td class="text-tn-sub">zsh-autosuggestions</td></tr>
+          </tbody></table>
+        </div>
+
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Aliases</h3>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-4">
+          <table><thead><tr><th>Alias</th><th>Command</th></tr></thead><tbody>
+            <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">eza --icons=always</td></tr>
+            <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
+            <tr><td><code class="inline-code">cc</code></td><td class="text-tn-sub">claude (Claude Code)</td></tr>
+            <tr><td><code class="inline-code">dock / undock</code></td><td class="text-tn-sub">aerospace-sync (profile switch)</td></tr>
+            <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
+            <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
+            <tr><td><code class="inline-code">gc</code></td><td class="text-tn-sub">git clone</td></tr>
+            <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git commit -a</td></tr>
+          </tbody></table>
+        </div>
+
+        <div class="code-block-wrap">
+          <div class="code-header"><span class="text-tn-sub text-xs">Install dependencies</span><button class="copy-btn" data-code="brew install fzf eza bat starship fastfetch zsh-autosuggestions">Copy</button></div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> install fzf eza bat starship fastfetch zsh-autosuggestions</pre>
+        </div>
+      </section>
+
+      <!-- ── Fish ──────────────────────────────────────────────────────────── -->
+      <section id="fish" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="waves" class="w-6 h-6 text-tn-orange shrink-0"></i>
+          <h2 class="section-title mb-0">Fish</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Friendly interactive shell. Starship prompt, lsd for ls, git aliases, conda, and fastfetch — same workflow as Zsh but with fish's autocompletion out of the box.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header"><span class="text-tn-sub text-xs">Setup</span><button class="copy-btn" data-code="brew install fish
+mkdir -p ~/.config/fish
+ln -sf ~/dotfiles/fish/config.fish ~/.config/fish/config.fish
+echo $(which fish) | sudo tee -a /etc/shells
+chsh -s $(which fish)">Copy</button></div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> install fish
+<span class="text-tn-blue">mkdir</span> -p ~/.config/fish
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/fish/config.fish ~/.config/fish/config.fish
+
+<span class="text-tn-sub"># Set as default shell (optional)</span>
+<span class="text-tn-blue">echo</span> $(which fish) | sudo tee -a /etc/shells
+<span class="text-tn-blue">chsh</span> -s $(which fish)</pre>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">What's included</h3>
+            <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+              <table><thead><tr><th>Feature</th><th>Details</th></tr></thead><tbody>
+                <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — <code class="inline-code">starship init fish | source</code></td></tr>
+                <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch on every shell open</td></tr>
+                <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">lsd -al — <code class="inline-code">ls</code> alias</td></tr>
+                <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — <code class="inline-code">cat</code> alias</td></tr>
+                <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">conda · bun · LM Studio</td></tr>
+              </tbody></table>
             </div>
           </div>
-
-          <!-- CodexBar -->
-          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="text-tn-purple font-bold font-mono text-sm">codexbar</span>
-              <span class="text-tn-sub text-xs">AI token usage tracker</span>
-            </div>
-            <p class="text-tn-sub text-xs mb-3">
-              Install from <a href="https://github.com/steipete/CodexBar" target="_blank" rel="noopener noreferrer" class="text-tn-blue hover:underline">github.com/steipete/CodexBar</a>,
-              then log in to Claude and Gemini via the menu bar app.
-              The SketchyBar widget reads live usage automatically.
-            </p>
-            <div class="bg-tn-bg3 rounded-lg px-3 py-2 font-mono text-xs text-tn-sub">
-              codexbar usage --provider claude --format json
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Aliases</h3>
+            <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+              <table><thead><tr><th>Alias</th><th>Command</th></tr></thead><tbody>
+                <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">lsd -al</td></tr>
+                <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
+                <tr><td><code class="inline-code">dock / undock</code></td><td class="text-tn-sub">aerospace-sync</td></tr>
+                <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
+                <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
+                <tr><td><code class="inline-code">gc</code></td><td class="text-tn-sub">git clone</td></tr>
+                <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git commit -a</td></tr>
+              </tbody></table>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Useful Commands -->
+      <!-- ── Useful Commands ────────────────────────────────────────────────── -->
       <section id="commands" class="section-fade mb-16">
         <h2 class="section-title">Useful Commands</h2>
-
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-2">SketchyBar</h3>
@@ -886,130 +812,102 @@ fastfetch</pre>
             <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-2">AeroSpace</h3>
             <div class="flex flex-col gap-2">
               <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Reload config</span><button class="copy-btn" data-code="aerospace reload-config">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">aerospace</span> reload-config</pre></div>
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Sync profile</span><button class="copy-btn" data-code="dock">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-green">dock</span> <span class="text-tn-sub"># or undock</span></pre></div>
               <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">List windows</span><button class="copy-btn" data-code="aerospace list-windows --all">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">aerospace</span> list-windows --all</pre></div>
-              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">List workspaces</span><button class="copy-btn" data-code="aerospace list-workspaces --all">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">aerospace</span> list-workspaces --all</pre></div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Zsh -->
-      <section id="zsh" class="section-fade mb-16">
+      <!-- ── Gallery ────────────────────────────────────────────────────────── -->
+      <section id="gallery" class="section-fade mb-16">
         <div class="flex items-center gap-3 mb-2">
-          <i data-lucide="settings-2" class="w-6 h-6 text-tn-yellow shrink-0"></i>
-          <h2 class="section-title mb-0">Zsh</h2>
+          <i data-lucide="images" class="w-6 h-6 text-tn-purple shrink-0"></i>
+          <h2 class="section-title mb-0">Gallery</h2>
         </div>
-        <p class="text-tn-sub mb-6">Default shell on macOS. Configured with Starship prompt, fzf fuzzy finder, lsd/eza aliases, git shortcuts, and fastfetch on open.</p>
+        <p class="text-tn-sub mb-8">Screenshots of the live setup and downloadable wallpapers. Generated wallpapers export as 4K PNG (3840 x 2160). Click any screenshot to view it full size.</p>
 
-        <div class="code-block-wrap mb-6">
-          <div class="code-header">
-            <span class="text-tn-sub text-xs">Setup</span>
-            <button class="copy-btn" data-code="mkdir -p ~/dotfiles/zsh
-ln -sf ~/dotfiles/zsh/.zshrc ~/.zshrc">Copy</button>
+        <!-- UI Previews -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-4">UI Previews</h3>
+        <div class="gallery-grid mb-10">
+          <div class="gallery-thumb"
+               data-title="SketchyBar"
+               data-sub="Floating notch-aware menu bar · Tokyo Night">
+            <div class="gallery-preview preview-sketchybar" style="width:100%;height:100%;position:relative;">
+              <!-- Replace with: <img src="images/screenshots/sketchybar.png" alt="SketchyBar" /> -->
+              <div style="position:absolute;top:8%;left:5%;right:5%;height:12%;background:rgba(122,162,247,0.12);border-radius:100px;border:1px solid rgba(122,162,247,0.2);"></div>
+              <div style="position:absolute;top:11%;left:8%;width:6%;height:6%;background:rgba(122,162,247,0.4);border-radius:50%;"></div>
+              <div style="position:absolute;top:11%;left:16%;width:6%;height:6%;background:rgba(187,154,247,0.4);border-radius:50%;"></div>
+              <div style="position:absolute;top:11%;right:8%;width:8%;height:6%;background:rgba(158,206,106,0.3);border-radius:4px;"></div>
+            </div>
+            <div class="gallery-thumb-overlay">
+              <div><div class="gallery-thumb-label">SketchyBar</div><div class="gallery-thumb-sub">Menu bar · Tokyo Night</div></div>
+            </div>
           </div>
-          <pre class="code-body"><span class="text-tn-sub"># Symlink your zsh config</span>
-<span class="text-tn-blue">ln</span> -sf ~/dotfiles/zsh/.zshrc ~/.zshrc</pre>
-        </div>
 
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">What's included</h3>
-        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
-          <table>
-            <thead><tr><th>Feature</th><th>Details</th></tr></thead>
-            <tbody>
-              <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — cross-shell, fast, Tokyo Night compatible</td></tr>
-              <tr><td class="text-tn-fg">Fuzzy finder</td><td class="text-tn-sub">fzf with custom Tokyo Night colour scheme</td></tr>
-              <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">eza with icons — <code class="inline-code">ls</code> alias</td></tr>
-              <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — syntax-highlighted output</td></tr>
-              <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch runs on every new shell open</td></tr>
-              <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">nvm · conda · rbenv · bun</td></tr>
-              <tr><td class="text-tn-fg">Plugin</td><td class="text-tn-sub">zsh-autosuggestions</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Aliases</h3>
-        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-4">
-          <table>
-            <thead><tr><th>Alias</th><th>Command</th></tr></thead>
-            <tbody>
-              <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">eza --icons=always</td></tr>
-              <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
-              <tr><td><code class="inline-code">cc</code></td><td class="text-tn-sub">claude (Claude Code)</td></tr>
-              <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
-              <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
-              <tr><td><code class="inline-code">gc</code></td><td class="text-tn-sub">git clone</td></tr>
-              <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git commit -a</td></tr>
-              <tr><td><code class="inline-code">branch</code></td><td class="text-tn-sub">git branch -r</td></tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div class="code-block-wrap">
-          <div class="code-header">
-            <span class="text-tn-sub text-xs">Install dependencies</span>
-            <button class="copy-btn" data-code="brew install fzf eza bat starship fastfetch zsh-autosuggestions">Copy</button>
+          <div class="gallery-thumb"
+               data-title="Ghostty Terminal"
+               data-sub="GPU terminal with Starship prompt and Fastfetch">
+            <div class="gallery-preview preview-terminal" style="width:100%;height:100%;position:relative;padding:10% 8%;">
+              <!-- Replace with: <img src="images/screenshots/terminal.png" alt="Ghostty Terminal" /> -->
+              <div style="height:8%;background:rgba(122,162,247,0.5);border-radius:3px;margin-bottom:4%;width:60%;"></div>
+              <div style="height:5%;background:rgba(158,206,106,0.4);border-radius:3px;margin-bottom:3%;width:80%;"></div>
+              <div style="height:5%;background:rgba(86,95,137,0.5);border-radius:3px;margin-bottom:3%;width:45%;"></div>
+              <div style="height:5%;background:rgba(125,207,255,0.4);border-radius:3px;margin-bottom:3%;width:70%;"></div>
+              <div style="height:5%;background:rgba(86,95,137,0.5);border-radius:3px;width:55%;"></div>
+            </div>
+            <div class="gallery-thumb-overlay">
+              <div><div class="gallery-thumb-label">Ghostty Terminal</div><div class="gallery-thumb-sub">Starship prompt · Fastfetch</div></div>
+            </div>
           </div>
-          <pre class="code-body"><span class="text-tn-blue">brew</span> install fzf eza bat starship fastfetch zsh-autosuggestions</pre>
-        </div>
-      </section>
 
-      <!-- Fish -->
-      <section id="fish" class="section-fade mb-16">
-        <div class="flex items-center gap-3 mb-2">
-          <i data-lucide="waves" class="w-6 h-6 text-tn-orange shrink-0"></i>
-          <h2 class="section-title mb-0">Fish</h2>
-        </div>
-        <p class="text-tn-sub mb-6">Friendly interactive shell. Starship prompt, lsd for ls, git aliases, conda, and fastfetch — same workflow as Zsh but with fish's autocompletion out of the box.</p>
-
-        <div class="code-block-wrap mb-6">
-          <div class="code-header">
-            <span class="text-tn-sub text-xs">Setup</span>
-            <button class="copy-btn" data-code="brew install fish
-mkdir -p ~/.config/fish
-ln -sf ~/dotfiles/fish/config.fish ~/.config/fish/config.fish
-# Register fish as a valid shell (optional)
-echo $(which fish) | sudo tee -a /etc/shells
-chsh -s $(which fish)">Copy</button>
+          <div class="gallery-thumb"
+               data-title="AeroSpace Layout"
+               data-sub="Tiling window manager · dual-monitor setup">
+            <div class="gallery-preview preview-layout" style="width:100%;height:100%;position:relative;">
+              <!-- Replace with: <img src="images/screenshots/layout.png" alt="AeroSpace Layout" /> -->
+              <div style="position:absolute;inset:12% 52% 12% 5%;border:1px solid rgba(65,72,104,0.7);border-radius:5px;background:rgba(36,40,59,0.6);"></div>
+              <div style="position:absolute;inset:12% 5% 55% 52%;border:1px solid rgba(65,72,104,0.7);border-radius:5px;background:rgba(36,40,59,0.6);"></div>
+              <div style="position:absolute;inset:49% 5% 12% 52%;border:1px solid rgba(65,72,104,0.7);border-radius:5px;background:rgba(36,40,59,0.6);"></div>
+            </div>
+            <div class="gallery-thumb-overlay">
+              <div><div class="gallery-thumb-label">AeroSpace Layout</div><div class="gallery-thumb-sub">Tiling WM · workspace grid</div></div>
+            </div>
           </div>
-          <pre class="code-body"><span class="text-tn-blue">brew</span> install fish
-<span class="text-tn-blue">mkdir</span> -p ~/.config/fish
-<span class="text-tn-blue">ln</span> -sf ~/dotfiles/fish/config.fish ~/.config/fish/config.fish
 
-<span class="text-tn-sub"># Register fish + set as default shell (optional)</span>
-<span class="text-tn-blue">echo</span> $(which fish) | sudo tee -a /etc/shells
-<span class="text-tn-blue">chsh</span> -s $(which fish)</pre>
+          <div class="gallery-thumb"
+               data-title="Starship Prompt"
+               data-sub="Tokyo Night bracket style — Zsh and Fish">
+            <div class="gallery-preview preview-starship" style="width:100%;height:100%;position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:8%;">
+              <!-- Replace with: <img src="images/screenshots/starship.png" alt="Starship Prompt" /> -->
+              <div style="display:flex;align-items:center;gap:4px;margin-bottom:6%;">
+                <div style="width:12%;height:10px;background:rgba(122,162,247,0.7);border-radius:3px;"></div>
+                <div style="width:20%;height:10px;background:rgba(187,154,247,0.5);border-radius:3px;"></div>
+                <div style="width:15%;height:10px;background:rgba(158,206,106,0.5);border-radius:3px;"></div>
+              </div>
+              <div style="display:flex;align-items:center;gap:4px;">
+                <div style="width:8px;height:8px;background:rgba(122,162,247,0.8);border-radius:50%;"></div>
+                <div style="width:30%;height:8px;background:rgba(169,177,214,0.3);border-radius:3px;"></div>
+              </div>
+            </div>
+            <div class="gallery-thumb-overlay">
+              <div><div class="gallery-thumb-label">Starship Prompt</div><div class="gallery-thumb-sub">Tokyo Night brackets · Zsh + Fish</div></div>
+            </div>
+          </div>
         </div>
 
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">What's included</h3>
-        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
-          <table>
-            <thead><tr><th>Feature</th><th>Details</th></tr></thead>
-            <tbody>
-              <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — <code class="inline-code">starship init fish | source</code></td></tr>
-              <tr><td class="text-tn-fg">Greeting</td><td class="text-tn-sub">Disabled (fastfetch replaces it)</td></tr>
-              <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch on every shell open</td></tr>
-              <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">lsd -al — <code class="inline-code">ls</code> alias</td></tr>
-              <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — <code class="inline-code">cat</code> alias</td></tr>
-              <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">conda · bun · LM Studio</td></tr>
-            </tbody>
-          </table>
+        <!-- Wallpapers carousel -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-4">Wallpapers</h3>
+        <div class="wp-carousel-wrap">
+          <button class="carousel-btn" id="wp-prev" aria-label="Previous wallpapers">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <div id="wp-carousel" class="wp-carousel"></div>
+          <button class="carousel-btn" id="wp-next" aria-label="Next wallpapers">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
         </div>
-
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Aliases</h3>
-        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
-          <table>
-            <thead><tr><th>Alias</th><th>Command</th></tr></thead>
-            <tbody>
-              <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">lsd -al</td></tr>
-              <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
-              <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
-              <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
-              <tr><td><code class="inline-code">gc</code></td><td class="text-tn-sub">git clone</td></tr>
-              <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git commit -a</td></tr>
-              <tr><td><code class="inline-code">branch</code></td><td class="text-tn-sub">git branch -r</td></tr>
-            </tbody>
-          </table>
-        </div>
+        <p id="wp-counter" class="text-center text-tn-sub text-xs mt-3"></p>
       </section>
 
       <!-- Footer -->
@@ -1021,319 +919,22 @@ chsh -s $(which fish)">Copy</button>
     </main>
   </div>
 
-  <style>
-    /* ── Core components ────────────────────────────────────────────────────── */
-    .section-title { font-size: 1.5rem; font-weight: 700; color: var(--tn-fg); margin-bottom: 0.75rem; }
-    .inline-code { background: var(--tn-bg2); border: 1px solid var(--tn-border); border-radius: 4px; padding: 1px 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.8em; color: var(--tn-cyan); }
+  <!-- Lightbox -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div id="lightbox-content">
+      <div id="lightbox-inner"></div>
+      <div id="lightbox-caption"></div>
+      <button id="lightbox-close" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <button id="lightbox-prev" class="lightbox-arrow" aria-label="Previous"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+      <button id="lightbox-next" class="lightbox-arrow" aria-label="Next"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    </div>
+  </div>
 
-    /* ── Code blocks ────────────────────────────────────────────────────────── */
-    .code-block-wrap { background: var(--tn-bg2); border: 1px solid var(--tn-border); border-radius: 10px; overflow: hidden; }
-    .code-header { display: flex; align-items: center; justify-content: space-between; padding: 6px 12px; border-bottom: 1px solid var(--tn-bg3); background: var(--tn-bg-code); gap: 8px; }
-    .code-body { padding: 14px 16px; overflow-x: auto; color: var(--tn-fg); -webkit-overflow-scrolling: touch; }
+  <!-- Back to top -->
+  <button id="back-to-top" aria-label="Back to top">
+    <i data-lucide="chevron-up" class="w-4 h-4"></i>
+  </button>
 
-    /* ── Copy button ────────────────────────────────────────────────────────── */
-    .copy-btn { font-size: 0.7rem; color: var(--tn-sub); border: 1px solid var(--tn-border); border-radius: 4px; padding: 3px 10px; cursor: pointer; background: transparent; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; min-height: 28px; }
-    .copy-btn:hover { color: var(--tn-blue); border-color: var(--tn-blue); background: rgba(var(--tn-blue-r),var(--tn-blue-g),var(--tn-blue-b),0.08); }
-
-    /* ── Color swatch ───────────────────────────────────────────────────────── */
-    .color-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--tn-border); vertical-align: middle; margin-right: 6px; }
-
-    /* ── Tab buttons ────────────────────────────────────────────────────────── */
-    .tab-btn { font-size: 0.78rem; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--tn-border); background: transparent; color: var(--tn-sub); cursor: pointer; transition: all 0.15s; white-space: nowrap; min-height: 34px; }
-    .tab-btn:hover { color: var(--tn-fg); border-color: var(--tn-sub); }
-    .active-tab { background: rgba(var(--tn-blue-r),var(--tn-blue-g),var(--tn-blue-b),0.12) !important; color: var(--tn-blue) !important; border-color: var(--tn-blue) !important; }
-
-    /* Tab row scroll on mobile */
-    [id$="-tabs"] { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-    [id$="-tabs"]::-webkit-scrollbar { display: none; }
-
-    /* ── Lucide icon baseline ───────────────────────────────────────────────── */
-    [data-lucide] { display: inline-block; vertical-align: middle; }
-
-    /* ── Desktop sidebar collapse ───────────────────────────────────────────── */
-    #desktop-sidebar {
-      width: 15rem;
-      overflow: hidden;              /* clips text when collapsing */
-      transition: width 0.28s cubic-bezier(0.4,0,0.2,1);
-    }
-    #desktop-sidebar.collapsed {
-      width: 3.75rem;
-    }
-    /* Nav link labels */
-    #desktop-sidebar .sidebar-label {
-      opacity: 1;
-      max-width: 180px;
-      overflow: hidden;
-      white-space: nowrap;
-      transition: opacity 0.15s ease, max-width 0.28s cubic-bezier(0.4,0,0.2,1);
-    }
-    #desktop-sidebar.collapsed .sidebar-label {
-      opacity: 0;
-      max-width: 0;
-    }
-    /* Brand / subtitle block */
-    .sidebar-expanded-only {
-      max-width: 180px;
-      overflow: hidden;
-      transition: opacity 0.15s ease, max-width 0.28s cubic-bezier(0.4,0,0.2,1);
-    }
-    #desktop-sidebar.collapsed .sidebar-expanded-only {
-      opacity: 0;
-      max-width: 0;
-      pointer-events: none;
-    }
-
-    /* ── Sidebar nav links ──────────────────────────────────────────────────── */
-    .nav-link { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; border-left: 2px solid transparent; font-size: 0.82rem; color: var(--tn-sub); cursor: pointer; transition: color 0.15s, background 0.15s, padding 0.25s; text-decoration: none; white-space: nowrap; overflow: hidden; }
-    .nav-link:hover { color: var(--tn-fg); background: rgba(var(--tn-blue-r),var(--tn-blue-g),var(--tn-blue-b),0.06); }
-    #desktop-sidebar.collapsed .nav-link { justify-content: center; padding: 8px; gap: 0; }
-    #desktop-sidebar.collapsed .nav-link .nav-label { display: none; }
-    .nav-icon { width: 15px; height: 15px; flex-shrink: 0; }
-    .nav-label { overflow: hidden; white-space: nowrap; }
-
-    /* ── Mobile drawer nav links ────────────────────────────────────────────── */
-    .drawer-link { display: flex; align-items: center; padding: 11px 12px; border-radius: 8px; font-size: 0.9rem; color: var(--tn-sub); text-decoration: none; transition: all 0.15s; border-left: 2px solid transparent; }
-    .drawer-link:hover { color: var(--tn-fg); background: rgba(var(--tn-blue-r),var(--tn-blue-g),var(--tn-blue-b),0.06); }
-    .drawer-link.active { color: var(--tn-blue); background: rgba(var(--tn-blue-r),var(--tn-blue-g),var(--tn-blue-b),0.1); border-left-color: var(--tn-blue); }
-
-    /* ── Tables ─────────────────────────────────────────────────────────────── */
-    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 0.75rem; border: 1px solid var(--tn-border); }
-    .table-wrap table { border-collapse: collapse; width: 100%; min-width: 360px; }
-
-    /* ── Mobile-specific ────────────────────────────────────────────────────── */
-    @media (max-width: 1023px) {
-      /* Tighter main padding on mobile */
-      main { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
-
-      /* Hero text scale */
-      h1.hero-gradient, h1 { font-size: 2rem !important; }
-
-      /* Smaller section titles */
-      .section-title { font-size: 1.25rem; }
-
-      /* Code blocks readable on small screens */
-      pre { font-size: 0.78rem !important; }
-
-      /* Full-width code blocks */
-      .code-block-wrap { border-radius: 8px; }
-
-      /* All table containers scroll horizontally */
-      .bg-tn-bg2.border.border-tn-border.rounded-xl.overflow-hidden:has(table) {
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch;
-      }
-      table { min-width: 340px; }
-
-      /* Feature grid 1 col on mobile */
-      .grid-cols-2, .sm\:grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
-
-      /* kbd on mobile */
-      kbd { font-size: 0.72rem; padding: 1px 5px; }
-
-      /* Larger touch targets for tab buttons */
-      .tab-btn { padding: 7px 14px; font-size: 0.8rem; }
-    }
-
-    @media (max-width: 480px) {
-      .grid-cols-2, .sm\:grid-cols-4 { grid-template-columns: 1fr !important; }
-      .sm\:grid-cols-2 { grid-template-columns: 1fr !important; }
-
-      /* Stack badge row */
-      .flex.flex-wrap.gap-2.mb-8 { gap: 6px; }
-      .badge { font-size: 0.7rem !important; }
-    }
-  </style>
-
-  <script>
-    // ── Nav data (icon = Lucide icon name) ───────────────────────────────────
-    const navItems = [
-      { id: 'overview',   icon: 'zap',          label: 'Overview' },
-      { id: 'install',    icon: 'package',       label: 'Quick Install' },
-      { id: 'apps',       icon: 'boxes',         label: 'Applications' },
-      { id: 'symlinks',   icon: 'link',          label: 'Symlinks' },
-      { id: 'sketchybar', icon: 'palette',       label: 'SketchyBar' },
-      { id: 'aerospace',  icon: 'layout-grid',   label: 'AeroSpace' },
-      { id: 'ghostty',    icon: 'terminal',      label: 'Ghostty' },
-      { id: 'shell',      icon: 'layers',        label: 'Shell Tools' },
-      { id: 'zsh',        icon: 'settings-2',    label: 'Zsh' },
-      { id: 'fish',       icon: 'waves',         label: 'Fish' },
-      { id: 'commands',   icon: 'wrench',        label: 'Commands' },
-    ];
-
-    // ── Build sidebar nav ─────────────────────────────────────────────────────
-    const sidebarNav = document.getElementById('sidebar-nav');
-    sidebarNav.innerHTML = navItems.map(item =>
-      `<a href="#${item.id}" class="nav-link" data-target="${item.id}" title="${item.label}">
-        <i data-lucide="${item.icon}" class="nav-icon shrink-0"></i>
-        <span class="nav-label">${item.label}</span>
-      </a>`
-    ).join('');
-
-    // ── Build mobile drawer nav ───────────────────────────────────────────────
-    const mobileNavLinks = document.getElementById('mobile-nav-links');
-    mobileNavLinks.innerHTML = navItems.map(item =>
-      `<a href="#${item.id}" class="drawer-link" data-target="${item.id}">
-        <i data-lucide="${item.icon}" class="w-4 h-4 shrink-0 mr-3"></i>
-        <span>${item.label}</span>
-      </a>`
-    ).join('');
-
-    // ── Mobile drawer open / close ────────────────────────────────────────────
-    const mobileNav    = document.getElementById('mobile-nav');
-    const navPanel     = document.getElementById('mobile-nav-panel');
-    const navBackdrop  = document.getElementById('nav-backdrop');
-    const menuToggle   = document.getElementById('menu-toggle');
-    const iconMenu     = document.getElementById('icon-menu');
-    const iconClose    = document.getElementById('icon-close');
-    const drawerClose  = document.getElementById('drawer-close');
-
-    let drawerOpen = false;
-
-    function openDrawer() {
-      drawerOpen = true;
-      mobileNav.style.display = 'block';
-      mobileNav.removeAttribute('aria-hidden');
-      document.body.style.overflow = 'hidden';
-      // Trigger transitions on next frame
-      requestAnimationFrame(() => {
-        navBackdrop.style.opacity  = '1';
-        navPanel.style.transform   = 'translateX(0)';
-      });
-      iconMenu.classList.add('hidden');
-      iconClose.classList.remove('hidden');
-      menuToggle.setAttribute('aria-label', 'Close navigation');
-    }
-
-    function closeDrawer() {
-      drawerOpen = false;
-      navBackdrop.style.opacity = '0';
-      navPanel.style.transform  = 'translateX(-100%)';
-      document.body.style.overflow = '';
-      iconMenu.classList.remove('hidden');
-      iconClose.classList.add('hidden');
-      menuToggle.setAttribute('aria-label', 'Open navigation');
-      // Hide overlay after transition completes
-      setTimeout(() => {
-        if (!drawerOpen) {
-          mobileNav.style.display = 'none';
-          mobileNav.setAttribute('aria-hidden', 'true');
-        }
-      }, 300);
-    }
-
-    menuToggle.addEventListener('click', () => drawerOpen ? closeDrawer() : openDrawer());
-    drawerClose.addEventListener('click', closeDrawer);
-    navBackdrop.addEventListener('click', closeDrawer);
-
-    // Close on link click
-    mobileNavLinks.querySelectorAll('.drawer-link').forEach(link => {
-      link.addEventListener('click', closeDrawer);
-    });
-
-    // Close on Escape
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && drawerOpen) closeDrawer();
-    });
-
-    // ── Active section highlight (sidebar + drawer) ───────────────────────────
-    const sectionObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          document.querySelectorAll('.nav-link, .drawer-link').forEach(link => {
-            link.classList.toggle('active', link.dataset.target === entry.target.id);
-          });
-        }
-      });
-    }, { rootMargin: '-20% 0px -60% 0px' });
-
-    document.querySelectorAll('section[id]').forEach(s => sectionObserver.observe(s));
-
-    // ── Section fade-in ───────────────────────────────────────────────────────
-    const fadeObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          fadeObserver.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.06 });
-
-    document.querySelectorAll('.section-fade').forEach(el => fadeObserver.observe(el));
-
-    // ── Copy buttons ──────────────────────────────────────────────────────────
-    document.querySelectorAll('.copy-btn').forEach(btn => {
-      if (!btn.dataset.code) return;
-      btn.addEventListener('click', () => {
-        navigator.clipboard.writeText(btn.dataset.code).then(() => {
-          const prev = btn.textContent;
-          btn.textContent = 'Copied!';
-          btn.classList.add('copied');
-          setTimeout(() => {
-            btn.textContent = prev;
-            btn.classList.remove('copied');
-          }, 1800);
-        });
-      });
-    });
-
-    // ── Tab switching ─────────────────────────────────────────────────────────
-    document.querySelectorAll('[id$="-tabs"]').forEach(tabGroup => {
-      tabGroup.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active-tab'));
-          btn.classList.add('active-tab');
-          const section = tabGroup.closest('section');
-          section.querySelectorAll('.tab-panel').forEach(panel => {
-            panel.classList.toggle('hidden', panel.id !== btn.dataset.tab);
-          });
-        });
-      });
-    });
-
-    // ── Desktop sidebar collapse ──────────────────────────────────────────────
-    const desktopSidebar   = document.getElementById('desktop-sidebar');
-    const sidebarToggleBtn = document.getElementById('sidebar-toggle');
-    const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
-    let sidebarCollapsed = false;
-
-    sidebarToggleBtn.addEventListener('click', () => {
-      sidebarCollapsed = !sidebarCollapsed;
-      desktopSidebar.classList.toggle('collapsed', sidebarCollapsed);
-      // Swap toggle icon direction
-      sidebarToggleIcon.setAttribute('data-lucide', sidebarCollapsed ? 'panel-left-open' : 'panel-left-close');
-      sidebarToggleBtn.setAttribute('aria-label', sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
-      lucide.createIcons({ nodes: [sidebarToggleIcon] });
-    });
-
-    // ── Theme toggle (light / dark Tokyo Night) ───────────────────────────────
-    const THEME_KEY = 'prometheus-theme';
-    let isLight = localStorage.getItem(THEME_KEY) === 'light';
-
-    function applyTheme(light) {
-      document.documentElement.classList.toggle('light-mode', light);
-      document.body.classList.toggle('light-mode', light);
-      const icon = light ? 'sun' : 'moon';
-      ['theme-icon-mobile', 'theme-icon-desktop'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) { el.setAttribute('data-lucide', icon); lucide.createIcons({ nodes: [el] }); }
-      });
-    }
-
-    // Apply saved preference on load
-    applyTheme(isLight);
-
-    function toggleTheme() {
-      isLight = !isLight;
-      localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
-      applyTheme(isLight);
-    }
-
-    document.getElementById('theme-toggle-mobile')?.addEventListener('click', toggleTheme);
-    document.getElementById('theme-toggle-desktop')?.addEventListener('click', toggleTheme);
-
-    // ── Init Lucide icons (must be last, after all HTML is rendered) ──────────
-    lucide.createIcons();
-  </script>
-
+  <script src="script.js"></script>
 </body>
 </html>

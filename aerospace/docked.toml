@@ -46,7 +46,7 @@ inner.horizontal = 10
 inner.vertical   = 10
 outer.left       = 10
 outer.bottom     = 10
-outer.top        = 35   # external monitors: must clear SketchyBar (height=36, margin=10 → bottom at y=46)
+outer.top        = 40   # external monitors: must clear SketchyBar (height=36, margin=10 → bottom at y=46)
 outer.right      = 10
 
 # =============================================================================
