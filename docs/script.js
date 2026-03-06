@@ -152,18 +152,18 @@ document.querySelectorAll('[id$="-tabs"]').forEach(tabGroup => {
 });
 
 // ── Desktop sidebar collapse ──────────────────────────────────────────────────
-const desktopSidebar    = document.getElementById('desktop-sidebar');
-const sidebarToggleBtn  = document.getElementById('sidebar-toggle');
-const sidebarToggleIcon = document.getElementById('sidebar-toggle-icon');
+const desktopSidebar   = document.getElementById('desktop-sidebar');
+const sidebarToggleBtn = document.getElementById('sidebar-toggle');
 let sidebarCollapsed = false;
 
-sidebarToggleBtn.addEventListener('click', () => {
-  sidebarCollapsed = !sidebarCollapsed;
-  desktopSidebar.classList.toggle('collapsed', sidebarCollapsed);
-  sidebarToggleIcon.setAttribute('data-lucide', sidebarCollapsed ? 'panel-left-open' : 'panel-left-close');
-  sidebarToggleBtn.setAttribute('aria-label', sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
-  lucide.createIcons({ nodes: [sidebarToggleIcon] });
-});
+if (sidebarToggleBtn) {
+  sidebarToggleBtn.addEventListener('click', () => {
+    sidebarCollapsed = !sidebarCollapsed;
+    desktopSidebar.classList.toggle('collapsed', sidebarCollapsed);
+    sidebarToggleBtn.setAttribute('aria-label', sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
+    sidebarToggleBtn.title = sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+  });
+}
 
 // ── Theme toggle ──────────────────────────────────────────────────────────────
 const THEME_KEY = 'prometheus-theme';

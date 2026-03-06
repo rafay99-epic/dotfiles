@@ -1,5 +1,14 @@
 # Prometheus Dotfiles — Claude Context
 
+## Documentation
+
+Full documentation lives in two places — always consult these before making changes:
+
+- **Live site**: [dotfiles.rafay99.com](https://dotfiles.rafay99.com) — complete reference with install guide, config explanations, keybindings, and gallery
+- **Source**: `docs/index.html`, `docs/styles.css`, `docs/script.js` — the static site served at that URL
+
+When a user asks about any config, tool, or behaviour in this repo, read `docs/index.html` first (or visit the live site) for the authoritative explanation before touching any files.
+
 ## Project Overview
 Dotfiles for a 14" MacBook with two external 1080p monitors (27" + 24").
 - **Day**: laptop only (built-in screen)
@@ -35,7 +44,7 @@ dotfiles/
 ### AeroSpace Dual-Config
 AeroSpace has no per-monitor gap support. Two profiles solve this:
 - `laptop.toml`: `outer.top = 8` (notch — macOS handles the offset)
-- `docked.toml`: `outer.top = 35` (external monitors — clears SketchyBar at y=46)
+- `docked.toml`: `outer.top = 40` (external monitors — clears SketchyBar at y=46)
 
 `aerospace-sync` resolves the symlink target with `readlink` before writing so the symlink is never broken.
 
