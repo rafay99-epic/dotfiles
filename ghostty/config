@@ -15,6 +15,13 @@ background-blur-radius = 20
 # Keep the window chrome dark to match the bar
 window-theme = dark
 
+# Rounded corners + drop shadow — gives the floating pill look.
+# "auto" keeps macOS native window decorations (which include
+# the system rounded corners). Never set this to "none" or the
+# corners will become square.
+window-decoration = auto
+macos-window-shadow = true
+
 # ── Font ──────────────────────────────────────────────────
 # Prefers JetBrains Mono Nerd Font for icon glyphs.
 # Falls back to Ghostty's default if not installed.
