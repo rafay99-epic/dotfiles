@@ -8,8 +8,6 @@
 
 **[dotfiles.rafay99.com](https://dotfiles.rafay99.com)** — full documentation, screenshots, and install reference.
 
----
-
 ## Quick Install
 
 Paste this into your terminal — no cloning, no setup, just one command:
@@ -27,8 +25,6 @@ The script will:
 
 After it finishes, open a new terminal tab and log out / back in.
 
----
-
 ## What's Included
 
 | Tool | Purpose |
@@ -45,8 +41,6 @@ After it finishes, open a new terminal tab and log out / back in.
 | [lsd](https://github.com/lsd-rs/lsd) | Alternative `ls` replacement |
 | [CodexBar](https://github.com/steipete/CodexBar) | AI token usage tracker in menu bar |
 
----
-
 ## How Symlinks Work
 
 The repo **is** the source of truth. `install.sh` creates symlinks from `~/.config/*` back into this repo — every edit inside `~/dotfiles/` is instantly live, and every change is automatically tracked by git.
@@ -59,8 +53,6 @@ The repo **is** the source of truth. `install.sh` creates symlinks from `~/.conf
 ~/dotfiles/fish/config.fish          <── ~/.config/fish/config.fish
 ~/dotfiles/zsh/.zshrc                <── ~/.zshrc
 ```
-
----
 
 ## Shell Configs
 
@@ -89,8 +81,6 @@ Both Zsh and Fish are fully mirrored — same PATH, same aliases, same tools.
 | `gc` | `git clone` |
 | `ga` | `git commit -a` |
 
----
-
 ## Useful Commands
 
 ```bash
@@ -112,7 +102,6 @@ readlink ~/.config/fish/config.fish
 readlink ~/.zshrc
 ```
 
----
 
 ## License
 
