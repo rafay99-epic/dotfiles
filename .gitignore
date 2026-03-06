@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude / IDE settings
+sketchybar/.claude/
+sketchybar/.vscode/
+
+# Compiled sketchybar helper binary
+sketchybar/helper/helper
+
+# Secrets / sensitive
+*.env
+*.secret

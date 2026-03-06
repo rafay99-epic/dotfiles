@@ -1,0 +1,184 @@
+###############################################
+#    Name: Starhip Promote Configuration      #                                       
+#    Author: Prometheus                       #
+#    Version: 3.0                             #
+#    Description: StarShip Promote            #                
+###############################################
+
+# Inserts a blank line between shell prompts
+add_newline = true
+
+# Change the default prompt format
+format = """\
+[╭╴](238)$shell\
+$all(238)$character"""
+
+[env_var.STARSHIP_DISTRO]
+format = '[$env_value](bold white)'  
+variable = "STARSHIP_DISTRO"
+disabled = false
+
+[username]
+style_user = "white bold"
+style_root = "black bold"
+format = "[$user]($style) "
+disabled = true  # disable in powershell
+show_always = false
+
+[battery]
+full_symbol = "🔋"
+charging_symbol = "🔌"
+discharging_symbol = "⚡"
+
+[[battery.display]]
+threshold = 30
+style = "bold red"
+
+[character]
+success_symbol = "[❯](bold green)" 
+error_symbol = "[✖](bold red) "
+
+[cmd_duration]
+min_time = 10_000  
+format = " took [$duration]($style)"
+
+[directory]
+truncation_length = 5
+format = "[$path]($style)[$lock_symbol]($lock_style) "
+read_only = " "
+
+[git_branch]
+format = " [$symbol$branch]($style) "
+symbol = "🍣 "
+style = "bold yellow"
+
+[git_commit]
+commit_hash_length = 10
+style = "bold white"
+
+[git_state]
+format = '[\($state( $progress_current of $progress_total)\)]($style) '
+
+[git_status]
+conflicted = "⚔️ "
+ahead = "🏎️ 💨 ×${count}"
+behind = "🐢 ×${count}"
+diverged = "🔱 🏎️ 💨 ×${ahead_count} 🐢 ×${behind_count}"
+untracked = "🛤️  ×${count}"
+stashed = "📦 "
+modified = "📝 ×${count}"
+staged = "🗃️  ×${count}"
+renamed = "📛 ×${count}"
+deleted = "🗑️  ×${count}"
+style = "bright-white"
+format = "$all_status$ahead_behind"
+
+[hostname]
+ssh_only = true
+format = "<[$hostname]($style)>"
+trim_at = "-"
+style = "bold dimmed white"
+disabled = true
+
+[julia]
+format = "[$symbol$version]($style) "
+symbol = "ஃ "
+style = "bold green"
+
+[memory_usage]
+format = "$symbol[${ram}( | ${swap})]($style) "
+threshold = 70
+style = "bold dimmed white"
+disabled = false
+
+[perl]
+symbol = " "
+
+[php]
+symbol = " "
+
+[python]
+format = "[$symbol$version]($style) "
+style = "bold green"
+symbol = " "
+pyenv_prefix = "venv "
+python_binary = ["./venv/bin/python", "python", "python3", "python2"]
+detect_extensions = ["py"]
+version_format = "v${raw}"
+
+[gcloud]
+format = 'on [$symbol$account(@$domain)(\($project\))]($style) '
+symbol = "☁️  "
+
+[rust]
+format = "[$symbol$version]($style) "
+style = "bold green"
+symbol = "🦀 "
+
+[time]
+time_format = "%T"
+format = "🕙$time($style) "
+style = "bright-white"
+disabled = false
+
+[conda]
+format = "[$symbol$environment](dimmed green) "
+symbol = " "
+style="green bold"
+
+[elixir]
+symbol = "🔮 "
+
+[swift]
+symbol = "ﯣ "
+format = "via [🏎  $version](red bold)"
+
+[java]
+symbol = " "
+
+[golang]
+symbol = " "
+
+[aws]
+symbol = "  "
+
+[dart]
+symbol = " "
+
+[shell]
+fish_indicator = ""
+# powershell_indicator = "_"
+powershell_indicator = " "
+zsh_indicator = ""
+bash_indicator = ""
+unknown_indicator = "mystery shell"
+style = "cyan bold"
+disabled = false
+
+[sudo]
+style = "bold green"
+symbol = " 👩‍💻 "
+disabled = false
+
+[nodejs]
+format = "via [ Node.js $version](bold green) "
+detect_files = ["package.json", ".node-version"]
+detect_folders = ["node_modules"]
+
+[ruby]
+symbol = " "
+
+[cmake]
+symbol = "喝 "
+format = "via [喝 $version](bold green) "
+
+[haskell]
+symbol = "λ "
+
+[c]
+symbol = " "
+format = '[ $symbol ($version) ]($style)'
+
+[nim]
+symbol = " "
+format = '[ $symbol ($version) ]($style)'
