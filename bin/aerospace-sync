@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOTFILES="$HOME/dotfiles"
+# Resolve DOTFILES from this script's symlink (works whether run directly or via symlink)
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}" 2>/dev/null || realpath "${BASH_SOURCE[0]}" 2>/dev/null || echo "${BASH_SOURCE[0]}")"
+DOTFILES="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
 AEROSPACE_BIN="/opt/homebrew/bin/aerospace"
 CONFIG_TARGET="$(readlink "$HOME/.config/aerospace/aerospace.toml" 2>/dev/null || echo "$HOME/.config/aerospace/aerospace.toml")"
 LAPTOP_PROFILE="$DOTFILES/aerospace/laptop.toml"

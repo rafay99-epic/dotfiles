@@ -11,6 +11,7 @@ theme = TokyoNight
 # bleeds through. blur-radius requires macOS 14+.
 background-opacity = 0.95
 background-blur-radius = 20
+background-opacity-cells = true
 
 # Keep the window chrome dark to match the bar
 window-theme = dark

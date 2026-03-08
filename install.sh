@@ -27,6 +27,7 @@ IFS=$'\n\t'
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRY_RUN=false
 INSTALL_APPS=false
+WM_CHOICE="none"          # none | omniwm | aerospace
 ERRORS=()
 SKIPPED=()
 LINKED=()
@@ -148,6 +149,7 @@ echo -e "${BOLD}│       github.com/rafay99-epic               │${RESET}"
 echo -e "${BOLD}╰────────────────────────────────────────────╯${RESET}"
 echo ""
 echo -e "  ${GREEN}✓${RESET}  Dotfile symlinks       ${CYAN}(always)${RESET}"
+echo -e "  ${YELLOW}?${RESET}  Window manager         ${CYAN}(optional — OmniWM, AeroSpace, or none)${RESET}"
 echo -e "  ${YELLOW}?${RESET}  Core packages & fonts  ${CYAN}(optional — one prompt)${RESET}"
 echo -e "  ${YELLOW}?${RESET}  Apps                   ${CYAN}(optional — pick individually)${RESET}"
 echo ""
@@ -347,6 +349,76 @@ else
 fi
 
 # =============================================================================
+# Ask: Window Manager preference
+# =============================================================================
+heading "Window Manager"
+echo ""
+echo -e "  ${CYAN}Choose a tiling window manager:${RESET}"
+echo -e "    ${BOLD}1)${RESET} OmniWM  — Hyprland-style dwindle/BSP, GUI config, quake terminal"
+echo -e "    ${BOLD}2)${RESET} AeroSpace — i3-style manual tiling, TOML config"
+echo -e "    ${BOLD}3)${RESET} None — no window manager"
+echo ""
+
+if [[ "$DRY_RUN" == true ]]; then
+  echo -e "  ${YELLOW}(dry)${RESET} Would ask: Pick a tiling WM → assuming OmniWM"
+  WM_CHOICE="omniwm"
+else
+  echo -en "  ${BOLD}${BLUE}?${RESET}  ${BOLD}Enter choice [1/2/3]:${RESET} "
+  read -r _wm_input </dev/tty 2>/dev/null || _wm_input="3"
+  echo ""
+  case "$_wm_input" in
+    1) WM_CHOICE="omniwm" ;;
+    2) WM_CHOICE="aerospace" ;;
+    *) WM_CHOICE="none" ;;
+  esac
+fi
+
+if [[ "$WM_CHOICE" == "none" ]]; then
+  info "No window manager selected — skipping all WM, bar, and WM font packages."
+else
+  success "Window manager: $WM_CHOICE"
+fi
+
+# ── Stop conflicting WM if the other one is running ──────────────────────────
+if [[ "$WM_CHOICE" == "omniwm" ]] && pgrep -x AeroSpace &>/dev/null; then
+  warn "AeroSpace is currently running."
+  if prompt "Kill AeroSpace before starting OmniWM?"; then
+    pkill -x AeroSpace 2>/dev/null || true
+    sleep 1
+    success "AeroSpace stopped"
+  else
+    warn "Both WMs running simultaneously will cause conflicts."
+  fi
+elif [[ "$WM_CHOICE" == "aerospace" ]] && pgrep -x OmniWM &>/dev/null; then
+  warn "OmniWM is currently running."
+  if prompt "Kill OmniWM before starting AeroSpace?"; then
+    pkill -x OmniWM 2>/dev/null || true
+    sleep 1
+    success "OmniWM stopped"
+  else
+    warn "Both WMs running simultaneously will cause conflicts."
+  fi
+elif [[ "$WM_CHOICE" == "none" ]]; then
+  # Offer to stop any running WM
+  if pgrep -x AeroSpace &>/dev/null; then
+    warn "AeroSpace is currently running."
+    if prompt "Stop AeroSpace?"; then
+      pkill -x AeroSpace 2>/dev/null || true
+      sleep 1
+      success "AeroSpace stopped"
+    fi
+  fi
+  if pgrep -x OmniWM &>/dev/null; then
+    warn "OmniWM is currently running."
+    if prompt "Stop OmniWM?"; then
+      pkill -x OmniWM 2>/dev/null || true
+      sleep 1
+      success "OmniWM stopped"
+    fi
+  fi
+fi
+
+# =============================================================================
 # PART 1 — Core Packages (shells, CLI tools, runtimes, WM, bar, fonts)
 # =============================================================================
 if [[ "$INSTALL_APPS" == true ]]; then
@@ -431,38 +503,10 @@ if [[ "$INSTALL_APPS" == true ]]; then
   brew_install scrcpy    # Android screen mirror
 
   # ── Window Manager & Bar ───────────────────────────────────────────────
-  heading "Window Manager & Bar"
+  if [[ "$WM_CHOICE" != "none" ]]; then
+    heading "Window Manager & Bar"
 
-  # Tiling WM — user picks one (they conflict if both run simultaneously)
-  echo ""
-  echo -e "  ${CYAN}Choose a tiling window manager:${RESET}"
-  echo -e "    ${BOLD}1)${RESET} OmniWM  — Hyprland-style dwindle/BSP, GUI config, quake terminal"
-  echo -e "    ${BOLD}2)${RESET} AeroSpace — i3-style manual tiling, TOML config"
-  echo -e "    ${BOLD}3)${RESET} Skip"
-  echo ""
-  WM_CHOICE=""
-  if [[ "$DRY_RUN" == true ]]; then
-    echo -e "  ${YELLOW}(dry)${RESET} Would ask: Pick a tiling WM → assuming OmniWM"
-    WM_CHOICE="1"
-  else
-    echo -en "  ${BOLD}${BLUE}?${RESET}  ${BOLD}Enter choice [1/2/3]:${RESET} "
-    read -r WM_CHOICE </dev/tty 2>/dev/null || WM_CHOICE="1"
-    echo ""
-  fi
-
-  case "$WM_CHOICE" in
-    1)
-      # Stop AeroSpace if running
-      if pgrep -x AeroSpace &>/dev/null; then
-        warn "AeroSpace is currently running."
-        if prompt "Kill AeroSpace before starting OmniWM?"; then
-          pkill -x AeroSpace 2>/dev/null || true
-          sleep 1
-          success "AeroSpace stopped"
-        else
-          warn "Both WMs running simultaneously will cause conflicts."
-        fi
-      fi
+    if [[ "$WM_CHOICE" == "omniwm" ]]; then
       brew_tap "BarutSRB/tap"
       brew_install omniwm --cask
       # Apply OmniWM defaults
@@ -476,68 +520,58 @@ if [[ "$INSTALL_APPS" == true ]]; then
           bash "$DOTFILES/omniwm/configure.sh"
         fi
       fi
-      ;;
-    2)
-      # Stop OmniWM if running
-      if pgrep -x OmniWM &>/dev/null; then
-        warn "OmniWM is currently running."
-        if prompt "Kill OmniWM before starting AeroSpace?"; then
-          pkill -x OmniWM 2>/dev/null || true
-          sleep 1
-          success "OmniWM stopped"
-        else
-          warn "Both WMs running simultaneously will cause conflicts."
-        fi
-      fi
+    elif [[ "$WM_CHOICE" == "aerospace" ]]; then
       brew_tap "nikitabobko/tap"
       brew_install nikitabobko/tap/aerospace --cask
-      ;;
-    *)
-      info "Skipping tiling window manager."
-      ;;
-  esac
-
-  # SketchyBar
-  brew_tap "FelixKratz/formulae"
-  brew_install sketchybar
-
-  if [[ "$DRY_RUN" == false ]]; then
-    if ! brew services list | grep -q "sketchybar.*started"; then
-      info "Starting SketchyBar service..."
-      brew services start sketchybar
     fi
-  fi
 
-  # CodexBar (AI usage tracker widget for SketchyBar)
-  brew_tap "steipete/tap"
-  brew_install steipete/tap/codexbar --cask
+    # SketchyBar
+    brew_tap "FelixKratz/formulae"
+    brew_install sketchybar
+
+    if [[ "$DRY_RUN" == false ]]; then
+      if ! brew services list | grep -q "sketchybar.*started"; then
+        info "Starting SketchyBar service..."
+        brew services start sketchybar
+      fi
+    fi
+
+    # CodexBar (AI usage tracker widget for SketchyBar)
+    brew_tap "steipete/tap"
+    brew_install steipete/tap/codexbar --cask
+  else
+    info "Skipping Window Manager & Bar packages (no WM selected)."
+  fi
 
   # ── Fonts ──────────────────────────────────────────────────────────────
   heading "Fonts"
 
-  # SF Symbols — required for SketchyBar icon glyphs (icons.sh)
-  brew_install sf-symbols --cask
+  # SketchyBar fonts — only needed when a WM is selected (SketchyBar is WM-paired)
+  if [[ "$WM_CHOICE" != "none" ]]; then
+    # SF Symbols — required for SketchyBar icon glyphs (icons.sh)
+    brew_install sf-symbols --cask
 
-  # SketchyBar app font
-  FONT_DIR="$HOME/Library/Fonts"
-  FONT_PATH="$FONT_DIR/sketchybar-app-font.ttf"
-  FONT_URL="https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf"
-  if [[ -f "$FONT_PATH" ]]; then
-    success "Already installed: sketchybar-app-font"
-    SKIPPED+=("sketchybar-app-font")
-  elif [[ "$DRY_RUN" == false ]]; then
-    mkdir -p "$FONT_DIR"
-    info "Installing sketchybar-app-font..."
-    curl -fsSL "$FONT_URL" -o "$FONT_PATH" || {
-      error "Failed to download sketchybar-app-font"
-      ERRORS+=("sketchybar-app-font download failed")
-    }
+    # SketchyBar app font
+    FONT_DIR="$HOME/Library/Fonts"
+    FONT_PATH="$FONT_DIR/sketchybar-app-font.ttf"
+    FONT_URL="https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf"
     if [[ -f "$FONT_PATH" ]]; then
-      success "Installed: sketchybar-app-font"
-      INSTALLED+=("sketchybar-app-font")
+      success "Already installed: sketchybar-app-font"
+      SKIPPED+=("sketchybar-app-font")
+    elif [[ "$DRY_RUN" == false ]]; then
+      mkdir -p "$FONT_DIR"
+      info "Installing sketchybar-app-font..."
+      curl -fsSL "$FONT_URL" -o "$FONT_PATH" || {
+        error "Failed to download sketchybar-app-font"
+        ERRORS+=("sketchybar-app-font download failed")
+      }
+      if [[ -f "$FONT_PATH" ]]; then
+        success "Installed: sketchybar-app-font"
+        INSTALLED+=("sketchybar-app-font")
+      fi
+    else
+      dry "curl sketchybar-app-font → $FONT_PATH"
     fi
-  else
-    dry "curl sketchybar-app-font → $FONT_PATH"
   fi
 
   # JetBrains Mono Nerd Font
@@ -641,31 +675,44 @@ heading "macOS Preferences"
 # ── Required tweaks (always applied) ─────────────────────────────────────────
 info "Applying required macOS preferences..."
 
-# Auto-hide the menu bar (needed for SketchyBar)
-if [[ "$DRY_RUN" == false ]]; then
-  defaults write NSGlobalDomain _HIHideMenuBar -bool true
-  success "Menu bar auto-hide enabled"
-else
-  dry "defaults write NSGlobalDomain _HIHideMenuBar -bool true"
+# Auto-hide the menu bar (needed for SketchyBar — only when a WM is active)
+if [[ "$WM_CHOICE" != "none" ]]; then
+  if [[ "$DRY_RUN" == false ]]; then
+    defaults write NSGlobalDomain _HIHideMenuBar -bool true
+    success "Menu bar auto-hide enabled"
+  else
+    dry "defaults write NSGlobalDomain _HIHideMenuBar -bool true"
+  fi
 fi
 
-# Launch tiling WM at login (OmniWM preferred, falls back to AeroSpace)
-if [[ -d "/Applications/OmniWM.app" ]]; then
+# Launch tiling WM at login — only for the chosen WM
+if [[ "$WM_CHOICE" == "omniwm" && -d "/Applications/OmniWM.app" ]]; then
   if [[ "$DRY_RUN" == false ]]; then
+    # Remove AeroSpace from login items if present
+    osascript -e 'tell application "System Events" to delete every login item whose name is "AeroSpace"' 2>/dev/null || true
     osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/OmniWM.app", hidden:true}' 2>/dev/null || true
-    success "OmniWM added to login items"
+    success "OmniWM added to login items (AeroSpace removed)"
   else
-    dry "Add OmniWM.app to login items"
+    dry "Add OmniWM.app to login items, remove AeroSpace"
   fi
-elif [[ -d "/Applications/AeroSpace.app" ]]; then
+elif [[ "$WM_CHOICE" == "aerospace" && -d "/Applications/AeroSpace.app" ]]; then
   if [[ "$DRY_RUN" == false ]]; then
+    # Remove OmniWM from login items if present
+    osascript -e 'tell application "System Events" to delete every login item whose name is "OmniWM"' 2>/dev/null || true
     osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/AeroSpace.app", hidden:true}' 2>/dev/null || true
-    success "AeroSpace added to login items"
+    success "AeroSpace added to login items (OmniWM removed)"
   else
-    dry "Add AeroSpace.app to login items"
+    dry "Add AeroSpace.app to login items, remove OmniWM"
   fi
-else
-  warn "No tiling WM found (OmniWM or AeroSpace) — skipping login item setup"
+elif [[ "$WM_CHOICE" == "none" ]]; then
+  if [[ "$DRY_RUN" == false ]]; then
+    # Remove both WMs from login items
+    osascript -e 'tell application "System Events" to delete every login item whose name is "AeroSpace"' 2>/dev/null || true
+    osascript -e 'tell application "System Events" to delete every login item whose name is "OmniWM"' 2>/dev/null || true
+    info "Removed WMs from login items (no WM selected)"
+  else
+    dry "Remove AeroSpace and OmniWM from login items"
+  fi
 fi
 
 # ── Optional tweaks (user picks) ────────────────────────────────────────────
@@ -813,41 +860,42 @@ fi
 # =============================================================================
 heading "Symlinks"
 
-# SketchyBar — whole directory symlink
-if [[ -d "$HOME/.config/sketchybar" && ! -L "$HOME/.config/sketchybar" ]]; then
-  local_backup="$HOME/.config/sketchybar.bak.$(date +%Y%m%d_%H%M%S)"
-  warn "Backing up existing ~/.config/sketchybar → $local_backup"
-  if [[ "$DRY_RUN" == false ]]; then
-    mv "$HOME/.config/sketchybar" "$local_backup"
-  else
-    dry "mv ~/.config/sketchybar $local_backup"
+# SketchyBar — whole directory symlink (only when a WM is selected)
+if [[ "$WM_CHOICE" != "none" ]]; then
+  if [[ -d "$HOME/.config/sketchybar" && ! -L "$HOME/.config/sketchybar" ]]; then
+    local_backup="$HOME/.config/sketchybar.bak.$(date +%Y%m%d_%H%M%S)"
+    warn "Backing up existing ~/.config/sketchybar → $local_backup"
+    if [[ "$DRY_RUN" == false ]]; then
+      mv "$HOME/.config/sketchybar" "$local_backup"
+    else
+      dry "mv ~/.config/sketchybar $local_backup"
+    fi
+  elif [[ -L "$HOME/.config/sketchybar" ]]; then
+    current="$(readlink "$HOME/.config/sketchybar")"
+    if [[ "$current" == "$DOTFILES/sketchybar" ]]; then
+      success "Already linked: ~/.config/sketchybar"
+      SKIPPED+=("~/.config/sketchybar")
+    else
+      error "Conflict: ~/.config/sketchybar → $current"
+      error "       Expected → $DOTFILES/sketchybar"
+      error "       Run: rm ~/.config/sketchybar and re-run."
+      ERRORS+=("Symlink conflict: ~/.config/sketchybar")
+    fi
   fi
-elif [[ -L "$HOME/.config/sketchybar" ]]; then
-  current="$(readlink "$HOME/.config/sketchybar")"
-  if [[ "$current" == "$DOTFILES/sketchybar" ]]; then
-    success "Already linked: ~/.config/sketchybar"
-    SKIPPED+=("~/.config/sketchybar")
-  else
-    error "Conflict: ~/.config/sketchybar → $current"
-    error "       Expected → $DOTFILES/sketchybar"
-    error "       Run: rm ~/.config/sketchybar and re-run."
-    ERRORS+=("Symlink conflict: ~/.config/sketchybar")
-  fi
-fi
 
-if [[ ! -L "$HOME/.config/sketchybar" ]]; then
-  if [[ "$DRY_RUN" == false ]]; then
-    mkdir -p "$HOME/.config"
-    ln -sf "$DOTFILES/sketchybar" "$HOME/.config/sketchybar"
-    success "Linked: ~/.config/sketchybar"
-    LINKED+=("~/.config/sketchybar")
-  else
-    dry "ln -sf $DOTFILES/sketchybar ~/.config/sketchybar"
+  if [[ ! -L "$HOME/.config/sketchybar" ]]; then
+    if [[ "$DRY_RUN" == false ]]; then
+      mkdir -p "$HOME/.config"
+      ln -sf "$DOTFILES/sketchybar" "$HOME/.config/sketchybar"
+      success "Linked: ~/.config/sketchybar"
+      LINKED+=("~/.config/sketchybar")
+    else
+      dry "ln -sf $DOTFILES/sketchybar ~/.config/sketchybar"
+    fi
   fi
 fi
 
 # Individual file symlinks
-link "$DOTFILES/aerospace/aerospace.toml"           "$HOME/.config/aerospace/aerospace.toml"
 link "$DOTFILES/lsd/config.yaml"                    "$HOME/.config/lsd/config.yaml"
 link "$DOTFILES/starship/starship.toml"             "$HOME/.config/starship.toml"
 link "$DOTFILES/fastfetch/config.jsonc"             "$HOME/.config/fastfetch/config.jsonc"
@@ -856,18 +904,28 @@ link "$DOTFILES/ghostty/config"                     "$HOME/.config/ghostty/confi
 link "$DOTFILES/zsh/.zshrc"                         "$HOME/.zshrc"
 link "$DOTFILES/fish/config.fish"                   "$HOME/.config/fish/config.fish"
 link "$DOTFILES/fish/completions/bun.fish"          "$HOME/.config/fish/completions/bun.fish"
-link "$DOTFILES/fish/functions/aerospace-sync.fish" "$HOME/.config/fish/functions/aerospace-sync.fish"
-link "$DOTFILES/bin/aerospace-sync"                 "$HOME/.local/bin/aerospace-sync"
-link "$DOTFILES/bin/wm-switch"                      "$HOME/.local/bin/wm-switch"
-if [[ "$DRY_RUN" == false ]]; then
-  chmod +x "$HOME/.local/bin/aerospace-sync" 2>/dev/null || true
-  chmod +x "$HOME/.local/bin/wm-switch" 2>/dev/null || true
+
+# WM-specific symlinks
+if [[ "$WM_CHOICE" == "aerospace" ]]; then
+  link "$DOTFILES/aerospace/aerospace.toml"           "$HOME/.config/aerospace/aerospace.toml"
+  link "$DOTFILES/fish/functions/aerospace-sync.fish" "$HOME/.config/fish/functions/aerospace-sync.fish"
+  link "$DOTFILES/bin/aerospace-sync"                 "$HOME/.local/bin/aerospace-sync"
+  if [[ "$DRY_RUN" == false ]]; then
+    chmod +x "$HOME/.local/bin/aerospace-sync" 2>/dev/null || true
+  fi
+fi
+
+if [[ "$WM_CHOICE" != "none" ]]; then
+  link "$DOTFILES/bin/wm-switch"                      "$HOME/.local/bin/wm-switch"
+  if [[ "$DRY_RUN" == false ]]; then
+    chmod +x "$HOME/.local/bin/wm-switch" 2>/dev/null || true
+  fi
 fi
 
 # =============================================================================
-# SketchyBar restart  (only if core packages were installed)
+# SketchyBar restart  (only if core packages were installed AND a WM is active)
 # =============================================================================
-if [[ "$INSTALL_APPS" == true ]]; then
+if [[ "$INSTALL_APPS" == true && "$WM_CHOICE" != "none" ]]; then
   heading "SketchyBar"
 
   if command -v sketchybar &>/dev/null; then
@@ -880,6 +938,18 @@ if [[ "$INSTALL_APPS" == true ]]; then
     fi
   else
     warn "sketchybar not found — skipping reload."
+  fi
+elif [[ "$WM_CHOICE" == "none" ]] && command -v sketchybar &>/dev/null; then
+  # Stop SketchyBar if running and no WM selected
+  if brew services list 2>/dev/null | grep -q "sketchybar.*started"; then
+    if prompt "SketchyBar is running but no WM selected. Stop it?"; then
+      if [[ "$DRY_RUN" == false ]]; then
+        brew services stop sketchybar 2>/dev/null || true
+        success "SketchyBar stopped"
+      else
+        dry "brew services stop sketchybar"
+      fi
+    fi
   fi
 fi
 
