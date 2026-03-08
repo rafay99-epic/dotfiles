@@ -4,7 +4,7 @@ after-startup-command = ['exec-and-forget borders active_color=0xffe1e3e4 inacti
 
 start-at-login = true
 
-enable-normalization-flatten-containers = true
+enable-normalization-flatten-containers = false
 enable-normalization-opposite-orientation-for-nested-containers = true
 accordion-padding = 30
 
@@ -56,8 +56,20 @@ outer.right      = 10
 [mode.main.binding]
 
 # ── Layout ────────────────────────────────────────────────────────────────────
-alt-t = 'layout tiles horizontal'
+alt-t = 'layout tiles horizontal vertical'
 alt-f = 'layout floating tiling'
+
+# ── Split (BSP-style tiling) ─────────────────────────────────────────────────
+# Press before opening a new window to control where it appears.
+#   Alt+V  → next window splits vertically (top/bottom)
+#   Alt+B  → next window splits horizontally (side by side)
+#   Alt+O  → next window splits in the opposite direction (auto-alternates)
+alt-v = 'split vertical'
+alt-b = 'split horizontal'
+alt-o = 'split opposite'
+
+# ── Balance windows ──────────────────────────────────────────────────────────
+alt-shift-b = 'balance-sizes'
 
 # ── Window focus (vim keys) ───────────────────────────────────────────────────
 alt-h = 'focus left'

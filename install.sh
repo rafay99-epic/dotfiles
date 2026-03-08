@@ -433,9 +433,69 @@ if [[ "$INSTALL_APPS" == true ]]; then
   # ── Window Manager & Bar ───────────────────────────────────────────────
   heading "Window Manager & Bar"
 
-  # AeroSpace (tiling WM)
-  brew_tap "nikitabobko/tap"
-  brew_install nikitabobko/tap/aerospace --cask
+  # Tiling WM — user picks one (they conflict if both run simultaneously)
+  echo ""
+  echo -e "  ${CYAN}Choose a tiling window manager:${RESET}"
+  echo -e "    ${BOLD}1)${RESET} OmniWM  — Hyprland-style dwindle/BSP, GUI config, quake terminal"
+  echo -e "    ${BOLD}2)${RESET} AeroSpace — i3-style manual tiling, TOML config"
+  echo -e "    ${BOLD}3)${RESET} Skip"
+  echo ""
+  WM_CHOICE=""
+  if [[ "$DRY_RUN" == true ]]; then
+    echo -e "  ${YELLOW}(dry)${RESET} Would ask: Pick a tiling WM → assuming OmniWM"
+    WM_CHOICE="1"
+  else
+    echo -en "  ${BOLD}${BLUE}?${RESET}  ${BOLD}Enter choice [1/2/3]:${RESET} "
+    read -r WM_CHOICE </dev/tty 2>/dev/null || WM_CHOICE="1"
+    echo ""
+  fi
+
+  case "$WM_CHOICE" in
+    1)
+      # Stop AeroSpace if running
+      if pgrep -x AeroSpace &>/dev/null; then
+        warn "AeroSpace is currently running."
+        if prompt "Kill AeroSpace before starting OmniWM?"; then
+          pkill -x AeroSpace 2>/dev/null || true
+          sleep 1
+          success "AeroSpace stopped"
+        else
+          warn "Both WMs running simultaneously will cause conflicts."
+        fi
+      fi
+      brew_tap "BarutSRB/tap"
+      brew_install omniwm --cask
+      # Apply OmniWM defaults
+      if [[ "$DRY_RUN" == false ]]; then
+        if [[ -f "$DOTFILES/omniwm/backup.plist" ]]; then
+          info "Restoring saved OmniWM config..."
+          defaults import com.barut.OmniWM "$DOTFILES/omniwm/backup.plist" 2>/dev/null || true
+          success "OmniWM config restored from backup"
+        else
+          info "Applying OmniWM defaults..."
+          bash "$DOTFILES/omniwm/configure.sh"
+        fi
+      fi
+      ;;
+    2)
+      # Stop OmniWM if running
+      if pgrep -x OmniWM &>/dev/null; then
+        warn "OmniWM is currently running."
+        if prompt "Kill OmniWM before starting AeroSpace?"; then
+          pkill -x OmniWM 2>/dev/null || true
+          sleep 1
+          success "OmniWM stopped"
+        else
+          warn "Both WMs running simultaneously will cause conflicts."
+        fi
+      fi
+      brew_tap "nikitabobko/tap"
+      brew_install nikitabobko/tap/aerospace --cask
+      ;;
+    *)
+      info "Skipping tiling window manager."
+      ;;
+  esac
 
   # SketchyBar
   brew_tap "FelixKratz/formulae"
@@ -589,8 +649,15 @@ else
   dry "defaults write NSGlobalDomain _HIHideMenuBar -bool true"
 fi
 
-# Launch AeroSpace at login (if installed)
-if [[ -d "/Applications/AeroSpace.app" ]]; then
+# Launch tiling WM at login (OmniWM preferred, falls back to AeroSpace)
+if [[ -d "/Applications/OmniWM.app" ]]; then
+  if [[ "$DRY_RUN" == false ]]; then
+    osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/OmniWM.app", hidden:true}' 2>/dev/null || true
+    success "OmniWM added to login items"
+  else
+    dry "Add OmniWM.app to login items"
+  fi
+elif [[ -d "/Applications/AeroSpace.app" ]]; then
   if [[ "$DRY_RUN" == false ]]; then
     osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/AeroSpace.app", hidden:true}' 2>/dev/null || true
     success "AeroSpace added to login items"
@@ -598,7 +665,7 @@ if [[ -d "/Applications/AeroSpace.app" ]]; then
     dry "Add AeroSpace.app to login items"
   fi
 else
-  warn "AeroSpace.app not found — skipping login item setup"
+  warn "No tiling WM found (OmniWM or AeroSpace) — skipping login item setup"
 fi
 
 # ── Optional tweaks (user picks) ────────────────────────────────────────────
@@ -791,8 +858,10 @@ link "$DOTFILES/fish/config.fish"                   "$HOME/.config/fish/config.f
 link "$DOTFILES/fish/completions/bun.fish"          "$HOME/.config/fish/completions/bun.fish"
 link "$DOTFILES/fish/functions/aerospace-sync.fish" "$HOME/.config/fish/functions/aerospace-sync.fish"
 link "$DOTFILES/bin/aerospace-sync"                 "$HOME/.local/bin/aerospace-sync"
+link "$DOTFILES/bin/wm-switch"                      "$HOME/.local/bin/wm-switch"
 if [[ "$DRY_RUN" == false ]]; then
   chmod +x "$HOME/.local/bin/aerospace-sync" 2>/dev/null || true
+  chmod +x "$HOME/.local/bin/wm-switch" 2>/dev/null || true
 fi
 
 # =============================================================================

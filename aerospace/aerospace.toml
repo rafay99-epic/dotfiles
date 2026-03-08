@@ -4,7 +4,7 @@ after-startup-command = ['exec-and-forget borders active_color=0xffe1e3e4 inacti
 
 start-at-login = true
 
-enable-normalization-flatten-containers = true
+enable-normalization-flatten-containers = false
 enable-normalization-opposite-orientation-for-nested-containers = true
 accordion-padding = 30
 
@@ -16,28 +16,6 @@ key-mapping.preset = 'qwerty'
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
 
 # =============================================================================
-# Workspace → Monitor assignment
-# =============================================================================
-#
-#  Docked (lid closed, two external monitors):
-#    Left external  = 'main'      → workspaces 1–5
-#    Right external = 'secondary' → workspaces 6–9
-#
-#  IMPORTANT: In System Settings → Displays, drag the menu bar to your
-#  preferred external monitor so it's always 'main' when docked.
-#
-[workspace-to-monitor-force-assignment]
-1 = 'main'
-2 = 'main'
-3 = 'main'
-4 = 'main'
-5 = 'main'
-6 = 'secondary'
-7 = 'secondary'
-8 = 'secondary'
-9 = 'secondary'
-
-# =============================================================================
 # Gaps
 # =============================================================================
 
@@ -46,7 +24,7 @@ inner.horizontal = 10
 inner.vertical   = 10
 outer.left       = 10
 outer.bottom     = 10
-outer.top        = 40   # external monitors: must clear SketchyBar (height=36, margin=10 → bottom at y=46)
+outer.top        = 8    # laptop: notch safe area handled by macOS
 outer.right      = 10
 
 # =============================================================================
@@ -56,8 +34,20 @@ outer.right      = 10
 [mode.main.binding]
 
 # ── Layout ────────────────────────────────────────────────────────────────────
-alt-t = 'layout tiles horizontal'
+alt-t = 'layout tiles horizontal vertical'
 alt-f = 'layout floating tiling'
+
+# ── Split (BSP-style tiling) ─────────────────────────────────────────────────
+# Press before opening a new window to control where it appears.
+#   Alt+V  → next window splits vertically (top/bottom)
+#   Alt+B  → next window splits horizontally (side by side)
+#   Alt+O  → next window splits in the opposite direction (auto-alternates)
+alt-v = 'split vertical'
+alt-b = 'split horizontal'
+alt-o = 'split opposite'
+
+# ── Balance windows ──────────────────────────────────────────────────────────
+alt-shift-b = 'balance-sizes'
 
 # ── Window focus (vim keys) ───────────────────────────────────────────────────
 alt-h = 'focus left'
@@ -75,14 +65,14 @@ alt-shift-l = 'move right'
 alt-shift-minus = 'resize smart -50'
 alt-shift-equal = 'resize smart +50'
 
-# ── Workspaces 1–5  →  main monitor ──────────────────────────────────────────
+# ── Workspaces 1–5 ────────────────────────────────────────────────────────────
 alt-1 = 'workspace 1'
 alt-2 = 'workspace 2'
 alt-3 = 'workspace 3'
 alt-4 = 'workspace 4'
 alt-5 = 'workspace 5'
 
-# ── Workspaces 6–9  →  secondary monitor ─────────────────────────────────────
+# ── Workspaces 6–9 ────────────────────────────────────────────────────────────
 alt-6 = 'workspace 6'
 alt-7 = 'workspace 7'
 alt-8 = 'workspace 8'

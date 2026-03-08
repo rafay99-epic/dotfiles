@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+# =============================================================================
+# wm-switch — Switch between OmniWM and AeroSpace
+# =============================================================================
+#
+# Usage:
+#   wm-switch omniwm      — kill AeroSpace, start OmniWM
+#   wm-switch aerospace   — kill OmniWM, start AeroSpace
+#   wm-switch              — show which is running and prompt to switch
+#
+# =============================================================================
+
+set -euo pipefail
+
+# ── Colors ────────────────────────────────────────────────────────────────────
+if [[ -t 1 ]]; then
+  RED='\033[0;31m'; GREEN='\033[0;32m'; BLUE='\033[0;34m'
+  YELLOW='\033[0;33m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
+else
+  RED=''; GREEN=''; BLUE=''; YELLOW=''; CYAN=''; BOLD=''; RESET=''
+fi
+
+info()    { echo -e "  ${BLUE}→${RESET}  $*"; }
+success() { echo -e "  ${GREEN}✓${RESET}  $*"; }
+warn()    { echo -e "  ${YELLOW}⚠${RESET}  $*"; }
+error()   { echo -e "  ${RED}✗${RESET}  $*"; }
+
+# ── Detect running WM ────────────────────────────────────────────────────────
+OMNIWM_RUNNING=false
+AEROSPACE_RUNNING=false
+pgrep -x OmniWM &>/dev/null && OMNIWM_RUNNING=true
+pgrep -x AeroSpace &>/dev/null && AEROSPACE_RUNNING=true
+
+# ── Detect installed WMs ─────────────────────────────────────────────────────
+OMNIWM_INSTALLED=false
+AEROSPACE_INSTALLED=false
+[[ -d "/Applications/OmniWM.app" ]] && OMNIWM_INSTALLED=true
+[[ -d "/Applications/AeroSpace.app" ]] && AEROSPACE_INSTALLED=true
+
+# ── Functions ─────────────────────────────────────────────────────────────────
+kill_aerospace() {
+  if [[ "$AEROSPACE_RUNNING" == true ]]; then
+    info "Stopping AeroSpace..."
+    pkill -x AeroSpace 2>/dev/null || true
+    sleep 1
+    success "AeroSpace stopped"
+    AEROSPACE_RUNNING=false
+  fi
+}
+
+kill_omniwm() {
+  if [[ "$OMNIWM_RUNNING" == true ]]; then
+    info "Stopping OmniWM..."
+    pkill -x OmniWM 2>/dev/null || true
+    sleep 1
+    success "OmniWM stopped"
+    OMNIWM_RUNNING=false
+  fi
+}
+
+start_omniwm() {
+  if [[ "$OMNIWM_INSTALLED" != true ]]; then
+    error "OmniWM is not installed. Run: brew tap BarutSRB/tap && brew install omniwm"
+    exit 1
+  fi
+  kill_aerospace
+  info "Starting OmniWM..."
+  open -a OmniWM
+  success "OmniWM is running"
+}
+
+start_aerospace() {
+  if [[ "$AEROSPACE_INSTALLED" != true ]]; then
+    error "AeroSpace is not installed. Run: brew tap nikitabobko/tap && brew install --cask aerospace"
+    exit 1
+  fi
+  kill_omniwm
+  info "Starting AeroSpace..."
+  open -a AeroSpace
+  success "AeroSpace is running"
+}
+
+show_status() {
+  echo ""
+  echo -e "${BOLD}Window Manager Status${RESET}"
+  echo ""
+
+  if [[ "$OMNIWM_RUNNING" == true ]]; then
+    echo -e "  ${GREEN}●${RESET}  OmniWM      ${GREEN}running${RESET}"
+  elif [[ "$OMNIWM_INSTALLED" == true ]]; then
+    echo -e "  ${YELLOW}○${RESET}  OmniWM      ${YELLOW}installed (stopped)${RESET}"
+  else
+    echo -e "  ${RED}○${RESET}  OmniWM      ${RED}not installed${RESET}"
+  fi
+
+  if [[ "$AEROSPACE_RUNNING" == true ]]; then
+    echo -e "  ${GREEN}●${RESET}  AeroSpace   ${GREEN}running${RESET}"
+  elif [[ "$AEROSPACE_INSTALLED" == true ]]; then
+    echo -e "  ${YELLOW}○${RESET}  AeroSpace   ${YELLOW}installed (stopped)${RESET}"
+  else
+    echo -e "  ${RED}○${RESET}  AeroSpace   ${RED}not installed${RESET}"
+  fi
+
+  echo ""
+}
+
+# ── Handle arguments ─────────────────────────────────────────────────────────
+case "${1:-}" in
+  omniwm|omni|o)
+    if [[ "$OMNIWM_RUNNING" == true ]]; then
+      success "OmniWM is already running."
+      exit 0
+    fi
+    if [[ "$AEROSPACE_RUNNING" == true ]]; then
+      echo -en "\n  ${BOLD}${BLUE}?${RESET}  ${BOLD}AeroSpace is running. Kill it and switch to OmniWM?${RESET} [Y/n] "
+      read -r answer </dev/tty 2>/dev/null || answer="y"
+      echo ""
+      if [[ "${answer:-y}" =~ ^[Yy]$ ]]; then
+        start_omniwm
+      else
+        info "Cancelled."
+        exit 0
+      fi
+    else
+      start_omniwm
+    fi
+    ;;
+
+  aerospace|aero|a)
+    if [[ "$AEROSPACE_RUNNING" == true ]]; then
+      success "AeroSpace is already running."
+      exit 0
+    fi
+    if [[ "$OMNIWM_RUNNING" == true ]]; then
+      echo -en "\n  ${BOLD}${BLUE}?${RESET}  ${BOLD}OmniWM is running. Kill it and switch to AeroSpace?${RESET} [Y/n] "
+      read -r answer </dev/tty 2>/dev/null || answer="y"
+      echo ""
+      if [[ "${answer:-y}" =~ ^[Yy]$ ]]; then
+        start_aerospace
+      else
+        info "Cancelled."
+        exit 0
+      fi
+    else
+      start_aerospace
+    fi
+    ;;
+
+  "")
+    show_status
+
+    # Prompt to switch if one is running
+    if [[ "$OMNIWM_RUNNING" == true && "$AEROSPACE_INSTALLED" == true ]]; then
+      echo -e "  ${CYAN}Usage: wm-switch aerospace${RESET}  — switch to AeroSpace"
+    elif [[ "$AEROSPACE_RUNNING" == true && "$OMNIWM_INSTALLED" == true ]]; then
+      echo -e "  ${CYAN}Usage: wm-switch omniwm${RESET}     — switch to OmniWM"
+    elif [[ "$OMNIWM_RUNNING" != true && "$AEROSPACE_RUNNING" != true ]]; then
+      echo -e "  ${CYAN}Usage: wm-switch omniwm${RESET}     — start OmniWM"
+      echo -e "  ${CYAN}Usage: wm-switch aerospace${RESET}  — start AeroSpace"
+    fi
+    echo ""
+    ;;
+
+  *)
+    echo "Usage: wm-switch [omniwm|aerospace]"
+    exit 1
+    ;;
+esac
