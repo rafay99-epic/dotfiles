@@ -5,7 +5,7 @@
 ###############################################
 
 # ── Theme ─────────────────────────────────────────────────
-theme = Tokyo Night
+theme = TokyoNight
 
 # Slightly transparent background so the Tokyo Night wallpaper
 # bleeds through. blur-radius requires macOS 14+.

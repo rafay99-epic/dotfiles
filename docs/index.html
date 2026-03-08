@@ -826,6 +826,155 @@ chsh -s $(which fish)">Copy</button></div>
         </div>
       </section>
 
+      <!-- ── macOS Tweaks ──────────────────────────────────────────────────── -->
+      <section id="macos" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="cog" class="w-6 h-6 text-tn-orange shrink-0"></i>
+          <h2 class="section-title mb-0">macOS Tweaks</h2>
+        </div>
+        <p class="text-tn-sub mb-8">The install script can apply system preferences via <code class="inline-code">defaults write</code> so you don't have to click through System Settings. These are split into <strong class="text-tn-fg">required</strong> (always applied) and <strong class="text-tn-fg">optional</strong> (prompted individually).</p>
+
+        <!-- Required -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Required (always applied)</h3>
+        <div class="overflow-x-auto mb-8">
+          <table class="config-table w-full">
+            <thead><tr><th>Tweak</th><th>What it does</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="font-mono text-tn-yellow text-xs">Auto-hide menu bar</td>
+                <td class="text-tn-sub">Hides the native macOS menu bar so it only appears on hover</td>
+                <td class="text-tn-sub">SketchyBar replaces it — having both visible wastes screen space</td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-yellow text-xs">AeroSpace at login</td>
+                <td class="text-tn-sub">Adds AeroSpace.app to your login items so it launches at boot</td>
+                <td class="text-tn-sub">Tiling WM needs to be running for keybindings and workspace management</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Optional -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Optional (prompted individually)</h3>
+        <div class="overflow-x-auto mb-8">
+          <table class="config-table w-full">
+            <thead><tr><th>Tweak</th><th>What it does</th><th>Command</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Dock: no auto-hide delay</td>
+                <td class="text-tn-sub">Removes the default delay when showing/hiding the Dock — it appears and disappears instantly</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.dock autohide-delay -float 0</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Finder: path bar</td>
+                <td class="text-tn-sub">Shows the full directory path at the bottom of every Finder window</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.finder ShowPathbar -bool true</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Finder: status bar</td>
+                <td class="text-tn-sub">Shows item count and available disk space at the bottom of Finder</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.finder ShowStatusBar -bool true</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Finder: show hidden files</td>
+                <td class="text-tn-sub">Makes dotfiles and hidden folders (like <code class="inline-code">.config</code>) visible in Finder</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.finder AppleShowAllFiles -bool true</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Finder: full POSIX path</td>
+                <td class="text-tn-sub">Shows the absolute path (e.g. <code class="inline-code">/Users/you/dotfiles</code>) in the Finder title bar</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.finder _FXShowPosixPathInTitle -bool true</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Finder: list view</td>
+                <td class="text-tn-sub">Sets the default Finder view to list layout instead of icons — easier to scan file details</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Finder: open to home</td>
+                <td class="text-tn-sub">New Finder windows open to your home folder (<code class="inline-code">~</code>) instead of Recents</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.finder NewWindowTarget -string "PfHm"</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Trackpad: tap to click</td>
+                <td class="text-tn-sub">Registers a light tap on the trackpad as a click — no need to press down</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Screenshots: PNG format</td>
+                <td class="text-tn-sub">Saves screenshots as lossless PNG instead of the default (which may vary by macOS version)</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.screencapture type -string png</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Screenshots: no shadow</td>
+                <td class="text-tn-sub">Removes the drop shadow from window screenshots — cleaner for docs and sharing</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.screencapture disable-shadow -bool true</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Screenshots: save location</td>
+                <td class="text-tn-sub">Saves all screenshots to <code class="inline-code">~/Pictures/Screenshots</code> instead of cluttering the Desktop</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.screencapture location -string "$HOME/Pictures/Screenshots"</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Mission Control: fixed Spaces</td>
+                <td class="text-tn-sub">Prevents macOS from automatically reordering your Spaces based on recent use — keeps workspace order stable for AeroSpace</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.dock mru-spaces -bool false</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Clock: show seconds</td>
+                <td class="text-tn-sub">Displays seconds in the menu bar clock (useful for timing and debugging)</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.menuextra.clock ShowSeconds -bool true</code></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-cyan text-xs">Battery: show percentage</td>
+                <td class="text-tn-sub">Shows the exact battery percentage next to the battery icon in the menu bar</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.controlcenter BatteryShowPercentage -bool true</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl p-4 mb-8">
+          <div class="flex items-start gap-3">
+            <i data-lucide="info" class="w-4 h-4 text-tn-blue mt-0.5 shrink-0"></i>
+            <div class="text-sm text-tn-sub">
+              After applying tweaks, the install script automatically restarts only the affected processes (<code class="inline-code">Dock</code>, <code class="inline-code">Finder</code>, <code class="inline-code">SystemUIServer</code>) — no reboot needed. To revert any tweak, run the same command with the opposite value (e.g. <code class="inline-code">-bool false</code> or <code class="inline-code">defaults delete</code>) and restart the process.
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual tweaks -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Manual (GUI only — not scriptable)</h3>
+        <p class="text-tn-sub text-sm mb-4">These settings have no <code class="inline-code">defaults write</code> or <code class="inline-code">pmset</code> equivalent — Apple only exposes them through System Settings. The install script prints a reminder after the automated tweaks finish.</p>
+        <div class="overflow-x-auto mb-8">
+          <table class="config-table w-full">
+            <thead><tr><th>Tweak</th><th>What it does</th><th>Where to find it</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="font-mono text-tn-orange text-xs">Disable True Tone</td>
+                <td class="text-tn-sub">Stops the display from shifting colour temperature based on ambient light — keeps colours consistent for design and development work</td>
+                <td class="text-tn-sub text-xs">System Settings → Displays → uncheck <strong class="text-tn-fg">True Tone</strong></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-orange text-xs">Keyboard backlight: auto brightness</td>
+                <td class="text-tn-sub">Lets macOS automatically adjust the keyboard backlight based on ambient light — brighter in the dark, off in daylight</td>
+                <td class="text-tn-sub text-xs">System Settings → Keyboard → toggle <strong class="text-tn-fg">Adjust keyboard brightness in low light</strong></td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-orange text-xs">Keyboard backlight: off after 15s</td>
+                <td class="text-tn-sub">Turns off the keyboard backlight after 15 seconds of inactivity — saves battery without disabling the backlight entirely</td>
+                <td class="text-tn-sub text-xs">System Settings → Keyboard → <strong class="text-tn-fg">Turn keyboard backlight off after inactivity</strong> → 15 seconds</td>
+              </tr>
+              <tr>
+                <td class="font-mono text-tn-orange text-xs">Optimize video streaming on battery</td>
+                <td class="text-tn-sub">Plays HDR video as SDR while on battery power — reduces GPU workload and extends battery life during streaming</td>
+                <td class="text-tn-sub text-xs">System Settings → Battery → toggle <strong class="text-tn-fg">Optimize video streaming while on battery</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <!-- ── Gallery ────────────────────────────────────────────────────────── -->
       <section id="gallery" class="section-fade mb-16">
         <div class="flex items-center gap-3 mb-2">

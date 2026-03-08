@@ -20,6 +20,7 @@ const navItems = [
   { id: 'fish',       icon: 'waves',         label: 'Fish' },
   { group: 'More' },
   { id: 'commands',   icon: 'wrench',        label: 'Commands' },
+  { id: 'macos',      icon: 'cog',           label: 'macOS Tweaks' },
   { id: 'gallery',    icon: 'images',        label: 'Gallery' },
 ];
 

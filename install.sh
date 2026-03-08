@@ -10,11 +10,14 @@
 #    ./install.sh --dry-run  — preview everything without making changes
 #    ./install.sh --help     — show this message
 #
+#  Remote one-liner (bootstraps clone + runs this script):
+#    curl -fsSL https://dotfiles.rafay99.com/install.sh | bash
+#
 #  What it does:
-#    1. Asks if you want to install Homebrew + all applications
-#    2. If yes → installs Homebrew, then every tool used by these dotfiles
-#    3. Always  → symlinks all dotfiles into ~/.config
-#    4. Asks about optional GUI apps (Android Studio, VS Code, Chrome, etc.)
+#    1. Checks prerequisites (Xcode CLT, Homebrew, curl, git)
+#    2. Core install  → shells, CLI tools, runtimes, fonts, WM, bar (auto)
+#    3. Symlinks      → all dotfiles into ~/.config (always)
+#    4. Optional apps → user picks which GUI/AI apps to install
 #
 # =============================================================================
 
@@ -79,7 +82,11 @@ for arg in "$@"; do
   esac
 done
 
-# ── Guards ────────────────────────────────────────────────────────────────────
+# =============================================================================
+# Prerequisites
+# =============================================================================
+
+# ── macOS only ────────────────────────────────────────────────────────────────
 if [[ "$(uname)" != "Darwin" ]]; then
   error "This script only supports macOS."
   exit 1
@@ -90,6 +97,49 @@ if [[ "$EUID" -eq 0 ]]; then
   exit 1
 fi
 
+# ── Xcode Command Line Tools ─────────────────────────────────────────────────
+# Required for git, clang, make, etc. On a blank system the Xcode licence must
+# be accepted and the CLT package installed before anything else works.
+if ! xcode-select -p &>/dev/null; then
+  warn "Xcode Command Line Tools not found."
+  info "Installing Xcode Command Line Tools (you may be prompted)..."
+  xcode-select --install 2>/dev/null || true
+  # Wait for the install to finish (GUI installer runs in background)
+  echo -en "\n  ${BOLD}${BLUE}?${RESET}  ${BOLD}Press Enter after the Xcode CLT installer finishes...${RESET} "
+  read -r </dev/tty 2>/dev/null || true
+  if ! xcode-select -p &>/dev/null; then
+    error "Xcode Command Line Tools installation failed. Please install manually:"
+    error "  xcode-select --install"
+    exit 1
+  fi
+  success "Xcode Command Line Tools installed"
+else
+  # Ensure the licence has been accepted
+  if ! /usr/bin/xcrun clang 2>&1 | grep -q "no input files"; then
+    info "Accepting Xcode licence (requires sudo)..."
+    sudo xcodebuild -license accept 2>/dev/null || {
+      error "Could not accept Xcode licence. Run: sudo xcodebuild -license accept"
+      exit 1
+    }
+    success "Xcode licence accepted"
+  fi
+fi
+
+# ── Verify critical commands ─────────────────────────────────────────────────
+for cmd in git curl; do
+  if ! command -v "$cmd" &>/dev/null; then
+    error "'$cmd' is required but not found."
+    error "Install Xcode CLT (xcode-select --install) and retry."
+    exit 1
+  fi
+done
+
+# ── Validate dotfiles directory ──────────────────────────────────────────────
+if [[ ! -d "$DOTFILES" ]]; then
+  error "Dotfiles directory not found: $DOTFILES"
+  exit 1
+fi
+
 # ── Banner ────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}╭────────────────────────────────────────────╮${RESET}"
@@ -97,11 +147,15 @@ echo -e "${BOLD}│       Prometheus Dotfiles — Setup           │${RESET}"
 echo -e "${BOLD}│       github.com/rafay99-epic               │${RESET}"
 echo -e "${BOLD}╰────────────────────────────────────────────╯${RESET}"
 echo ""
-echo -e "  ${GREEN}✓${RESET}  Dotfile symlinks     ${CYAN}(always)${RESET}"
-echo -e "  ${YELLOW}?${RESET}  Homebrew + packages  ${CYAN}(optional — you'll be asked)${RESET}"
-echo -e "  ${YELLOW}?${RESET}  GUI apps             ${CYAN}(optional — asked individually)${RESET}"
+echo -e "  ${GREEN}✓${RESET}  Dotfile symlinks       ${CYAN}(always)${RESET}"
+echo -e "  ${YELLOW}?${RESET}  Core packages & fonts  ${CYAN}(optional — one prompt)${RESET}"
+echo -e "  ${YELLOW}?${RESET}  Apps                   ${CYAN}(optional — pick individually)${RESET}"
 echo ""
 [[ "$DRY_RUN" == true ]] && warn "DRY RUN — no changes will be made\n"
+
+# =============================================================================
+# Helpers
+# =============================================================================
 
 # ── Symlink helper ────────────────────────────────────────────────────────────
 link() {
@@ -151,12 +205,41 @@ link() {
   LINKED+=("$label")
 }
 
-# ── Brew package helper ───────────────────────────────────────────────────────
+# ── Brew guard ────────────────────────────────────────────────────────────────
+# Ensures Homebrew is available before any brew_install / brew_tap call.
+require_brew() {
+  if ! command -v brew &>/dev/null; then
+    error "Homebrew is not installed. Cannot continue with package installation."
+    exit 1
+  fi
+}
+
+# ── Brew tap helper ──────────────────────────────────────────────────────────
+brew_tap() {
+  local tap="$1"
+  require_brew
+  if brew tap | grep -q "^${tap}$"; then
+    return 0
+  fi
+  if [[ "$DRY_RUN" == false ]]; then
+    info "Tapping $tap..."
+    brew tap "$tap" --quiet || {
+      error "Failed to tap $tap"
+      ERRORS+=("brew tap $tap failed")
+      return 1
+    }
+  else
+    dry "brew tap $tap"
+  fi
+}
+
+# ── Brew package helper ──────────────────────────────────────────────────────
 brew_install() {
   local formula="$1"
   local flags="${2:-}"
   local name
   name="$(basename "$formula")"
+  require_brew
 
   if [[ "$flags" == "--cask" ]]; then
     if brew list --cask "$name" &>/dev/null 2>&1; then
@@ -195,19 +278,80 @@ brew_install() {
   success "Installed: $name"
 }
 
+# ── curl installer helper ────────────────────────────────────────────────────
+# curl_install "name" "check_cmd" "install_url"
+curl_install() {
+  local name="$1"
+  local check_cmd="$2"
+  local install_url="$3"
+
+  if eval "$check_cmd" &>/dev/null; then
+    success "Already installed: $name"
+    SKIPPED+=("$name")
+    return 0
+  fi
+
+  if [[ "$DRY_RUN" == false ]]; then
+    info "Installing $name..."
+    curl -fsSL "$install_url" | bash || {
+      error "Failed to install $name"
+      ERRORS+=("$name install failed")
+      return 1
+    }
+    INSTALLED+=("$name")
+    success "Installed: $name"
+  else
+    dry "curl -fsSL $install_url | bash"
+  fi
+}
+
+# ── npm global install helper ────────────────────────────────────────────────
+# npm_install "name" "check_cmd" "npm_package"
+npm_install() {
+  local name="$1"
+  local check_cmd="$2"
+  local package="$3"
+
+  if eval "$check_cmd" &>/dev/null; then
+    success "Already installed: $name"
+    SKIPPED+=("$name")
+    return 0
+  fi
+
+  if ! command -v npm &>/dev/null; then
+    warn "npm not found — cannot install $name. Install Node.js first, then run: npm install -g $package"
+    return 1
+  fi
+
+  if [[ "$DRY_RUN" == false ]]; then
+    info "Installing $name via npm..."
+    npm install -g "$package" || {
+      error "Failed to install $name"
+      ERRORS+=("npm install -g $package failed")
+      return 1
+    }
+    INSTALLED+=("$name")
+    success "Installed: $name"
+  else
+    dry "npm install -g $package"
+  fi
+}
+
 # =============================================================================
-# Ask: install apps?
+# Ask: install core packages?
 # =============================================================================
-if prompt "Install Homebrew and all applications?"; then
+if prompt "Install Homebrew and core packages?"; then
   INSTALL_APPS=true
 else
-  info "Skipping app installation — will only set up symlinks."
+  info "Skipping package installation — will only set up symlinks."
 fi
 
 # =============================================================================
-# Step 1 — Homebrew  (only if user said yes)
+# PART 1 — Core Packages (shells, CLI tools, runtimes, WM, bar, fonts)
 # =============================================================================
 if [[ "$INSTALL_APPS" == true ]]; then
+
+  # ── Homebrew ──────────────────────────────────────────────────────────────
   heading "Homebrew"
 
   if ! command -v brew &>/dev/null; then
@@ -217,9 +361,11 @@ if [[ "$INSTALL_APPS" == true ]]; then
         error "Homebrew installation failed."
         exit 1
       }
-      # Add brew to PATH immediately (Apple Silicon)
+      # Add brew to PATH immediately (Apple Silicon + Intel)
       if [[ -f /opt/homebrew/bin/brew ]]; then
         eval "$(/opt/homebrew/bin/brew shellenv)"
+      elif [[ -f /usr/local/bin/brew ]]; then
+        eval "$(/usr/local/bin/brew shellenv)"
       fi
       success "Homebrew installed"
     else
@@ -228,20 +374,19 @@ if [[ "$INSTALL_APPS" == true ]]; then
   else
     success "Homebrew already installed ($(brew --version | head -1))"
   fi
-fi
 
-# =============================================================================
-# Step 2 — Packages  (only if user said yes)
-# =============================================================================
-if [[ "$INSTALL_APPS" == true ]]; then
-  heading "Packages"
+  require_brew
 
-  # ── Shells ───────────────────────────────────────────────────────────────
+  # ── Shells & Prompts ────────────────────────────────────────────────────
+  heading "Shells & Prompts"
+
   brew_install fish
   brew_install starship
   brew_install fastfetch
 
-  # ── Better CLI tools ─────────────────────────────────────────────────────
+  # ── CLI Tools ──────────────────────────────────────────────────────────
+  heading "CLI Tools"
+
   brew_install bat
   brew_install eza
   brew_install lsd
@@ -249,26 +394,51 @@ if [[ "$INSTALL_APPS" == true ]]; then
   brew_install thefuck
   brew_install jq
 
-  # ── Runtime managers ─────────────────────────────────────────────────────
+  # ── Runtimes & Languages ──────────────────────────────────────────────
+  heading "Runtimes & Languages"
+
   brew_install rbenv
   brew_install nvm
   brew_install fnm       # fish-native Node manager (preferred in fish)
-  brew_install bun
   brew_install openjdk@17
 
-  # ── Mobile ───────────────────────────────────────────────────────────────
+  # Node.js via nvm (LTS)
+  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+  NVM_BREW_PREFIX="$(brew --prefix nvm 2>/dev/null || true)"
+  if [[ -n "$NVM_BREW_PREFIX" && -s "${NVM_BREW_PREFIX}/nvm.sh" ]]; then
+    # shellcheck disable=SC1091
+    source "${NVM_BREW_PREFIX}/nvm.sh"
+  fi
+  if command -v nvm &>/dev/null; then
+    if nvm ls --no-colors 2>/dev/null | grep -q "lts"; then
+      success "Already installed: Node.js (LTS via nvm)"
+      SKIPPED+=("node-lts")
+    elif [[ "$DRY_RUN" == false ]]; then
+      info "Installing Node.js LTS via nvm..."
+      nvm install --lts || warn "Could not install Node.js LTS via nvm"
+      INSTALLED+=("node-lts")
+    else
+      dry "nvm install --lts"
+    fi
+  else
+    warn "nvm not available in this shell — install Node.js LTS manually: nvm install --lts"
+  fi
+
+  # Bun (via official installer — not in Homebrew)
+  curl_install "bun" "command -v bun" "https://bun.sh/install"
+
+  # ── Mobile ─────────────────────────────────────────────────────────────
   brew_install scrcpy    # Android screen mirror
 
-  # ── AeroSpace (tiling WM) ────────────────────────────────────────────────
-  if ! brew tap | grep -q "nikitabobko/tap"; then
-    [[ "$DRY_RUN" == false ]] && brew tap nikitabobko/tap --quiet
-  fi
+  # ── Window Manager & Bar ───────────────────────────────────────────────
+  heading "Window Manager & Bar"
+
+  # AeroSpace (tiling WM)
+  brew_tap "nikitabobko/tap"
   brew_install nikitabobko/tap/aerospace --cask
 
-  # ── SketchyBar ───────────────────────────────────────────────────────────
-  if ! brew tap | grep -q "FelixKratz/formulae"; then
-    [[ "$DRY_RUN" == false ]] && brew tap FelixKratz/formulae --quiet
-  fi
+  # SketchyBar
+  brew_tap "FelixKratz/formulae"
   brew_install sketchybar
 
   if [[ "$DRY_RUN" == false ]]; then
@@ -278,44 +448,34 @@ if [[ "$INSTALL_APPS" == true ]]; then
     fi
   fi
 
-  # ── Terminal & editors ───────────────────────────────────────────────────
-  brew_install ghostty --cask
-  brew_install windsurf --cask
+  # CodexBar (AI usage tracker widget for SketchyBar)
+  brew_tap "steipete/tap"
+  brew_install steipete/tap/codexbar --cask
 
-  # ── AI & dev tools ───────────────────────────────────────────────────────
-  brew_install lm-studio --cask
+  # ── Fonts ──────────────────────────────────────────────────────────────
+  heading "Fonts"
 
-  # Claude Code (cc alias)
-  if command -v claude &>/dev/null; then
-    success "Already installed: claude (Claude Code)"
-    SKIPPED+=("claude")
-  elif command -v npm &>/dev/null; then
-    if [[ "$DRY_RUN" == false ]]; then
-      info "Installing Claude Code via npm..."
-      npm install -g @anthropic-ai/claude-code || warn "Could not install Claude Code"
-      INSTALLED+=("claude")
-    else
-      dry "npm install -g @anthropic-ai/claude-code"
-    fi
-  else
-    warn "npm not found — Claude Code (cc alias) not installed. Install Node first."
-  fi
+  # SF Symbols — required for SketchyBar icon glyphs (icons.sh)
+  brew_install sf-symbols --cask
 
-  # ── Fonts ─────────────────────────────────────────────────────────────────
   # SketchyBar app font
-  FONT_PATH="$HOME/Library/Fonts/sketchybar-app-font.ttf"
+  FONT_DIR="$HOME/Library/Fonts"
+  FONT_PATH="$FONT_DIR/sketchybar-app-font.ttf"
   FONT_URL="https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf"
   if [[ -f "$FONT_PATH" ]]; then
     success "Already installed: sketchybar-app-font"
     SKIPPED+=("sketchybar-app-font")
   elif [[ "$DRY_RUN" == false ]]; then
+    mkdir -p "$FONT_DIR"
     info "Installing sketchybar-app-font..."
     curl -fsSL "$FONT_URL" -o "$FONT_PATH" || {
       error "Failed to download sketchybar-app-font"
       ERRORS+=("sketchybar-app-font download failed")
     }
-    success "Installed: sketchybar-app-font"
-    INSTALLED+=("sketchybar-app-font")
+    if [[ -f "$FONT_PATH" ]]; then
+      success "Installed: sketchybar-app-font"
+      INSTALLED+=("sketchybar-app-font")
+    fi
   else
     dry "curl sketchybar-app-font → $FONT_PATH"
   fi
@@ -326,23 +486,11 @@ if [[ "$INSTALL_APPS" == true ]]; then
     success "Already installed: JetBrainsMono Nerd Font"
     SKIPPED+=("JetBrainsMono Nerd Font")
   else
-    if ! brew tap | grep -q "homebrew/cask-fonts"; then
-      [[ "$DRY_RUN" == false ]] && brew tap homebrew/cask-fonts --quiet 2>/dev/null || true
-    fi
     brew_install font-jetbrains-mono-nerd-font --cask || \
       warn "Could not install JetBrainsMono Nerd Font — install manually from nerdfonts.com"
   fi
 
-  # CodexBar (AI usage tracker for SketchyBar)
-  if command -v codexbar &>/dev/null; then
-    success "Already installed: codexbar"
-    SKIPPED+=("codexbar")
-  else
-    warn "CodexBar not found — download from https://github.com/steipete/CodexBar"
-    warn "The SketchyBar AI widget will show errors until it is installed."
-  fi
-
-  # ── Register fish in /etc/shells ─────────────────────────────────────────
+  # ── Register fish in /etc/shells ───────────────────────────────────────
   if command -v fish &>/dev/null; then
     FISH_PATH="$(command -v fish)"
     if ! grep -qF "$FISH_PATH" /etc/shells; then
@@ -360,7 +508,241 @@ if [[ "$INSTALL_APPS" == true ]]; then
 fi
 
 # =============================================================================
-# Step 3 — Symlinks  (always — this is the core of dotfiles management)
+# PART 2 — Optional Apps (user picks individually)
+# =============================================================================
+heading "Optional Apps"
+echo ""
+echo -e "  ${CYAN}Pick which apps to install (each is optional):${RESET}"
+echo -e "  ${CYAN}Requires Homebrew for cask installs.${RESET}"
+echo ""
+
+# Gate optional apps behind brew availability — some use curl so they work
+# regardless, but cask installs need brew.
+HAS_BREW=false
+command -v brew &>/dev/null && HAS_BREW=true
+
+# ── Terminal ──────────────────────────────────────────────────────────────
+if prompt "Install Ghostty (GPU terminal emulator)?"; then
+  if [[ "$HAS_BREW" == true ]]; then
+    brew_install ghostty --cask
+  else
+    warn "Homebrew not found — skipping Ghostty. Install Homebrew first."
+  fi
+fi
+
+# ── Editors / IDEs ───────────────────────────────────────────────────────
+if prompt "Install Cursor (AI code editor)?"; then
+  if [[ "$HAS_BREW" == true ]]; then
+    brew_install cursor --cask
+  else
+    warn "Homebrew not found — skipping Cursor. Install Homebrew first."
+  fi
+fi
+
+# ── AI Tools ─────────────────────────────────────────────────────────────
+if prompt "Install Claude Code (terminal AI assistant)?"; then
+  curl_install "claude-code" "command -v claude" "https://claude.ai/install.sh"
+fi
+
+if prompt "Install Claude Desktop (GUI app)?"; then
+  if [[ "$HAS_BREW" == true ]]; then
+    brew_install claude --cask
+  else
+    warn "Homebrew not found — skipping Claude Desktop. Install Homebrew first."
+  fi
+fi
+
+if prompt "Install OpenAI Codex CLI (terminal AI agent)?"; then
+  npm_install "codex" "command -v codex" "@openai/codex"
+fi
+
+if prompt "Install LM Studio (local LLMs)?"; then
+  if [[ "$HAS_BREW" == true ]]; then
+    brew_install lm-studio --cask
+  else
+    warn "Homebrew not found — skipping LM Studio. Install Homebrew first."
+  fi
+fi
+
+# ── Media ────────────────────────────────────────────────────────────────
+if prompt "Install Spotify?"; then
+  if [[ "$HAS_BREW" == true ]]; then
+    brew_install spotify --cask
+  else
+    warn "Homebrew not found — skipping Spotify. Install Homebrew first."
+  fi
+fi
+
+# =============================================================================
+# PART 3 — macOS Preferences
+# =============================================================================
+heading "macOS Preferences"
+
+# ── Required tweaks (always applied) ─────────────────────────────────────────
+info "Applying required macOS preferences..."
+
+# Auto-hide the menu bar (needed for SketchyBar)
+if [[ "$DRY_RUN" == false ]]; then
+  defaults write NSGlobalDomain _HIHideMenuBar -bool true
+  success "Menu bar auto-hide enabled"
+else
+  dry "defaults write NSGlobalDomain _HIHideMenuBar -bool true"
+fi
+
+# Launch AeroSpace at login (if installed)
+if [[ -d "/Applications/AeroSpace.app" ]]; then
+  if [[ "$DRY_RUN" == false ]]; then
+    osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/AeroSpace.app", hidden:true}' 2>/dev/null || true
+    success "AeroSpace added to login items"
+  else
+    dry "Add AeroSpace.app to login items"
+  fi
+else
+  warn "AeroSpace.app not found — skipping login item setup"
+fi
+
+# ── Optional tweaks (user picks) ────────────────────────────────────────────
+echo ""
+echo -e "  ${CYAN}Optional system tweaks:${RESET}"
+echo ""
+
+# Track changes that need specific process restarts
+NEEDS_DOCK_RESTART=false
+NEEDS_FINDER_RESTART=false
+NEEDS_SYSTEMUI_RESTART=false
+
+# ── Dock ──────────────────────────────────────────────────────────────────
+if prompt "Remove Dock auto-hide delay (instant Dock appear/disappear)?"; then
+  if [[ "$DRY_RUN" == false ]]; then
+    defaults write com.apple.dock autohide-delay -float 0
+    success "Dock auto-hide delay removed"
+    INSTALLED+=("macos: no dock delay")
+  else
+    dry "defaults write com.apple.dock autohide-delay -float 0"
+  fi
+  NEEDS_DOCK_RESTART=true
+fi
+
+# ── Finder ────────────────────────────────────────────────────────────────
+if prompt "Apply Finder tweaks (path bar, status bar, hidden files, list view, open to home)?"; then
+  if [[ "$DRY_RUN" == false ]]; then
+    defaults write com.apple.finder ShowPathbar -bool true
+    defaults write com.apple.finder ShowStatusBar -bool true
+    defaults write com.apple.finder AppleShowAllFiles -bool true
+    defaults write com.apple.finder _FXShowPosixPathInTitle -bool true
+    # Default view → list (Nlsv=list, icnv=icon, clmv=column, glyv=gallery)
+    defaults write com.apple.finder FXPreferredViewStyle -string "Nlsv"
+    # New windows open to home folder (PfHm=home, PfDe=desktop, PfLo=custom path)
+    defaults write com.apple.finder NewWindowTarget -string "PfHm"
+    defaults write com.apple.finder NewWindowTargetPath -string "file://$HOME/"
+    success "Finder: path bar, status bar, hidden files, full path, list view, home folder"
+    INSTALLED+=("macos: finder tweaks")
+  else
+    dry "defaults write com.apple.finder ShowPathbar/ShowStatusBar/AppleShowAllFiles/FXShowPosixPathInTitle/FXPreferredViewStyle/NewWindowTarget"
+  fi
+  NEEDS_FINDER_RESTART=true
+fi
+
+# ── Trackpad ──────────────────────────────────────────────────────────────
+if prompt "Enable tap-to-click on trackpad?"; then
+  if [[ "$DRY_RUN" == false ]]; then
+    defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
+    defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+    defaults write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
+    success "Trackpad tap-to-click enabled"
+    INSTALLED+=("macos: tap to click")
+  else
+    dry "defaults write trackpad Clicking -bool true"
+  fi
+fi
+
+# ── Screenshots ───────────────────────────────────────────────────────────
+if prompt "Configure screenshots (PNG, no shadow, save to ~/Pictures/Screenshots)?"; then
+  SCREENSHOT_DIR="$HOME/Pictures/Screenshots"
+  if [[ "$DRY_RUN" == false ]]; then
+    mkdir -p "$SCREENSHOT_DIR"
+    defaults write com.apple.screencapture location -string "$SCREENSHOT_DIR"
+    defaults write com.apple.screencapture type -string png
+    defaults write com.apple.screencapture disable-shadow -bool true
+    success "Screenshots: PNG format, no shadow, saved to ~/Pictures/Screenshots"
+    INSTALLED+=("macos: screenshot config")
+  else
+    dry "mkdir -p $SCREENSHOT_DIR"
+    dry "defaults write com.apple.screencapture location/type/disable-shadow"
+  fi
+  NEEDS_SYSTEMUI_RESTART=true
+fi
+
+# ── Mission Control ───────────────────────────────────────────────────────
+if prompt "Prevent Mission Control from auto-rearranging Spaces?"; then
+  if [[ "$DRY_RUN" == false ]]; then
+    defaults write com.apple.dock mru-spaces -bool false
+    success "Mission Control: Spaces will not auto-rearrange"
+    INSTALLED+=("macos: fixed spaces order")
+  else
+    dry "defaults write com.apple.dock mru-spaces -bool false"
+  fi
+  NEEDS_DOCK_RESTART=true
+fi
+
+# ── Menu Bar Clock ────────────────────────────────────────────────────────
+if prompt "Show seconds in menu bar clock?"; then
+  if [[ "$DRY_RUN" == false ]]; then
+    defaults write com.apple.menuextra.clock ShowSeconds -bool true
+    success "Menu bar clock: seconds enabled"
+    INSTALLED+=("macos: clock seconds")
+  else
+    dry "defaults write com.apple.menuextra.clock ShowSeconds -bool true"
+  fi
+  NEEDS_SYSTEMUI_RESTART=true
+fi
+
+# ── Battery ───────────────────────────────────────────────────────────────
+if prompt "Show battery percentage in menu bar?"; then
+  if [[ "$DRY_RUN" == false ]]; then
+    defaults write com.apple.controlcenter BatteryShowPercentage -bool true
+    success "Battery percentage visible in menu bar"
+    INSTALLED+=("macos: battery percentage")
+  else
+    dry "defaults write com.apple.controlcenter BatteryShowPercentage -bool true"
+  fi
+  NEEDS_SYSTEMUI_RESTART=true
+fi
+
+# ── Manual tweaks reminder ───────────────────────────────────────────────
+# These settings cannot be scripted via defaults write / pmset — GUI only.
+echo ""
+echo -e "  ${YELLOW}The following tweaks must be set manually in System Settings:${RESET}"
+echo ""
+echo -e "    ${BOLD}Displays${RESET}"
+echo -e "      • Disable True Tone → Displays → uncheck True Tone"
+echo ""
+echo -e "    ${BOLD}Keyboard${RESET}"
+echo -e "      • Adjust keyboard brightness in low light → Keyboard → toggle on"
+echo -e "      • Turn keyboard backlight off after inactivity → Keyboard → set to 15 seconds"
+echo ""
+echo -e "    ${BOLD}Battery${RESET}"
+echo -e "      • Optimize video streaming while on battery → Battery → toggle on"
+echo ""
+
+# ── Restart affected processes ────────────────────────────────────────────
+if [[ "$DRY_RUN" == false ]]; then
+  if [[ "$NEEDS_DOCK_RESTART" == true ]]; then
+    killall Dock 2>/dev/null || true
+    info "Dock restarted"
+  fi
+  if [[ "$NEEDS_FINDER_RESTART" == true ]]; then
+    killall Finder 2>/dev/null || true
+    info "Finder restarted"
+  fi
+  if [[ "$NEEDS_SYSTEMUI_RESTART" == true ]]; then
+    killall SystemUIServer 2>/dev/null || true
+    info "SystemUIServer restarted"
+  fi
+fi
+
+# =============================================================================
+# Symlinks  (always — this is the core of dotfiles management)
 # =============================================================================
 heading "Symlinks"
 
@@ -368,8 +750,11 @@ heading "Symlinks"
 if [[ -d "$HOME/.config/sketchybar" && ! -L "$HOME/.config/sketchybar" ]]; then
   local_backup="$HOME/.config/sketchybar.bak.$(date +%Y%m%d_%H%M%S)"
   warn "Backing up existing ~/.config/sketchybar → $local_backup"
-  [[ "$DRY_RUN" == false ]] && mv "$HOME/.config/sketchybar" "$local_backup" || \
+  if [[ "$DRY_RUN" == false ]]; then
+    mv "$HOME/.config/sketchybar" "$local_backup"
+  else
     dry "mv ~/.config/sketchybar $local_backup"
+  fi
 elif [[ -L "$HOME/.config/sketchybar" ]]; then
   current="$(readlink "$HOME/.config/sketchybar")"
   if [[ "$current" == "$DOTFILES/sketchybar" ]]; then
@@ -395,30 +780,30 @@ if [[ ! -L "$HOME/.config/sketchybar" ]]; then
 fi
 
 # Individual file symlinks
-link "$DOTFILES/aerospace/aerospace.toml"      "$HOME/.config/aerospace/aerospace.toml"
-link "$DOTFILES/lsd/config.yaml"               "$HOME/.config/lsd/config.yaml"
-link "$DOTFILES/starship/starship.toml"        "$HOME/.config/starship.toml"
-link "$DOTFILES/fastfetch/config.jsonc"        "$HOME/.config/fastfetch/config.jsonc"
-link "$DOTFILES/fastfetch/eldritch.png"        "$HOME/.config/fastfetch/eldritch.png"
-link "$DOTFILES/ghostty/config"                "$HOME/.config/ghostty/config"
-link "$DOTFILES/zsh/.zshrc"                    "$HOME/.zshrc"
-link "$DOTFILES/fish/config.fish"              "$HOME/.config/fish/config.fish"
-link "$DOTFILES/fish/completions/bun.fish"     "$HOME/.config/fish/completions/bun.fish"
+link "$DOTFILES/aerospace/aerospace.toml"           "$HOME/.config/aerospace/aerospace.toml"
+link "$DOTFILES/lsd/config.yaml"                    "$HOME/.config/lsd/config.yaml"
+link "$DOTFILES/starship/starship.toml"             "$HOME/.config/starship.toml"
+link "$DOTFILES/fastfetch/config.jsonc"             "$HOME/.config/fastfetch/config.jsonc"
+link "$DOTFILES/fastfetch/eldritch.png"             "$HOME/.config/fastfetch/eldritch.png"
+link "$DOTFILES/ghostty/config"                     "$HOME/.config/ghostty/config"
+link "$DOTFILES/zsh/.zshrc"                         "$HOME/.zshrc"
+link "$DOTFILES/fish/config.fish"                   "$HOME/.config/fish/config.fish"
+link "$DOTFILES/fish/completions/bun.fish"          "$HOME/.config/fish/completions/bun.fish"
 link "$DOTFILES/fish/functions/aerospace-sync.fish" "$HOME/.config/fish/functions/aerospace-sync.fish"
 link "$DOTFILES/bin/aerospace-sync"                 "$HOME/.local/bin/aerospace-sync"
 if [[ "$DRY_RUN" == false ]]; then
-  chmod +x "$HOME/.local/bin/aerospace-sync"
+  chmod +x "$HOME/.local/bin/aerospace-sync" 2>/dev/null || true
 fi
 
 # =============================================================================
-# Step 4 — SketchyBar restart  (only if apps were installed)
+# SketchyBar restart  (only if core packages were installed)
 # =============================================================================
 if [[ "$INSTALL_APPS" == true ]]; then
   heading "SketchyBar"
 
   if command -v sketchybar &>/dev/null; then
     if [[ "$DRY_RUN" == false ]]; then
-      brew services restart sketchybar
+      brew services restart sketchybar 2>/dev/null || true
       sketchybar --reload 2>/dev/null || true
       success "SketchyBar restarted"
     else
@@ -430,7 +815,7 @@ if [[ "$INSTALL_APPS" == true ]]; then
 fi
 
 # =============================================================================
-# Step 5 — Summary
+# Summary
 # =============================================================================
 heading "Summary"
 echo ""
