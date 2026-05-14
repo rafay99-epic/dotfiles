@@ -1,0 +1,14 @@
+# =============================================================================
+# Brewfile.aerospace — AeroSpace bundle
+# Apply: brew bundle --file=Brewfile.aerospace
+# Installed by install.sh when the user picks AeroSpace as their WM.
+# =============================================================================
+
+tap "nikitabobko/tap"
+tap "FelixKratz/formulae"
+tap "steipete/tap"
+
+cask "nikitabobko/tap/aerospace"   # i3-style WM for macOS
+brew "sketchybar"                   # status bar
+cask "sf-symbols"                   # required for SketchyBar icon glyphs
+cask "steipete/tap/codexbar"        # AI usage tracker widget

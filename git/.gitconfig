@@ -1,0 +1,133 @@
+# =============================================================================
+# Prometheus Dotfiles — global .gitconfig
+# Symlinked from dotfiles/git/.gitconfig → ~/.gitconfig
+# =============================================================================
+#
+#  Note: identity (name/email) is set here because this is a personal dotfiles
+#  repo. Forks should edit the [user] section below (or override via
+#  ~/.gitconfig.local — the [include] at the bottom picks it up if present).
+#
+# =============================================================================
+
+[user]
+    name  = Abdul Rafay
+    email = 99marafay@gmail.com
+
+# ── Core ─────────────────────────────────────────────────────────────────────
+[core]
+    editor       = nvim
+    pager        = delta
+    excludesfile = ~/.gitignore_global
+    autocrlf     = input
+    quotepath    = false
+
+[init]
+    defaultBranch = main
+
+[push]
+    autoSetupRemote = true
+    default         = current
+    followTags      = true
+
+[pull]
+    rebase = false
+
+[fetch]
+    prune     = true
+    pruneTags = true
+
+[rebase]
+    autoStash  = true
+    autoSquash = true
+
+[merge]
+    conflictstyle = zdiff3
+
+[diff]
+    algorithm  = histogram
+    colorMoved = default
+    renames    = copies
+
+[commit]
+    verbose = true
+
+[rerere]
+    enabled    = true
+    autoupdate = true
+
+[help]
+    autocorrect = prompt
+
+[branch]
+    sort = -committerdate
+
+[color]
+    ui = auto
+
+# ── Delta integration (pretty diffs, Tokyo Night) ───────────────────────────
+[interactive]
+    diffFilter = delta --color-only
+
+[delta]
+    navigate     = true
+    line-numbers = true
+    side-by-side = false
+    hyperlinks   = true
+    syntax-theme = Nord
+    # Tokyo Night-tinted minus/plus backgrounds
+    minus-style                  = syntax "#3a1f2a"
+    minus-emph-style             = syntax "#5a2f3a"
+    plus-style                   = syntax "#1f3a26"
+    plus-emph-style              = syntax "#2f5a3a"
+    file-style                   = bold "#7aa2f7" ul
+    hunk-header-style            = file line-number syntax
+    hunk-header-decoration-style = "#414868" box ul
+
+# ── Aliases ──────────────────────────────────────────────────────────────────
+[alias]
+    # Status / log
+    s     = status -sb
+    st    = status
+    l     = log --oneline -n 20
+    lg    = log --graph --pretty=format:'%C(yellow)%h%Creset %C(red)%d%Creset %s %C(green)(%cr) %C(blue)<%an>%Creset' --abbrev-commit
+    last  = log -1 HEAD --stat
+    who   = shortlog -sne
+
+    # Branching
+    br    = branch
+    co    = checkout
+    sw    = switch
+    swc   = switch -c
+
+    # Commits
+    cm    = commit -m
+    ca    = commit --amend
+    amend = commit --amend --no-edit
+    fixup = commit --fixup
+
+    # Undo / fix
+    unstage = reset HEAD --
+    undo    = reset --soft HEAD~1
+    discard = checkout --
+
+    # Remote
+    pushf = push --force-with-lease
+    pulla = pull --autostash
+
+    # Diff
+    df    = diff
+    dfc   = diff --cached
+    dfs   = diff --stat
+
+    # Cleanup — delete branches already merged into main
+    cleanup      = "!git branch --merged main | grep -v '\\* main' | xargs -n 1 git branch -d"
+    prune-remote = remote prune origin
+
+    # Self-discovery
+    aliases = config --get-regexp ^alias\\.
+
+# ── Local override (untracked, optional) ─────────────────────────────────────
+# Put machine-specific settings in ~/.gitconfig.local — e.g. work email,
+# signing key, alternate user identity. Missing file is silently skipped.
+[include]
+    path = ~/.gitconfig.local

@@ -1,23 +1,23 @@
 # =============================================================================
-# Starship Prompt — Tokyo Night  (bracket style)
+# Starship Prompt — Tokyo Night
 # Author : Prometheus
-# Version: 5.0
+# Version: 6.0
 # Docs   : https://starship.rs
 # =============================================================================
 #
 #  Layout:
 #
-#    ╭─  ~/dots/sketchybar  main ● ✚ ⇡          node  dart
-#    ╰─❯
+#    ╭─  ~/dots/sketchybar  main ●✚⇡ +12 -3       node v22  docker  k8s prod                10:42
+#    ╰─ took 2.3s ✗1 ❯
 #
-#  ╭─  top row: directory → git branch → git status │ tech stack (right)
-#  ╰─❯ bottom row: prompt (green = ok · red = error)
+#  Top-left  : directory → git branch → git status → git state → git metrics
+#  Top-right : project version → language stack → devops context
+#  Right     : current time
+#  Bottom    : exit code (if failed) → duration (if >2s) → jobs → prompt char
 #
-#  Git icons  (no numbers — read state, not counts):
-#    ✓  clean        ●  modified      ✚  staged
-#    ⇡  ahead        ⇣  behind        ⇕  diverged
-#    …  untracked    ✖  deleted       ⊙  stashed
-#       conflicts   »  renamed
+#  Git icons (presence-only, no counts):
+#    ✓ clean    ●  modified   ✚ staged    ⇡ ahead    ⇣ behind   ⇕ diverged
+#    … untrack  ✖  deleted    ⊙ stashed     conflict » renamed
 #
 # =============================================================================
 
@@ -30,23 +30,70 @@ $directory\
 $git_branch\
 $git_status\
 $git_state\
+$git_metrics\
 $fill\
+$package\
+$custom\
+$c\
+$cpp\
+$rust\
+$zig\
+$nim\
+$crystal\
+$golang\
+$vlang\
 $nodejs\
 $bun\
+$deno\
 $python\
-$rust\
-$golang\
+$ruby\
+$perl\
+$lua\
+$php\
 $java\
-$dart\
 $kotlin\
+$scala\
+$gradle\
+$dart\
+$swift\
+$elixir\
+$erlang\
 $haskell\
+$ocaml\
+$elm\
+$gleam\
+$julia\
+$rlang\
+$dotnet\
+$solidity\
+$typst\
+$cmake\
+$buf\
+$helm\
+$pulumi\
 $docker_context\
+$kubernetes\
+$terraform\
+$aws\
+$gcloud\
+$nix_shell\
+$direnv\
+$mise\
 $conda\
+$container\
+$vagrant\
+$sudo\
+$shlvl\
 $line_break\
 [╰─](fg:muted)\
+$status\
+$cmd_duration\
+$jobs\
 $character"""
 
-# ── Tokyo Night palette ───────────────────────────────────────────────────────
+right_format = """$time"""
+
+# ── Tokyo Night palette ──────────────────────────────────────────────────────
 [palettes.tokyo_night]
 bg      = '#1a1b26'
 surface = '#24283b'
@@ -72,6 +119,33 @@ vimcmd_symbol  = '[❮](bold fg:purple)'
 
 [fill]
 symbol = ' '
+
+# Show exit code of last command (only when non-zero)
+[status]
+disabled       = false
+format         = '[✗ $status](fg:red) '
+success_symbol = ''
+recognize_signal_code = true
+map_symbol     = false
+
+# How long the last command took (only shown if >2s)
+[cmd_duration]
+disabled  = false
+min_time  = 2_000
+format    = '[ $duration](fg:yellow) '
+
+# Backgrounded jobs (^Z'd)
+[jobs]
+symbol           = '✦ '
+style            = 'fg:cyan'
+number_threshold = 1
+format           = '[$symbol$number](fg:cyan) '
+
+# Clock on the right
+[time]
+disabled    = false
+format      = '[$time](fg:muted)'
+time_format = '%H:%M'
 
 # =============================================================================
 # Directory
@@ -103,7 +177,6 @@ symbol = ' '
 style  = 'fg:purple'
 
 [git_status]
-# Pure icons — presence only, no counts
 format      = '([$all_status$ahead_behind]($style) )'
 style       = ''
 up_to_date  = '[✓](fg:green)'
@@ -119,17 +192,33 @@ renamed     = '[»](fg:cyan)'
 deleted     = '[✖](fg:red)'
 
 [git_state]
-format      = '\[[$state( $progress_current/$progress_total)](fg:yellow)\] '
-rebase      = 'REBASE'
-merge       = 'MERGE'
-revert      = 'REVERT'
-cherry_pick = 'CHERRY'
-bisect      = 'BISECT'
-am          = 'AM'
+format       = '\[[$state( $progress_current/$progress_total)](fg:yellow)\] '
+rebase       = 'REBASE'
+merge        = 'MERGE'
+revert       = 'REVERT'
+cherry_pick  = 'CHERRY'
+bisect       = 'BISECT'
+am           = 'AM'
 am_or_rebase = 'AM/REBASE'
 
+# +added / -deleted lines in the working tree
+[git_metrics]
+disabled      = false
+format        = '([+$added]($added_style) )([-$deleted]($deleted_style) )'
+added_style   = 'fg:green'
+deleted_style = 'fg:red'
+
 # =============================================================================
-# Tech stack  (right side — only shown when detected in current project)
+# Project / package version (Cargo.toml, package.json, pyproject.toml, etc.)
+# =============================================================================
+
+[package]
+format          = '[ 󰏗 $version](fg:muted) '
+symbol          = ''
+display_private = false
+
+# =============================================================================
+# Language stack (only shown when detected in current project)
 # =============================================================================
 
 [nodejs]
@@ -142,6 +231,11 @@ detect_folders = ['node_modules']
 [bun]
 format         = '[ $symbol$version](fg:yellow) '
 symbol         = '󰿅 '
+version_format = 'v${major}.${minor}'
+
+[deno]
+format         = '[ $symbol$version](fg:cyan) '
+symbol         = ' '
 version_format = 'v${major}.${minor}'
 
 [python]
@@ -175,23 +269,366 @@ format         = '[ $symbol$version](fg:purple) '
 symbol         = ' '
 version_format = 'v${major}.${minor}'
 
+[swift]
+format         = '[ $symbol$version](fg:orange) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[php]
+format         = '[ $symbol$version](fg:purple) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[ruby]
+format         = '[ $symbol$version](fg:red) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[lua]
+format         = '[ $symbol$version](fg:blue) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[elixir]
+format         = '[ $symbol$version](fg:purple) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[zig]
+format         = '[ $symbol$version](fg:yellow) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
 [haskell]
 format         = '[ $symbol$version](fg:purple) '
 symbol         = ' '
 version_format = 'v${major}.${minor}'
+
+# ── Systems / compiled ──────────────────────────────────────────────────────
+
+[c]
+format         = '[ $symbol$version](fg:blue) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[cpp]
+disabled       = false
+format         = '[ $symbol$version](fg:blue) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[nim]
+format         = '[ $symbol$version](fg:yellow) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[crystal]
+format         = '[ $symbol$version](fg:red) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[vlang]
+format         = '[ $symbol$version](fg:blue) '
+symbol         = 'V '
+version_format = 'v${major}.${minor}'
+
+# ── Functional ──────────────────────────────────────────────────────────────
+
+[erlang]
+format         = '[ $symbol$version](fg:red) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[ocaml]
+format         = '[ $symbol$version](fg:orange) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[elm]
+format         = '[ $symbol$version](fg:cyan) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[gleam]
+format         = '[ $symbol$version](fg:purple) '
+symbol         = '⭐ '
+version_format = 'v${major}.${minor}'
+
+# ── JVM extras ──────────────────────────────────────────────────────────────
+
+[scala]
+format         = '[ $symbol$version](fg:red) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[gradle]
+format         = '[ $symbol$version](fg:cyan) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+# ── Scripting / scientific ──────────────────────────────────────────────────
+
+[perl]
+format         = '[ $symbol$version](fg:cyan) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[julia]
+format         = '[ $symbol$version](fg:purple) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+[rlang]
+format         = '[ $symbol$version](fg:blue) '
+symbol         = '󰟔 '
+version_format = 'v${major}.${minor}'
+
+# ── Niche / modern ──────────────────────────────────────────────────────────
+
+[dotnet]
+format         = '[ $symbol$version](fg:purple) '
+symbol         = '󰪮 '
+version_format = 'v${major}.${minor}'
+
+[solidity]
+format         = '[ $symbol$version](fg:blue) '
+symbol         = 'Ξ '
+version_format = 'v${major}.${minor}.${patch}'
+
+[typst]
+format         = '[ $symbol$version](fg:cyan) '
+symbol         = '𝐭 '
+version_format = 'v${major}.${minor}'
+
+# ── Build tooling ───────────────────────────────────────────────────────────
+
+[cmake]
+format         = '[ $symbol$version](fg:blue) '
+symbol         = '△ '
+version_format = 'v${major}.${minor}'
+
+[buf]
+format         = '[ $symbol$version](fg:blue) '
+symbol         = ' '
+version_format = 'v${major}.${minor}'
+
+# =============================================================================
+# DevOps / cloud context
+# =============================================================================
 
 [docker_context]
 format          = '[ $symbol$context](fg:cyan) '
 symbol          = ' '
 only_with_files = true
 
+[kubernetes]
+disabled = false
+format   = '[ ⎈ $context( \($namespace\))](fg:blue) '
+# Only show when these files are present so it doesn't noise up every prompt
+detect_files       = ['k8s', 'kustomization.yaml', 'kustomization.yml', 'Chart.yaml']
+detect_extensions  = ['yaml', 'yml']
+detect_folders     = ['.kube', 'helm']
+
+[terraform]
+format = '[ $symbol$workspace](fg:purple) '
+symbol = ' '
+
+[aws]
+format = '[ $symbol$profile(\($region\))](fg:orange) '
+symbol = ' '
+
+[gcloud]
+format = '[ $symbol$account(\($project\))](fg:blue) '
+symbol = ' '
+
 [conda]
 format      = '[ $symbol$environment](fg:green) '
 symbol      = ' '
 ignore_base = true
 
+[helm]
+format         = '[ $symbol$version](fg:blue) '
+symbol         = '⎈ '
+version_format = 'v${major}.${minor}'
+
+[pulumi]
+format = '[ $symbol$stack](fg:purple) '
+symbol = ' '
+
 # =============================================================================
-# Disabled
+# Environment / shell context
+# =============================================================================
+
+[nix_shell]
+format     = '[ ❄ $state( \($name\))](fg:cyan) '
+impure_msg = '[impure](fg:yellow)'
+pure_msg   = '[pure](fg:green)'
+
+[direnv]
+disabled    = false
+format      = '[ $symbol$loaded](fg:orange) '
+symbol      = ' '
+loaded_msg  = 'on'
+unloaded_msg = 'off'
+denied_msg  = 'denied'
+allowed_msg = 'ok'
+
+[mise]
+disabled        = false
+format          = '[ $symbol$health](fg:purple) '
+symbol          = ' '
+healthy_symbol  = 'ok'
+unhealthy_symbol = 'unhealthy'
+
+[container]
+format = '[ $symbol \[$name\]](fg:muted) '
+symbol = '⬢'
+
+[vagrant]
+format         = '[ $symbol$version](fg:cyan) '
+symbol         = '⍱ '
+version_format = 'v${major}.${minor}'
+
+[sudo]
+disabled = false
+format   = '[ $symbol](fg:red) '
+symbol   = ' '
+
+[shlvl]
+disabled  = false
+threshold = 3
+format    = '[ $symbol$shlvl](fg:yellow) '
+symbol    = '↕ '
+
+# =============================================================================
+# Monorepo detection
+# Custom modules — each tags the prompt with the monorepo tool in use.
+# Rendered via $custom in the main format (right after $package).
+# Each module's "command" runs only when the detect file/folder is present,
+# so there's no per-prompt cost outside monorepos.
+# =============================================================================
+
+[custom.nx]
+description    = "Nx monorepo"
+detect_files   = ["nx.json", "workspace.json"]
+command        = "echo Nx"
+format         = '[ ⬢ $output](fg:cyan bold) '
+
+[custom.turbo]
+description    = "Turborepo"
+detect_files   = ["turbo.json"]
+command        = "echo Turbo"
+format         = '[ ⚡ $output](fg:red bold) '
+
+[custom.pnpm_workspace]
+description    = "pnpm workspace"
+detect_files   = ["pnpm-workspace.yaml", "pnpm-workspace.yml"]
+command        = "echo pnpm-ws"
+format         = '[  $output](fg:yellow bold) '
+
+[custom.lerna]
+description    = "Lerna monorepo"
+detect_files   = ["lerna.json"]
+command        = "echo Lerna"
+format         = '[ ⚛ $output](fg:purple bold) '
+
+[custom.rush]
+description    = "Rush monorepo"
+detect_files   = ["rush.json"]
+command        = "echo Rush"
+format         = '[ ⇶ $output](fg:cyan bold) '
+
+[custom.moon]
+description    = "Moon monorepo"
+detect_folders = [".moon"]
+command        = "echo Moon"
+format         = '[ ☾ $output](fg:purple bold) '
+
+[custom.bazel]
+description    = "Bazel workspace"
+detect_files   = ["WORKSPACE", "WORKSPACE.bazel", "MODULE.bazel"]
+command        = "echo Bazel"
+format         = '[  $output](fg:green bold) '
+
+[custom.go_workspace]
+description    = "Go workspace"
+detect_files   = ["go.work"]
+command        = "echo go.work"
+format         = '[  $output](fg:cyan bold) '
+
+[custom.cargo_workspace]
+description    = "Cargo workspace"
+detect_files   = ["Cargo.toml"]
+when           = "grep -q '^\\[workspace\\]' Cargo.toml"
+command        = "echo cargo-ws"
+format         = '[ 󱘗 $output](fg:orange bold) '
+
+# =============================================================================
+# Claude Code statusline
+# Activated by `starship statusline claude-code` from ~/.claude/settings.json
+# Renders:  󰚩 Opus 4.7   ████░░ 65%   $2.34    main ●
+# =============================================================================
+
+[profiles]
+claude-code = "$claude_model$claude_context$claude_cost$git_branch$git_status"
+
+[claude_model]
+format = '[$symbol$model]($style)  '
+symbol = '󰚩 '
+style  = 'fg:purple bold'
+
+# Shorten the long model IDs that Claude Code emits
+[claude_model.model_aliases]
+"claude-opus-4-7"            = "Opus 4.7"
+"claude-opus-4-7[1m]"        = "Opus 4.7 (1M)"
+"claude-sonnet-4-6"          = "Sonnet 4.6"
+"claude-haiku-4-5-20251001"  = "Haiku 4.5"
+
+[claude_context]
+format               = '[$gauge $percentage]($style)  '
+gauge_width          = 10
+gauge_full_symbol    = '█'
+gauge_partial_symbol = '▒'
+gauge_empty_symbol   = '░'
+
+[[claude_context.display]]
+threshold = 0
+style     = 'fg:green bold'
+
+[[claude_context.display]]
+threshold = 50
+style     = 'fg:yellow bold'
+
+[[claude_context.display]]
+threshold = 75
+style     = 'fg:orange bold'
+
+[[claude_context.display]]
+threshold = 90
+style     = 'fg:red bold'
+
+[claude_cost]
+format = '[$symbol\$$cost]($style)  '
+symbol = ' '
+
+[[claude_cost.display]]
+threshold = 0.0
+style     = 'fg:muted'
+
+[[claude_cost.display]]
+threshold = 1.0
+style     = 'fg:yellow bold'
+
+[[claude_cost.display]]
+threshold = 5.0
+style     = 'fg:orange bold'
+
+[[claude_cost.display]]
+threshold = 20.0
+style     = 'fg:red bold'
+
+# =============================================================================
+# Disabled — too noisy or covered by other modules
 # =============================================================================
 
 [username]
@@ -200,14 +637,11 @@ disabled = true
 [hostname]
 disabled = true
 
-[time]
-disabled = true
-
 [battery]
 disabled = true
 
 [memory_usage]
 disabled = true
 
-[cmd_duration]
+[azure]
 disabled = true

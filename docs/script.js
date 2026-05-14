@@ -15,11 +15,13 @@ const navItems = [
   { id: 'profiles',   icon: 'monitor',       label: 'Multi-Config' },
   { group: 'Terminal' },
   { id: 'ghostty',    icon: 'terminal',      label: 'Ghostty' },
+  { id: 'starship',   icon: 'rocket',        label: 'Starship' },
   { id: 'shell',      icon: 'layers',        label: 'Shell Tools' },
   { id: 'zsh',        icon: 'settings-2',    label: 'Zsh' },
   { id: 'fish',       icon: 'waves',         label: 'Fish' },
   { group: 'More' },
   { id: 'commands',   icon: 'wrench',        label: 'Commands' },
+  { id: 'maintenance',icon: 'refresh-cw',    label: 'Maintenance' },
   { id: 'macos',      icon: 'cog',           label: 'macOS Tweaks' },
   { id: 'gallery',    icon: 'images',        label: 'Gallery' },
 ];

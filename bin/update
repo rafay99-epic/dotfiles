@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+# =============================================================================
+# bin/update — keep the whole system current in one command
+# Symlinked to ~/.local/bin/update by install.sh.
+#
+#  Updates:  dotfiles repo · Homebrew + Brewfile · Bun · npm globals · Claude Code
+#  Safe to re-run.  Skips cleanly if any tool is missing.
+# =============================================================================
+
+set -Euo pipefail
+
+# Resolve the real dotfiles dir (this script is usually a symlink)
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+while [[ -L "$SCRIPT_PATH" ]]; do
+  TARGET="$(readlink "$SCRIPT_PATH")"
+  [[ "$TARGET" = /* ]] && SCRIPT_PATH="$TARGET" || SCRIPT_PATH="$(dirname "$SCRIPT_PATH")/$TARGET"
+done
+DOTFILES="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
+
+# ── Colors / logging ────────────────────────────────────────────────────────
+if [[ -t 1 ]]; then
+  GREEN='\033[0;32m'; BLUE='\033[0;34m'; YELLOW='\033[0;33m'; RED='\033[0;31m'
+  CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
+else
+  GREEN=''; BLUE=''; YELLOW=''; RED=''; CYAN=''; BOLD=''; RESET=''
+fi
+heading() { echo -e "\n${BOLD}${CYAN}▸  $*${RESET}\n  ${CYAN}$(printf '%.0s─' {1..40})${RESET}"; }
+info()    { echo -e "  ${BLUE}→${RESET}  $*"; }
+ok()      { echo -e "  ${GREEN}✓${RESET}  $*"; }
+warn()    { echo -e "  ${YELLOW}⚠${RESET}  $*"; }
+err()     { echo -e "  ${RED}✗${RESET}  $*"; }
+
+START=$(date +%s)
+ERRORS=0
+
+# ── 1. Dotfiles repo ────────────────────────────────────────────────────────
+heading "Dotfiles"
+if [[ -d "$DOTFILES/.git" ]]; then
+  if ! (cd "$DOTFILES" && git diff --quiet && git diff --cached --quiet) ; then
+    warn "Uncommitted changes in $DOTFILES — skipping git pull"
+  else
+    info "git pull --ff-only..."
+    if (cd "$DOTFILES" && git pull --ff-only --quiet); then
+      ok "Dotfiles up to date"
+    else
+      err "Could not fast-forward"
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+else
+  warn "Not a git repo: $DOTFILES"
+fi
+
+# ── 2. Homebrew ─────────────────────────────────────────────────────────────
+if command -v brew &>/dev/null; then
+  heading "Homebrew"
+  info "brew update..."
+  brew update >/dev/null || { err "brew update failed"; ERRORS=$((ERRORS + 1)); }
+  info "brew upgrade (formulae)..."
+  brew upgrade || { err "brew upgrade failed"; ERRORS=$((ERRORS + 1)); }
+  info "brew upgrade --cask..."
+  brew upgrade --cask || warn "Some casks could not be upgraded"
+  if [[ -f "$DOTFILES/Brewfile" ]]; then
+    info "brew bundle (Brewfile)..."
+    brew bundle --file="$DOTFILES/Brewfile" --no-lock 2>&1 | tail -3 || warn "brew bundle reported issues"
+  fi
+  info "brew cleanup..."
+  brew cleanup --quiet
+  ok "Homebrew up to date"
+else
+  warn "brew not found — skipping"
+fi
+
+# ── 3. Bun ──────────────────────────────────────────────────────────────────
+if command -v bun &>/dev/null; then
+  heading "Bun"
+  if bun upgrade 2>&1 | tail -3; then
+    ok "Bun up to date"
+  else
+    err "Bun upgrade failed"
+    ERRORS=$((ERRORS + 1))
+  fi
+fi
+
+# ── 4. npm globals ──────────────────────────────────────────────────────────
+if command -v npm &>/dev/null; then
+  heading "npm globals"
+  info "npm update -g..."
+  npm update -g 2>&1 | tail -5 || warn "Some npm globals could not be updated"
+  ok "npm globals up to date"
+fi
+
+# ── 5. Claude Code ──────────────────────────────────────────────────────────
+if command -v claude &>/dev/null; then
+  heading "Claude Code"
+  # Claude Code self-updates on launch; explicit update is best-effort
+  if claude update 2>/dev/null; then
+    ok "Claude Code up to date"
+  elif claude --upgrade 2>/dev/null; then
+    ok "Claude Code up to date"
+  else
+    info "Claude Code self-updates on launch — nothing to do here"
+  fi
+fi
+
+# ── Summary ─────────────────────────────────────────────────────────────────
+DURATION=$(( $(date +%s) - START ))
+MIN=$(( DURATION / 60 )); SEC=$(( DURATION % 60 ))
+echo ""
+if [[ $ERRORS -eq 0 ]]; then
+  echo -e "${GREEN}${BOLD}╭────────────────────────────────────────────────╮${RESET}"
+  echo -e "${GREEN}${BOLD}│   Update complete in ${MIN}m ${SEC}s   ${RESET}"
+  echo -e "${GREEN}${BOLD}╰────────────────────────────────────────────────╯${RESET}"
+else
+  echo -e "${YELLOW}${BOLD}╭────────────────────────────────────────────────╮${RESET}"
+  echo -e "${YELLOW}${BOLD}│   Update complete with ${ERRORS} error(s) in ${MIN}m ${SEC}s ${RESET}"
+  echo -e "${YELLOW}${BOLD}╰────────────────────────────────────────────────╯${RESET}"
+  exit 1
+fi

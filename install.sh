@@ -307,6 +307,64 @@ curl_install() {
   fi
 }
 
+# ── Claude Code statusline configurer ────────────────────────────────────────
+# Idempotently sets ~/.claude/settings.json `statusLine` to use Starship.
+# Preserves all other keys via jq merge. Skips cleanly if jq/starship missing.
+configure_claude_statusline() {
+  local settings_file="$HOME/.claude/settings.json"
+  local desired_command="starship statusline claude-code"
+  local label="Claude Code statusline"
+
+  if ! command -v starship &>/dev/null; then
+    warn "starship not installed — skipping $label config"
+    return 0
+  fi
+
+  if ! command -v jq &>/dev/null; then
+    warn "jq not installed — skipping $label config"
+    return 0
+  fi
+
+  # Already configured the way we want?
+  if [[ -f "$settings_file" ]]; then
+    local current
+    current="$(jq -r '.statusLine.command // ""' "$settings_file" 2>/dev/null || echo "")"
+    if [[ "$current" == "$desired_command" ]]; then
+      success "$label already configured"
+      SKIPPED+=("$label")
+      return 0
+    fi
+  fi
+
+  if [[ "$DRY_RUN" == true ]]; then
+    dry "merge .statusLine into $settings_file"
+    return 0
+  fi
+
+  mkdir -p "$HOME/.claude"
+
+  local tmpfile
+  tmpfile="$(mktemp)"
+  if [[ -f "$settings_file" ]]; then
+    if jq --arg cmd "$desired_command" \
+         '.statusLine = {type: "command", command: $cmd}' \
+         "$settings_file" > "$tmpfile"; then
+      mv "$tmpfile" "$settings_file"
+    else
+      rm -f "$tmpfile"
+      error "Failed to update $settings_file (invalid JSON?)"
+      ERRORS+=("$label config failed")
+      return 1
+    fi
+  else
+    jq -n --arg cmd "$desired_command" \
+       '{statusLine: {type: "command", command: $cmd}}' \
+       > "$settings_file"
+  fi
+  success "$label configured"
+  INSTALLED+=("$label")
+}
+
 # ── npm global install helper ────────────────────────────────────────────────
 # npm_install "name" "check_cmd" "npm_package"
 npm_install() {
@@ -449,30 +507,27 @@ if [[ "$INSTALL_APPS" == true ]]; then
 
   require_brew
 
-  # ── Shells & Prompts ────────────────────────────────────────────────────
-  heading "Shells & Prompts"
+  # ── Core packages (via Brewfile) ────────────────────────────────────────
+  # Declarative install — see ./Brewfile for the full list.
+  heading "Core Packages (Brewfile)"
 
-  brew_install fish
-  brew_install starship
-  brew_install fastfetch
-
-  # ── CLI Tools ──────────────────────────────────────────────────────────
-  heading "CLI Tools"
-
-  brew_install bat
-  brew_install eza
-  brew_install lsd
-  brew_install fzf
-  brew_install thefuck
-  brew_install jq
-
-  # ── Runtimes & Languages ──────────────────────────────────────────────
-  heading "Runtimes & Languages"
-
-  brew_install rbenv
-  brew_install nvm
-  brew_install fnm       # fish-native Node manager (preferred in fish)
-  brew_install openjdk@17
+  if [[ -f "$DOTFILES/Brewfile" ]]; then
+    if [[ "$DRY_RUN" == false ]]; then
+      info "brew bundle --file=Brewfile..."
+      if brew bundle --file="$DOTFILES/Brewfile" --no-lock; then
+        success "Brewfile applied"
+        INSTALLED+=("Brewfile (core)")
+      else
+        error "brew bundle reported errors"
+        ERRORS+=("brew bundle (core) failed")
+      fi
+    else
+      dry "brew bundle --file=$DOTFILES/Brewfile"
+    fi
+  else
+    error "Brewfile not found at $DOTFILES/Brewfile"
+    ERRORS+=("missing Brewfile")
+  fi
 
   # Node.js via nvm (LTS)
   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
@@ -499,59 +554,54 @@ if [[ "$INSTALL_APPS" == true ]]; then
   # Bun (via official installer — not in Homebrew)
   curl_install "bun" "command -v bun" "https://bun.sh/install"
 
-  # ── Mobile ─────────────────────────────────────────────────────────────
-  brew_install scrcpy    # Android screen mirror
-
-  # ── Window Manager & Bar ───────────────────────────────────────────────
+  # ── Window Manager & Bar (via WM-specific Brewfile) ─────────────────────
   if [[ "$WM_CHOICE" != "none" ]]; then
     heading "Window Manager & Bar"
 
-    if [[ "$WM_CHOICE" == "omniwm" ]]; then
-      brew_tap "BarutSRB/tap"
-      brew_install omniwm --cask
-      # Apply OmniWM defaults
+    WM_BREWFILE="$DOTFILES/Brewfile.${WM_CHOICE}"
+    if [[ -f "$WM_BREWFILE" ]]; then
       if [[ "$DRY_RUN" == false ]]; then
-        if [[ -f "$DOTFILES/omniwm/backup.plist" ]]; then
-          info "Restoring saved OmniWM config..."
-          defaults import com.barut.OmniWM "$DOTFILES/omniwm/backup.plist" 2>/dev/null || true
-          success "OmniWM config restored from backup"
+        info "brew bundle --file=Brewfile.${WM_CHOICE}..."
+        if brew bundle --file="$WM_BREWFILE" --no-lock; then
+          success "Brewfile.${WM_CHOICE} applied"
+          INSTALLED+=("Brewfile.${WM_CHOICE}")
         else
-          info "Applying OmniWM defaults..."
-          bash "$DOTFILES/omniwm/configure.sh"
+          error "brew bundle (${WM_CHOICE}) reported errors"
+          ERRORS+=("brew bundle ${WM_CHOICE} failed")
         fi
+      else
+        dry "brew bundle --file=$WM_BREWFILE"
       fi
-    elif [[ "$WM_CHOICE" == "aerospace" ]]; then
-      brew_tap "nikitabobko/tap"
-      brew_install nikitabobko/tap/aerospace --cask
+    else
+      error "Brewfile.${WM_CHOICE} not found"
+      ERRORS+=("missing Brewfile.${WM_CHOICE}")
     fi
 
-    # SketchyBar
-    brew_tap "FelixKratz/formulae"
-    brew_install sketchybar
+    # OmniWM defaults import (post-install config, not a package)
+    if [[ "$WM_CHOICE" == "omniwm" && "$DRY_RUN" == false ]]; then
+      if [[ -f "$DOTFILES/omniwm/backup.plist" ]]; then
+        info "Restoring saved OmniWM config..."
+        defaults import com.barut.OmniWM "$DOTFILES/omniwm/backup.plist" 2>/dev/null || true
+        success "OmniWM config restored from backup"
+      else
+        info "Applying OmniWM defaults..."
+        bash "$DOTFILES/omniwm/configure.sh"
+      fi
+    fi
 
-    if [[ "$DRY_RUN" == false ]]; then
+    # Start SketchyBar service
+    if [[ "$DRY_RUN" == false ]] && command -v sketchybar &>/dev/null; then
       if ! brew services list | grep -q "sketchybar.*started"; then
         info "Starting SketchyBar service..."
         brew services start sketchybar
       fi
     fi
-
-    # CodexBar (AI usage tracker widget for SketchyBar)
-    brew_tap "steipete/tap"
-    brew_install steipete/tap/codexbar --cask
   else
     info "Skipping Window Manager & Bar packages (no WM selected)."
   fi
 
-  # ── Fonts ──────────────────────────────────────────────────────────────
-  heading "Fonts"
-
-  # SketchyBar fonts — only needed when a WM is selected (SketchyBar is WM-paired)
+  # ── SketchyBar app font (curl — not on Homebrew) ────────────────────────
   if [[ "$WM_CHOICE" != "none" ]]; then
-    # SF Symbols — required for SketchyBar icon glyphs (icons.sh)
-    brew_install sf-symbols --cask
-
-    # SketchyBar app font
     FONT_DIR="$HOME/Library/Fonts"
     FONT_PATH="$FONT_DIR/sketchybar-app-font.ttf"
     FONT_URL="https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf"
@@ -572,16 +622,6 @@ if [[ "$INSTALL_APPS" == true ]]; then
     else
       dry "curl sketchybar-app-font → $FONT_PATH"
     fi
-  fi
-
-  # JetBrains Mono Nerd Font
-  if ls "$HOME/Library/Fonts/JetBrainsMonoNerd"* &>/dev/null 2>&1 || \
-     ls "/Library/Fonts/JetBrainsMonoNerd"* &>/dev/null 2>&1; then
-    success "Already installed: JetBrainsMono Nerd Font"
-    SKIPPED+=("JetBrainsMono Nerd Font")
-  else
-    brew_install font-jetbrains-mono-nerd-font --cask || \
-      warn "Could not install JetBrainsMono Nerd Font — install manually from nerdfonts.com"
   fi
 
   # ── Register fish in /etc/shells ───────────────────────────────────────
@@ -636,6 +676,10 @@ fi
 # ── AI Tools ─────────────────────────────────────────────────────────────
 if prompt "Install Claude Code (terminal AI assistant)?"; then
   curl_install "claude-code" "command -v claude" "https://claude.ai/install.sh"
+fi
+
+if prompt "Configure Claude Code to use Starship statusline?"; then
+  configure_claude_statusline
 fi
 
 if prompt "Install Claude Desktop (GUI app)?"; then
@@ -904,6 +948,11 @@ link "$DOTFILES/ghostty/config"                     "$HOME/.config/ghostty/confi
 link "$DOTFILES/zsh/.zshrc"                         "$HOME/.zshrc"
 link "$DOTFILES/fish/config.fish"                   "$HOME/.config/fish/config.fish"
 link "$DOTFILES/fish/completions/bun.fish"          "$HOME/.config/fish/completions/bun.fish"
+link "$DOTFILES/git/.gitconfig"                     "$HOME/.gitconfig"
+link "$DOTFILES/bin/update"                         "$HOME/.local/bin/update"
+if [[ "$DRY_RUN" == false ]]; then
+  chmod +x "$HOME/.local/bin/update" 2>/dev/null || true
+fi
 
 # WM-specific symlinks
 if [[ "$WM_CHOICE" == "aerospace" ]]; then

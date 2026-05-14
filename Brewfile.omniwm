@@ -1,0 +1,14 @@
+# =============================================================================
+# Brewfile.omniwm — OmniWM bundle
+# Apply: brew bundle --file=Brewfile.omniwm
+# Installed by install.sh when the user picks OmniWM as their WM.
+# =============================================================================
+
+tap "BarutSRB/tap"
+tap "FelixKratz/formulae"
+tap "steipete/tap"
+
+cask "omniwm"                   # Hyprland-style WM for macOS
+brew "sketchybar"               # status bar
+cask "sf-symbols"               # required for SketchyBar icon glyphs
+cask "steipete/tap/codexbar"    # AI usage tracker widget

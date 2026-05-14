@@ -10,7 +10,7 @@ theme = TokyoNight
 # Slightly transparent background so the Tokyo Night wallpaper
 # bleeds through. blur-radius requires macOS 14+.
 background-opacity = 0.95
-background-blur-radius = 20
+background-blur = 20
 background-opacity-cells = true
 
 # Keep the window chrome dark to match the bar
@@ -28,7 +28,7 @@ macos-window-shadow = true
 # Falls back to Ghostty's default if not installed.
 font-family = JetBrainsMono Nerd Font
 font-family = JetBrains Mono
-font-size = 13
+font-size = 16
 
 # Slightly heavier strokes — easier to read on Retina
 font-thicken = true
@@ -51,8 +51,43 @@ macos-titlebar-style = transparent
 # Restore window positions and tabs on relaunch
 window-save-state = always
 
+# Start maximized (fills the screen without going fullscreen)
+maximize = true
+
 # Confirm before closing only when a process is running
 confirm-close-surface = true
+
+# Only flash the resize grid once per session
+resize-overlay = after-first
+
+# Option key types Alt (required for vim/fish Alt-bindings).
+# Without this, ⌥+letter inserts special characters.
+macos-option-as-alt = true
+
+# ── Quick Terminal (Quake drop-down) ──────────────────────
+# Global hotkey: drops a persistent terminal from the top.
+# State survives between toggles.
+quick-terminal-position = top
+quick-terminal-screen = main
+quick-terminal-animation-duration = 0.15
+quick-terminal-autohide = true
+
+# ── Splits — visual focus ─────────────────────────────────
+# Dim inactive splits so the focused one pops
+unfocused-split-opacity = 0.7
+focus-follows-mouse = true
+
+# ── Mouse ─────────────────────────────────────────────────
+# Click in a prompt to move the cursor there (needs shell-integration)
+cursor-click-to-move = true
+# Hide the mouse pointer once you start typing
+mouse-hide-while-typing = true
+
+# ── Notifications ─────────────────────────────────────────
+# macOS notification when a command finishes in an unfocused
+# tab/window and took longer than 10 seconds. Killer for builds.
+notify-on-command-finish = unfocused
+notify-on-command-finish-after = 10s
 
 # ── Tabs ──────────────────────────────────────────────────
 # Always show the tab bar so you can see all open tabs
@@ -136,3 +171,24 @@ keybind = super+k=clear_screen
 keybind = super+enter=toggle_fullscreen
 keybind = super+n=new_window
 keybind = super+comma=open_config
+
+# ── Quick Terminal & Command Palette ──────────────────────
+# Global: drop-down terminal from top of screen (works even
+# when Ghostty isn't focused)
+keybind = global:cmd+grave_accent=toggle_quick_terminal
+# Fuzzy-search every Ghostty action
+keybind = super+shift+p=toggle_command_palette
+
+# ── Shell prompt navigation ───────────────────────────────
+# Jump up/down between past shell prompts (requires shell-integration)
+keybind = super+up=jump_to_prompt:-1
+keybind = super+down=jump_to_prompt:1
+
+# ── Screen / Selection → editor ───────────────────────────
+# Pipe whole screen or current selection to a temp file and
+# open it in $EDITOR. Great for grabbing build output.
+keybind = super+shift+s=write_screen_file:open
+keybind = super+shift+y=write_selection_file:open
+
+# Reload config without restarting
+keybind = super+shift+r=reload_config
