@@ -96,6 +96,12 @@ end
 
 # ── fzf (fuzzy finder) ────────────────────────────────────────────────────────
 # Requires fzf >= 0.48 — provides Ctrl+R, Ctrl+T, Alt+C bindings
+if command -q zoxide
+    # --cmd cd rebinds `cd` to zoxide. Plain `cd foo` jumps by frequency;
+    # `cdi` opens an fzf picker.
+    zoxide init fish --cmd cd | source
+end
+
 if command -q fzf
     fzf --fish | source
     set -gx FZF_DEFAULT_OPTS "\

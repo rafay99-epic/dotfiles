@@ -32,6 +32,13 @@ export FZF_DEFAULT_OPTS="--color=fg:${fg},bg:${bg},hl:${purple},fg+:${fg},bg+:${
 # Set up fzf key bindings and fuzzy completion
 eval "$(fzf --zsh)"
 
+# ---- zoxide (smart cd) -----
+# --cmd cd rebinds the `cd` builtin to zoxide. Plain `cd foo` does fuzzy
+# matching against frequent dirs; `cdi` opens an fzf picker.
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh --cmd cd)"
+fi
+
 
 #-------------------------------
 # Use case-sensitive completion

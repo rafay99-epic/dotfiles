@@ -23,6 +23,7 @@ brew "bat"            # better cat with syntax highlighting
 brew "eza"            # modern ls
 brew "lsd"            # alternative ls with icons
 brew "fzf"            # fuzzy finder
+brew "zoxide"         # smart cd replacement (`cd` learns frequent dirs)
 brew "thefuck"        # corrects mistyped commands
 brew "jq"             # JSON processor
 brew "git-delta"      # pretty git diffs (referenced by ~/.gitconfig)
