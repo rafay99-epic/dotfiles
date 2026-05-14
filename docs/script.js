@@ -19,6 +19,7 @@ const navItems = [
   { id: 'shell',      icon: 'layers',        label: 'Shell Tools' },
   { id: 'zsh',        icon: 'settings-2',    label: 'Zsh' },
   { id: 'fish',       icon: 'waves',         label: 'Fish' },
+  { id: 'customize',  icon: 'sliders-horizontal', label: 'Customization' },
   { group: 'More' },
   { id: 'commands',   icon: 'wrench',        label: 'Commands' },
   { id: 'maintenance',icon: 'refresh-cw',    label: 'Maintenance' },

@@ -849,6 +849,7 @@ fastfetch <span class="text-tn-sub"># add to .zshrc</span></pre></div>
           <table><thead><tr><th>Feature</th><th>Details</th></tr></thead><tbody>
             <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — cross-shell, fast, Tokyo Night compatible</td></tr>
             <tr><td class="text-tn-fg">Fuzzy finder</td><td class="text-tn-sub">fzf with custom Tokyo Night colour scheme</td></tr>
+            <tr><td class="text-tn-fg">Smart cd</td><td class="text-tn-sub">zoxide rebinds <code class="inline-code">cd</code> — frecency-based jumps</td></tr>
             <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">eza with icons — <code class="inline-code">ls</code> alias</td></tr>
             <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — syntax-highlighted output</td></tr>
             <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch runs on every new shell open</td></tr>
@@ -862,7 +863,10 @@ fastfetch <span class="text-tn-sub"># add to .zshrc</span></pre></div>
           <table><thead><tr><th>Alias</th><th>Command</th></tr></thead><tbody>
             <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">eza --icons=always</td></tr>
             <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
-            <tr><td><code class="inline-code">cc</code></td><td class="text-tn-sub">claude (Claude Code)</td></tr>
+            <tr><td><code class="inline-code">cc</code></td><td class="text-tn-sub">claude --dangerously-skip-permissions (Claude Code)</td></tr>
+            <tr><td><code class="inline-code">cd</code></td><td class="text-tn-sub">zoxide — fuzzy jump by frecency (see Customization)</td></tr>
+            <tr><td><code class="inline-code">dev [subpath]</code></td><td class="text-tn-sub">cd into <code class="inline-code">~/Code</code> or a subdirectory (tab-completes)</td></tr>
+            <tr><td><code class="inline-code">killport &lt;port&gt;</code></td><td class="text-tn-sub">free a TCP port (SIGTERM then SIGKILL fallback)</td></tr>
             <tr><td><code class="inline-code">dock / undock</code></td><td class="text-tn-sub">aerospace-sync (profile switch)</td></tr>
             <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
             <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
@@ -872,8 +876,8 @@ fastfetch <span class="text-tn-sub"># add to .zshrc</span></pre></div>
         </div>
 
         <div class="code-block-wrap">
-          <div class="code-header"><span class="text-tn-sub text-xs">Install dependencies</span><button class="copy-btn" data-code="brew install fzf eza bat starship fastfetch zsh-autosuggestions">Copy</button></div>
-          <pre class="code-body"><span class="text-tn-blue">brew</span> install fzf eza bat starship fastfetch zsh-autosuggestions</pre>
+          <div class="code-header"><span class="text-tn-sub text-xs">Install dependencies</span><button class="copy-btn" data-code="brew install fzf zoxide eza bat starship fastfetch zsh-autosuggestions">Copy</button></div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> install fzf zoxide eza bat starship fastfetch zsh-autosuggestions</pre>
         </div>
       </section>
 
@@ -907,6 +911,7 @@ chsh -s $(which fish)">Copy</button></div>
               <table><thead><tr><th>Feature</th><th>Details</th></tr></thead><tbody>
                 <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — <code class="inline-code">starship init fish | source</code></td></tr>
                 <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch on every shell open</td></tr>
+                <tr><td class="text-tn-fg">Smart cd</td><td class="text-tn-sub">zoxide rebinds <code class="inline-code">cd</code> — frecency-based jumps</td></tr>
                 <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">lsd -al — <code class="inline-code">ls</code> alias</td></tr>
                 <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — <code class="inline-code">cat</code> alias</td></tr>
                 <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">conda · bun · LM Studio</td></tr>
@@ -919,6 +924,9 @@ chsh -s $(which fish)">Copy</button></div>
               <table><thead><tr><th>Alias</th><th>Command</th></tr></thead><tbody>
                 <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">lsd -al</td></tr>
                 <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
+                <tr><td><code class="inline-code">cd</code></td><td class="text-tn-sub">zoxide (frecency jump)</td></tr>
+                <tr><td><code class="inline-code">dev [subpath]</code></td><td class="text-tn-sub">cd into <code class="inline-code">~/Code/&lt;arg&gt;</code> (tab-completes)</td></tr>
+                <tr><td><code class="inline-code">killport &lt;port&gt;</code></td><td class="text-tn-sub">free a TCP port</td></tr>
                 <tr><td><code class="inline-code">dock / undock</code></td><td class="text-tn-sub">aerospace-sync</td></tr>
                 <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
                 <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
@@ -928,6 +936,117 @@ chsh -s $(which fish)">Copy</button></div>
             </div>
           </div>
         </div>
+      </section>
+
+      <!-- ── Customization ───────────────────────────────────────────────────── -->
+      <section id="customize" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="sliders-horizontal" class="w-6 h-6 text-tn-purple shrink-0"></i>
+          <h2 class="section-title mb-0">Customization</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Everything here is plain text in this repo. Adding your own aliases, functions, package installs, or directory jumps is a one-line edit and a shell reload.</p>
+
+        <!-- where things live -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Where things live</h3>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table>
+            <thead><tr><th>You want to add…</th><th>Edit this file</th></tr></thead>
+            <tbody>
+              <tr><td class="text-tn-fg">A zsh alias</td><td><code class="inline-code">zsh/.zshrc</code></td></tr>
+              <tr><td class="text-tn-fg">A fish alias or one-liner</td><td><code class="inline-code">fish/config.fish</code></td></tr>
+              <tr><td class="text-tn-fg">A fish function (takes args)</td><td><code class="inline-code">fish/functions/&lt;name&gt;.fish</code> + entry in <code class="inline-code">install.sh</code></td></tr>
+              <tr><td class="text-tn-fg">A standalone script</td><td><code class="inline-code">bin/&lt;name&gt;</code> + entry in <code class="inline-code">install.sh</code> (linked into <code class="inline-code">~/.local/bin</code>)</td></tr>
+              <tr><td class="text-tn-fg">A Homebrew package</td><td><code class="inline-code">Brewfile</code> (or <code class="inline-code">Brewfile.aerospace</code> / <code class="inline-code">Brewfile.omniwm</code> for WM-only)</td></tr>
+              <tr><td class="text-tn-fg">A starship prompt module</td><td><code class="inline-code">starship/starship.toml</code></td></tr>
+              <tr><td class="text-tn-fg">A ghostty keybinding</td><td><code class="inline-code">ghostty/config</code></td></tr>
+              <tr><td class="text-tn-fg">An aerospace shortcut</td><td><code class="inline-code">aerospace/laptop.toml</code> and <code class="inline-code">aerospace/docked.toml</code> (keep both in sync)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- adding aliases -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Adding a simple alias</h3>
+        <p class="text-tn-sub text-sm mb-3">Aliases are textual substitutions — they don't take arguments. Use them for fixed-shape commands. For anything that needs an arg, use a function (next section).</p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">zsh — <code class="inline-code">zsh/.zshrc</code></span><button class="copy-btn" data-code='alias serve="python3 -m http.server"'>Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">alias</span> serve=<span class="text-tn-green">"python3 -m http.server"</span></pre>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">fish — <code class="inline-code">fish/config.fish</code></span><button class="copy-btn" data-code='alias serve="python3 -m http.server"'>Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">alias</span> serve=<span class="text-tn-green">"python3 -m http.server"</span></pre>
+          </div>
+        </div>
+
+        <!-- adding functions -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Adding a function (takes arguments)</h3>
+        <p class="text-tn-sub text-sm mb-3">When the alias needs to receive a port number, a path, or any user input, write a function instead. <code class="inline-code">dev</code> and <code class="inline-code">killport</code> in this repo are functions for exactly this reason.</p>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">zsh — append to <code class="inline-code">zsh/.zshrc</code></span><button class="copy-btn" data-code='mkcd() {
+  mkdir -p "$1" && cd "$1"
+}'>Copy</button></div>
+            <pre class="code-body"><span class="text-tn-yellow">mkcd</span>() {
+  <span class="text-tn-blue">mkdir</span> -p <span class="text-tn-green">"$1"</span> &amp;&amp; <span class="text-tn-blue">cd</span> <span class="text-tn-green">"$1"</span>
+}</pre>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">fish — new file <code class="inline-code">fish/functions/mkcd.fish</code></span><button class="copy-btn" data-code='function mkcd --description "mkdir + cd"
+    mkdir -p $argv[1]; and cd $argv[1]
+end'>Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">function</span> <span class="text-tn-yellow">mkcd</span> --description <span class="text-tn-green">"mkdir + cd"</span>
+    <span class="text-tn-blue">mkdir</span> -p $argv[1]; <span class="text-tn-blue">and</span> <span class="text-tn-blue">cd</span> $argv[1]
+<span class="text-tn-blue">end</span></pre>
+          </div>
+        </div>
+        <p class="text-tn-sub text-sm mb-6">For the fish version, also add a symlink line to <code class="inline-code">install.sh</code> so a fresh machine picks it up — copy the pattern next to the existing <code class="inline-code">killport.fish</code> entry.</p>
+
+        <!-- zoxide usage -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Using zoxide (smart cd)</h3>
+        <p class="text-tn-sub text-sm mb-3"><code class="inline-code">cd</code> is rebound to zoxide. The database builds automatically as you navigate — no manual config. After visiting a directory once, you can jump there by any unique substring of its path.</p>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+          <table>
+            <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code class="inline-code">cd /full/path</code></td><td class="text-tn-sub">Works exactly like the builtin — full paths are honoured first</td></tr>
+              <tr><td><code class="inline-code">cd lumo</code></td><td class="text-tn-sub">Fuzzy jump to the highest-scored dir whose path contains "lumo"</td></tr>
+              <tr><td><code class="inline-code">cd code lumo</code></td><td class="text-tn-sub">Multiple substrings — matches paths containing both</td></tr>
+              <tr><td><code class="inline-code">cdi</code></td><td class="text-tn-sub">Interactive fzf picker over your frecency list</td></tr>
+              <tr><td><code class="inline-code">cd -</code></td><td class="text-tn-sub">Previous directory (passes through to builtin)</td></tr>
+              <tr><td><code class="inline-code">zoxide query foo</code></td><td class="text-tn-sub">Show the path <code class="inline-code">cd foo</code> would jump to (no cd)</td></tr>
+              <tr><td><code class="inline-code">zoxide remove &lt;path&gt;</code></td><td class="text-tn-sub">Forget a directory — useful after deleting/moving it</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-tn-sub text-sm mb-6">If you'd rather keep the builtin <code class="inline-code">cd</code> and use a separate command, remove <code class="inline-code">--cmd cd</code> from the <code class="inline-code">zoxide init</code> lines in <code class="inline-code">zsh/.zshrc</code> and <code class="inline-code">fish/config.fish</code>; zoxide then exposes <code class="inline-code">z</code> and <code class="inline-code">zi</code> instead.</p>
+
+        <!-- adding a brew package -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Adding a Homebrew package</h3>
+        <p class="text-tn-sub text-sm mb-3">One line in the Brewfile — <code class="inline-code">install.sh</code> runs <code class="inline-code">brew bundle</code> against it so a fresh machine installs it automatically.</p>
+        <div class="code-block-wrap mb-6">
+          <div class="code-header"><span class="text-tn-sub text-xs"><code class="inline-code">Brewfile</code></span><button class="copy-btn" data-code='brew "ripgrep"      # ultra-fast grep
+brew "fd"           # ultra-fast find'>Copy</button></div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> <span class="text-tn-green">"ripgrep"</span>      <span class="text-tn-sub"># ultra-fast grep</span>
+<span class="text-tn-blue">brew</span> <span class="text-tn-green">"fd"</span>           <span class="text-tn-sub"># ultra-fast find</span></pre>
+        </div>
+
+        <!-- reload -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Reloading after edits</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">zsh</span><button class="copy-btn" data-code="source ~/.zshrc">Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">source</span> ~/.zshrc</pre>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">fish</span><button class="copy-btn" data-code="exec fish">Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">exec</span> fish</pre>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">brew packages</span><button class="copy-btn" data-code="brew bundle --file=Brewfile">Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">brew</span> bundle --file=Brewfile</pre>
+          </div>
+        </div>
+        <p class="text-tn-sub text-sm">Fish functions placed under <code class="inline-code">~/.config/fish/functions/</code> are autoloaded on next invocation — no reload needed for those.</p>
       </section>
 
       <!-- ── Useful Commands ────────────────────────────────────────────────── -->
@@ -984,7 +1103,7 @@ chsh -s $(which fish)">Copy</button></div>
             <table>
               <thead><tr><th>File</th><th>When applied</th><th>Contents</th></tr></thead>
               <tbody>
-                <tr><td><code class="inline-code">Brewfile</code></td><td class="text-tn-sub">Always</td><td class="text-tn-sub">fish, starship, fastfetch, bat, eza, lsd, fzf, thefuck, jq, <strong class="text-tn-green">git-delta</strong>, rbenv, nvm, fnm, openjdk@17, scrcpy, JetBrains Mono Nerd Font</td></tr>
+                <tr><td><code class="inline-code">Brewfile</code></td><td class="text-tn-sub">Always</td><td class="text-tn-sub">fish, starship, fastfetch, bat, eza, lsd, fzf, <strong class="text-tn-green">zoxide</strong>, thefuck, jq, git-delta, rbenv, nvm, fnm, openjdk@17, scrcpy, JetBrains Mono Nerd Font</td></tr>
                 <tr><td><code class="inline-code">Brewfile.omniwm</code></td><td class="text-tn-sub">If WM = OmniWM</td><td class="text-tn-sub">omniwm, sketchybar, sf-symbols, codexbar</td></tr>
                 <tr><td><code class="inline-code">Brewfile.aerospace</code></td><td class="text-tn-sub">If WM = AeroSpace</td><td class="text-tn-sub">aerospace, sketchybar, sf-symbols, codexbar</td></tr>
               </tbody>
