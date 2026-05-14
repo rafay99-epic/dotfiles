@@ -11,6 +11,7 @@ const navItems = [
   { id: 'symlinks',   icon: 'link',          label: 'Symlinks' },
   { group: 'Desktop' },
   { id: 'sketchybar', icon: 'palette',       label: 'SketchyBar' },
+  { id: 'omniwm',     icon: 'layers-3',      label: 'OmniWM' },
   { id: 'aerospace',  icon: 'layout-grid',   label: 'AeroSpace' },
   { id: 'profiles',   icon: 'monitor',       label: 'Multi-Config' },
   { group: 'Terminal' },

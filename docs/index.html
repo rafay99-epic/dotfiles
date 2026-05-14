@@ -16,7 +16,7 @@
           colors: {
             tn: {
               bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868',
-              fg:'#a9b1d6', sub:'#7a85b8', blue:'#7aa2f7', purple:'#bb9af7',
+              fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7',
               cyan:'#7dcfff', green:'#9ece6a', yellow:'#e0af68',
               red:'#f7768e', orange:'#ff9e64',
             }
@@ -32,6 +32,9 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body class="bg-tn-bg text-tn-fg min-h-screen">
+
+  <!-- Skip link: visible only on keyboard focus -->
+  <a href="#main" class="skip-link">Skip to main content</a>
 
   <!-- Reading progress bar -->
   <div id="progress-bar"></div>
@@ -105,7 +108,7 @@
     </aside>
 
     <!-- Main content -->
-    <main class="flex-1 min-w-0 px-5 lg:px-12 py-8 lg:py-10 max-w-4xl mx-auto w-full">
+    <main id="main" tabindex="-1" class="flex-1 min-w-0 px-5 lg:px-12 py-8 lg:py-10 max-w-4xl mx-auto w-full">
 
       <!-- ── Overview ──────────────────────────────────────────────────────── -->
       <section id="overview" class="section-fade mb-16">
@@ -397,6 +400,69 @@ sketchybar --reload">Copy</button>
               <tr><td class="font-mono text-tn-sub text-xs">RED</td><td><span class="color-swatch" style="background:#f7768e"></span><span class="text-tn-red">#f7768e</span></td><td class="text-tn-sub">Battery low · AI high</td></tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <!-- ── OmniWM ─────────────────────────────────────────────────────────── -->
+      <section id="omniwm" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="layers-3" class="w-6 h-6 text-tn-cyan shrink-0"></i>
+          <h2 class="section-title mb-0">OmniWM</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Hyprland-style dwindle/BSP tiling window manager for macOS by <a href="https://github.com/BarutSRB" class="text-tn-cyan hover:underline">BarutSRB</a>. GUI-configured (no TOML) with a built-in Quake terminal. Peer alternative to AeroSpace — pick one at install time.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Setup</span>
+            <button class="copy-btn" data-code="brew tap BarutSRB/tap
+brew install --cask omniwm
+~/dotfiles/omniwm/configure.sh">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> tap BarutSRB/tap
+<span class="text-tn-blue">brew</span> install --cask omniwm
+~/dotfiles/omniwm/configure.sh   <span class="text-tn-sub"># pre-seed sensible defaults</span></pre>
+        </div>
+
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Default hotkeys</h3>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>Option + 1–9</kbd></td><td class="text-tn-sub">Switch to workspace</td></tr>
+              <tr><td><kbd>Option + Shift + 1–9</kbd></td><td class="text-tn-sub">Move window to workspace</td></tr>
+              <tr><td><kbd>Option + ←/↓/↑/→</kbd></td><td class="text-tn-sub">Focus window</td></tr>
+              <tr><td><kbd>Option + Shift + ←/↓/↑/→</kbd></td><td class="text-tn-sub">Move window</td></tr>
+              <tr><td><kbd>Option + Shift + B</kbd></td><td class="text-tn-sub">Balance sizes</td></tr>
+              <tr><td><kbd>Option + Return</kbd></td><td class="text-tn-sub">Toggle fullscreen</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Config flow — <code class="inline-code">omniwm/configure.sh</code></h3>
+        <p class="text-tn-sub text-sm mb-3">OmniWM stores settings under the <code class="inline-code">com.barut.OmniWM</code> defaults domain, so the config is binary plist rather than text. <code class="inline-code">configure.sh</code> wraps <code class="inline-code">defaults write</code>/<code class="inline-code">export</code>/<code class="inline-code">import</code> so the settings stay version-controlled.</p>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table>
+            <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code class="inline-code">./configure.sh</code></td><td class="text-tn-sub">Apply repo defaults (borders on, workspace bar off, focus-follows-mouse off)</td></tr>
+              <tr><td><code class="inline-code">./configure.sh --export</code></td><td class="text-tn-sub">Save your current OmniWM settings into <code class="inline-code">omniwm/backup.plist</code> — commit this</td></tr>
+              <tr><td><code class="inline-code">./configure.sh --import</code></td><td class="text-tn-sub">Restore settings from <code class="inline-code">backup.plist</code> on a new machine</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-tn-bg2 border border-tn-yellow/30 rounded-xl p-4 flex gap-3 mb-4">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">
+            <strong class="text-tn-fg">Manual steps still required in the OmniWM GUI</strong> after running <code class="inline-code">configure.sh</code>: set default layout to <strong class="text-tn-fg">Dwindle (BSP)</strong>, set inner/outer gaps to <strong class="text-tn-fg">10</strong>, and set the top gap to <strong class="text-tn-fg">40</strong> on external monitors (<strong class="text-tn-fg">8</strong> on the laptop) so SketchyBar has room.
+          </div>
+        </div>
+
+        <div class="bg-tn-bg2 border border-tn-blue/20 rounded-xl p-4 flex gap-3">
+          <i data-lucide="info" class="w-5 h-5 text-tn-blue shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">
+            <strong class="text-tn-fg">OmniWM vs AeroSpace</strong> — both ship in this repo. OmniWM is friendlier if you like GUI config and want a Hyprland-flavoured dwindle layout; AeroSpace wins if you prefer TOML, vim-style HJKL, and reproducible text configs. <code class="inline-code">install.sh</code> asks you to pick one and installs the matching <code class="inline-code">Brewfile.&lt;wm&gt;</code>.
+          </div>
         </div>
       </section>
 
@@ -946,8 +1012,11 @@ chsh -s $(which fish)">Copy</button></div>
         </div>
         <p class="text-tn-sub mb-6">Everything here is plain text in this repo. Adding your own aliases, functions, package installs, or directory jumps is a one-line edit and a shell reload.</p>
 
+        <!-- ─────── Reference ─────── -->
+        <h3 class="text-tn-fg font-semibold text-lg mb-3 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5 text-tn-cyan"></i>Reference</h3>
+
         <!-- where things live -->
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Where things live</h3>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Where things live</h4>
         <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
           <table>
             <thead><tr><th>You want to add…</th><th>Edit this file</th></tr></thead>
@@ -964,45 +1033,8 @@ chsh -s $(which fish)">Copy</button></div>
           </table>
         </div>
 
-        <!-- adding aliases -->
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Adding a simple alias</h3>
-        <p class="text-tn-sub text-sm mb-3">Aliases are textual substitutions — they don't take arguments. Use them for fixed-shape commands. For anything that needs an arg, use a function (next section).</p>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">zsh — <code class="inline-code">zsh/.zshrc</code></span><button class="copy-btn" data-code='alias serve="python3 -m http.server"'>Copy</button></div>
-            <pre class="code-body"><span class="text-tn-blue">alias</span> serve=<span class="text-tn-green">"python3 -m http.server"</span></pre>
-          </div>
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">fish — <code class="inline-code">fish/config.fish</code></span><button class="copy-btn" data-code='alias serve="python3 -m http.server"'>Copy</button></div>
-            <pre class="code-body"><span class="text-tn-blue">alias</span> serve=<span class="text-tn-green">"python3 -m http.server"</span></pre>
-          </div>
-        </div>
-
-        <!-- adding functions -->
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Adding a function (takes arguments)</h3>
-        <p class="text-tn-sub text-sm mb-3">When the alias needs to receive a port number, a path, or any user input, write a function instead. <code class="inline-code">dev</code> and <code class="inline-code">killport</code> in this repo are functions for exactly this reason.</p>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">zsh — append to <code class="inline-code">zsh/.zshrc</code></span><button class="copy-btn" data-code='mkcd() {
-  mkdir -p "$1" && cd "$1"
-}'>Copy</button></div>
-            <pre class="code-body"><span class="text-tn-yellow">mkcd</span>() {
-  <span class="text-tn-blue">mkdir</span> -p <span class="text-tn-green">"$1"</span> &amp;&amp; <span class="text-tn-blue">cd</span> <span class="text-tn-green">"$1"</span>
-}</pre>
-          </div>
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">fish — new file <code class="inline-code">fish/functions/mkcd.fish</code></span><button class="copy-btn" data-code='function mkcd --description "mkdir + cd"
-    mkdir -p $argv[1]; and cd $argv[1]
-end'>Copy</button></div>
-            <pre class="code-body"><span class="text-tn-blue">function</span> <span class="text-tn-yellow">mkcd</span> --description <span class="text-tn-green">"mkdir + cd"</span>
-    <span class="text-tn-blue">mkdir</span> -p $argv[1]; <span class="text-tn-blue">and</span> <span class="text-tn-blue">cd</span> $argv[1]
-<span class="text-tn-blue">end</span></pre>
-          </div>
-        </div>
-        <p class="text-tn-sub text-sm mb-6">For the fish version, also add a symlink line to <code class="inline-code">install.sh</code> so a fresh machine picks it up — copy the pattern next to the existing <code class="inline-code">killport.fish</code> entry.</p>
-
-        <!-- zoxide usage -->
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Using zoxide (smart cd)</h3>
+        <!-- zoxide cheat-sheet (reference, not recipe) -->
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">zoxide (smart cd) cheat-sheet</h4>
         <p class="text-tn-sub text-sm mb-3"><code class="inline-code">cd</code> is rebound to zoxide. The database builds automatically as you navigate — no manual config. After visiting a directory once, you can jump there by any unique substring of its path.</p>
         <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
           <table>
@@ -1018,35 +1050,89 @@ end'>Copy</button></div>
             </tbody>
           </table>
         </div>
-        <p class="text-tn-sub text-sm mb-6">If you'd rather keep the builtin <code class="inline-code">cd</code> and use a separate command, remove <code class="inline-code">--cmd cd</code> from the <code class="inline-code">zoxide init</code> lines in <code class="inline-code">zsh/.zshrc</code> and <code class="inline-code">fish/config.fish</code>; zoxide then exposes <code class="inline-code">z</code> and <code class="inline-code">zi</code> instead.</p>
+        <p class="text-tn-sub text-sm mb-10">If you'd rather keep the builtin <code class="inline-code">cd</code> and use a separate command, remove <code class="inline-code">--cmd cd</code> from the <code class="inline-code">zoxide init</code> lines in <code class="inline-code">zsh/.zshrc</code> and <code class="inline-code">fish/config.fish</code>; zoxide then exposes <code class="inline-code">z</code> and <code class="inline-code">zi</code> instead.</p>
 
-        <!-- adding a brew package -->
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Adding a Homebrew package</h3>
-        <p class="text-tn-sub text-sm mb-3">One line in the Brewfile — <code class="inline-code">install.sh</code> runs <code class="inline-code">brew bundle</code> against it so a fresh machine installs it automatically.</p>
-        <div class="code-block-wrap mb-6">
-          <div class="code-header"><span class="text-tn-sub text-xs"><code class="inline-code">Brewfile</code></span><button class="copy-btn" data-code='brew "ripgrep"      # ultra-fast grep
+        <!-- ─────── Recipes ─────── -->
+        <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="chef-hat" class="w-5 h-5 text-tn-yellow"></i>Recipes</h3>
+        <p class="text-tn-sub text-sm mb-4">Step-by-step examples. Jump to:
+          <a href="#recipe-alias" class="text-tn-blue hover:underline">alias</a> ·
+          <a href="#recipe-function" class="text-tn-blue hover:underline">function</a> ·
+          <a href="#recipe-brew" class="text-tn-blue hover:underline">brew package</a> ·
+          <a href="#recipe-reload" class="text-tn-blue hover:underline">reload</a>
+        </p>
+
+        <!-- recipe: alias -->
+        <div id="recipe-alias" class="bg-tn-bg2 border border-tn-border rounded-xl p-5 mb-4">
+          <h4 class="text-tn-fg font-semibold mb-2 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-tn-blue"></i>Add a simple alias</h4>
+          <p class="text-tn-sub text-sm mb-3">Aliases are textual substitutions — they don't take arguments. Use them for fixed-shape commands. For anything that needs an arg, use a function (next recipe).</p>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">zsh — <code class="inline-code">zsh/.zshrc</code></span><button class="copy-btn" data-code='alias serve="python3 -m http.server"'>Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">alias</span> serve=<span class="text-tn-green">"python3 -m http.server"</span></pre>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">fish — <code class="inline-code">fish/config.fish</code></span><button class="copy-btn" data-code='alias serve="python3 -m http.server"'>Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">alias</span> serve=<span class="text-tn-green">"python3 -m http.server"</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- recipe: function -->
+        <div id="recipe-function" class="bg-tn-bg2 border border-tn-border rounded-xl p-5 mb-4">
+          <h4 class="text-tn-fg font-semibold mb-2 flex items-center gap-2"><i data-lucide="braces" class="w-4 h-4 text-tn-purple"></i>Add a function (takes arguments)</h4>
+          <p class="text-tn-sub text-sm mb-3">When the alias needs to receive a port number, a path, or any user input, write a function instead. <code class="inline-code">dev</code> and <code class="inline-code">killport</code> in this repo are functions for exactly this reason.</p>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">zsh — append to <code class="inline-code">zsh/.zshrc</code></span><button class="copy-btn" data-code='mkcd() {
+  mkdir -p "$1" && cd "$1"
+}'>Copy</button></div>
+              <pre class="code-body"><span class="text-tn-yellow">mkcd</span>() {
+  <span class="text-tn-blue">mkdir</span> -p <span class="text-tn-green">"$1"</span> &amp;&amp; <span class="text-tn-blue">cd</span> <span class="text-tn-green">"$1"</span>
+}</pre>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">fish — new file <code class="inline-code">fish/functions/mkcd.fish</code></span><button class="copy-btn" data-code='function mkcd --description "mkdir + cd"
+    mkdir -p $argv[1]; and cd $argv[1]
+end'>Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">function</span> <span class="text-tn-yellow">mkcd</span> --description <span class="text-tn-green">"mkdir + cd"</span>
+    <span class="text-tn-blue">mkdir</span> -p $argv[1]; <span class="text-tn-blue">and</span> <span class="text-tn-blue">cd</span> $argv[1]
+<span class="text-tn-blue">end</span></pre>
+            </div>
+          </div>
+          <p class="text-tn-sub text-sm">For the fish version, also add a symlink line to <code class="inline-code">install.sh</code> so a fresh machine picks it up — copy the pattern next to the existing <code class="inline-code">killport.fish</code> entry.</p>
+        </div>
+
+        <!-- recipe: brew -->
+        <div id="recipe-brew" class="bg-tn-bg2 border border-tn-border rounded-xl p-5 mb-4">
+          <h4 class="text-tn-fg font-semibold mb-2 flex items-center gap-2"><i data-lucide="box" class="w-4 h-4 text-tn-cyan"></i>Add a Homebrew package</h4>
+          <p class="text-tn-sub text-sm mb-3">One line in the Brewfile — <code class="inline-code">install.sh</code> runs <code class="inline-code">brew bundle</code> against it so a fresh machine installs it automatically.</p>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs"><code class="inline-code">Brewfile</code></span><button class="copy-btn" data-code='brew "ripgrep"      # ultra-fast grep
 brew "fd"           # ultra-fast find'>Copy</button></div>
-          <pre class="code-body"><span class="text-tn-blue">brew</span> <span class="text-tn-green">"ripgrep"</span>      <span class="text-tn-sub"># ultra-fast grep</span>
+            <pre class="code-body"><span class="text-tn-blue">brew</span> <span class="text-tn-green">"ripgrep"</span>      <span class="text-tn-sub"># ultra-fast grep</span>
 <span class="text-tn-blue">brew</span> <span class="text-tn-green">"fd"</span>           <span class="text-tn-sub"># ultra-fast find</span></pre>
+          </div>
         </div>
 
-        <!-- reload -->
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Reloading after edits</h3>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">zsh</span><button class="copy-btn" data-code="source ~/.zshrc">Copy</button></div>
-            <pre class="code-body"><span class="text-tn-blue">source</span> ~/.zshrc</pre>
+        <!-- recipe: reload -->
+        <div id="recipe-reload" class="bg-tn-bg2 border border-tn-border rounded-xl p-5 mb-4">
+          <h4 class="text-tn-fg font-semibold mb-2 flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4 text-tn-green"></i>Reload after edits</h4>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-3">
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">zsh</span><button class="copy-btn" data-code="source ~/.zshrc">Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">source</span> ~/.zshrc</pre>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">fish</span><button class="copy-btn" data-code="exec fish">Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">exec</span> fish</pre>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">brew packages</span><button class="copy-btn" data-code="brew bundle --file=Brewfile">Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">brew</span> bundle --file=Brewfile</pre>
+            </div>
           </div>
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">fish</span><button class="copy-btn" data-code="exec fish">Copy</button></div>
-            <pre class="code-body"><span class="text-tn-blue">exec</span> fish</pre>
-          </div>
-          <div class="code-block-wrap">
-            <div class="code-header"><span class="text-tn-sub text-xs">brew packages</span><button class="copy-btn" data-code="brew bundle --file=Brewfile">Copy</button></div>
-            <pre class="code-body"><span class="text-tn-blue">brew</span> bundle --file=Brewfile</pre>
-          </div>
+          <p class="text-tn-sub text-sm">Fish functions placed under <code class="inline-code">~/.config/fish/functions/</code> are autoloaded on next invocation — no reload needed for those.</p>
         </div>
-        <p class="text-tn-sub text-sm">Fish functions placed under <code class="inline-code">~/.config/fish/functions/</code> are autoloaded on next invocation — no reload needed for those.</p>
       </section>
 
       <!-- ── Useful Commands ────────────────────────────────────────────────── -->

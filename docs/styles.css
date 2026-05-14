@@ -9,8 +9,8 @@
   --tn-bg3:      #2f3549;
   --tn-bg-code:  #1e2030;
   --tn-border:   #414868;
-  --tn-fg:       #a9b1d6;
-  --tn-sub:      #7a85b8;
+  --tn-fg:       #c0caf5;
+  --tn-sub:      #9aa5ce;
   --tn-blue:     #7aa2f7;
   --tn-purple:   #bb9af7;
   --tn-cyan:     #7dcfff;
@@ -31,7 +31,7 @@
   --tn-bg-code:  #bbbdc8;
   --tn-border:   #9699b6;
   --tn-fg:       #343b58;
-  --tn-sub:      #6172b0;
+  --tn-sub:      #4a5a8f;
   --tn-blue:     #2e7de9;
   --tn-purple:   #7847bd;
   --tn-cyan:     #007197;
@@ -49,7 +49,7 @@
 .light-mode .bg-tn-bg3   { background-color: #c4c5cd !important; }
 .light-mode header.sticky { background-color: rgba(225,226,231,0.95) !important; }
 .light-mode .text-tn-fg     { color: #343b58 !important; }
-.light-mode .text-tn-sub    { color: #6172b0 !important; }
+.light-mode .text-tn-sub    { color: #4a5a8f !important; }
 .light-mode .text-tn-blue   { color: #2e7de9 !important; }
 .light-mode .text-tn-purple { color: #7847bd !important; }
 .light-mode .text-tn-cyan   { color: #007197 !important; }
@@ -78,6 +78,46 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { font-family: 'Inter', sans-serif; transition: var(--tn-theme-transition); }
+
+/* ── Accessibility: focus + skip link ───────────────────────────────────────── */
+/* Visible keyboard focus ring on every interactive element. Mouse clicks won't
+   trigger :focus-visible, so this only fires for keyboard / a11y tooling. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--tn-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Skip link — visually hidden until focused via Tab. Lets keyboard users jump
+   past the sticky sidebar straight to main content. */
+.skip-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: var(--tn-bg2);
+  color: var(--tn-fg);
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--tn-border);
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-decoration: none;
+  z-index: 100;
+  transform: translateY(-150%);
+  transition: transform 0.15s ease;
+}
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0.5rem) translateX(0.5rem);
+  outline: 2px solid var(--tn-blue);
+  outline-offset: 2px;
+}
 section[id] { scroll-margin-top: 1.5rem; }
 @media (max-width: 1023px) { section[id] { scroll-margin-top: 4.5rem; } }
 #desktop-sidebar, header, nav, main, aside, footer, section {
