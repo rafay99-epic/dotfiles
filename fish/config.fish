@@ -141,7 +141,6 @@ alias scrcpy120="scrcpy --video-codec=h265 --max-size=1920 --max-fps"
 alias dock="aerospace-sync"
 alias undock="aerospace-sync"
 
-# Code directory shortcut
-alias dev="cd $HOME/Code/"
+# `dev` is defined as a function in fish/functions/dev.fish (takes optional subpath args).
 
 string match -q "$TERM_PROGRAM" "kiro" and . (kiro --locate-shell-integration-path fish)

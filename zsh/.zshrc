@@ -178,8 +178,18 @@ export PATH=$PATH:$HOME/.maestro/bin
 
 
 
-# Project Keybing 
-alias dev="cd $HOME/Code/"
+# Project Keybing
+# dev [subpath...] — cd into ~/Code or a subdirectory beneath it.
+# Multiple args are joined with spaces, so `dev full stack` -> ~/Code/full stack.
+dev() {
+  if (( $# == 0 )); then
+    cd "$HOME/Code"
+  else
+    cd "$HOME/Code/$*"
+  fi
+}
+_dev() { _path_files -W "$HOME/Code" -/ }
+compdef _dev dev
 alias lumo="cd $HOME/Code/Lumo/"
 alias envpilot.dev="cd $HOME/Code/ENV_Connect/"
 alias tudo_tech_lab="cd $HOME/Code/TudoNumTechLab/"

@@ -955,6 +955,8 @@ if [[ "$DRY_RUN" == false ]]; then
 fi
 link "$DOTFILES/bin/killport"                       "$HOME/.local/bin/killport"
 link "$DOTFILES/fish/functions/killport.fish"       "$HOME/.config/fish/functions/killport.fish"
+link "$DOTFILES/fish/functions/dev.fish"            "$HOME/.config/fish/functions/dev.fish"
+link "$DOTFILES/fish/completions/dev.fish"          "$HOME/.config/fish/completions/dev.fish"
 if [[ "$DRY_RUN" == false ]]; then
   chmod +x "$HOME/.local/bin/killport" 2>/dev/null || true
 fi
