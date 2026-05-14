@@ -140,3 +140,5 @@ alias scrcpy120="scrcpy --video-codec=h265 --max-size=1920 --max-fps"
 # AeroSpace profile sync
 alias dock="aerospace-sync"
 alias undock="aerospace-sync"
+
+string match -q "$TERM_PROGRAM" "kiro" and . (kiro --locate-shell-integration-path fish)

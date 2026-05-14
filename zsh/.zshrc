@@ -1,8 +1,12 @@
+
+# Kiro CLI pre block. Keep at the top of this file.
+[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
+
  export BUN_INSTALL="$HOME/.bun" 
  export PATH="$BUN_INSTALL/bin:$PATH" 
  export PATH="$HOME/.cargo/bin:$PATH"
 
-fastfetch
+#fastfetch
 
 ###########################################
 #            Startship Promote            #
@@ -17,6 +21,8 @@ bg_highlight="#143652"
 purple="#B388FF"
 blue="#06BCE4"
 cyan="#2CF9ED"
+
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 
 export FZF_DEFAULT_OPTS="--color=fg:${fg},bg:${bg},hl:${purple},fg+:${fg},bg+:${bg_highlight},hl+:${purple},info:${blue},prompt:${cyan},pointer:${cyan},marker:${cyan},spinner:${cyan},header:${cyan}"
 
@@ -84,8 +90,9 @@ compinit
 alias gs="git status"
 alias g="git"
 alias gc="git clone"
-alias ga="git commit -a"
-alias branch="git branch -r" 
+alias ga="git add *"
+alias branch="git branch -r"
+gm() { git commit -m "$1" && git push }
 
 
 #------------------
@@ -160,3 +167,28 @@ alias undock='aerospace-sync'
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
+
+# Added by Antigravity
+export PATH="/Users/prometheus/.antigravity/antigravity/bin:$PATH"
+
+[[ ":$PATH:" != *":$HOME/.config/kaku/zsh/bin:"* ]] && export PATH="$HOME/.config/kaku/zsh/bin:$PATH" # Kaku PATH Integration
+[[ -f "$HOME/.config/kaku/zsh/kaku.zsh" ]] && source "$HOME/.config/kaku/zsh/kaku.zsh" # Kaku Shell Integration
+export PATH=$PATH:$HOME/.maestro/bin
+
+
+
+# Project Keybing 
+alias lumo="cd $HOME/Code/Lumo/"
+alias envpilot.dev="cd $HOME/Code/ENV_Connect/"
+alias tudo_tech_lab="cd $HOME/Code/TudoNumTechLab/"
+
+# omnara
+path=("/Users/prometheus/.omnara/bin" $path)
+
+
+# Android SDK
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools
+
+# Kiro CLI post block. Keep at the bottom of this file.
+[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
