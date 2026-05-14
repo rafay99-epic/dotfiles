@@ -179,6 +179,7 @@ export PATH=$PATH:$HOME/.maestro/bin
 
 
 # Project Keybing 
+alias dev="cd $HOME/Code/"
 alias lumo="cd $HOME/Code/Lumo/"
 alias envpilot.dev="cd $HOME/Code/ENV_Connect/"
 alias tudo_tech_lab="cd $HOME/Code/TudoNumTechLab/"
