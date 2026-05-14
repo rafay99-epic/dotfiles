@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# killport — kill whatever process is listening on a given TCP port.
+# Usage: killport <port>
+
+set -uo pipefail
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage: killport <port>" >&2
+  exit 2
+fi
+
+PORT="$1"
+
+if ! [[ "$PORT" =~ ^[0-9]+$ ]] || (( PORT < 1 || PORT > 65535 )); then
+  echo "Error: '$PORT' is not a valid port (1-65535)" >&2
+  exit 2
+fi
+
+if ! command -v lsof >/dev/null 2>&1; then
+  echo "Error: lsof not found on PATH" >&2
+  exit 1
+fi
+
+# -t = terse (PIDs only), -i = internet, -sTCP:LISTEN = only listening sockets
+PIDS="$(lsof -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true)"
+
+if [[ -z "$PIDS" ]]; then
+  echo "No process listening on port $PORT"
+  exit 0
+fi
+
+echo "Port $PORT is held by PID(s): $(echo "$PIDS" | tr '\n' ' ')"
+
+# Try graceful TERM first, then SIGKILL anything still alive after 1s.
+echo "$PIDS" | xargs kill -TERM 2>/dev/null || true
+sleep 1
+
+STILL="$(lsof -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true)"
+if [[ -n "$STILL" ]]; then
+  echo "Still alive, sending SIGKILL to: $(echo "$STILL" | tr '\n' ' ')"
+  echo "$STILL" | xargs kill -9 2>/dev/null || true
+fi
+
+FINAL="$(lsof -tiTCP:"$PORT" -sTCP:LISTEN 2>/dev/null || true)"
+if [[ -z "$FINAL" ]]; then
+  echo "Port $PORT freed."
+  exit 0
+else
+  echo "Error: port $PORT still held by PID(s): $(echo "$FINAL" | tr '\n' ' ')" >&2
+  exit 1
+fi

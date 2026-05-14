@@ -163,6 +163,7 @@ aerospace-sync() {
 }
 alias dock='aerospace-sync'
 alias undock='aerospace-sync'
+# killport <port> — kills whatever is listening on a TCP port (see bin/killport)
 
 # bun
 export BUN_INSTALL="$HOME/.bun"
