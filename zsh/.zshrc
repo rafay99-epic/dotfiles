@@ -98,7 +98,7 @@ gm() { git commit -m "$1" && git push }
 #------------------
 #Launch Claude Code 
 #------------------
-alias cc="claude"
+alias cc="claude --dangerously-skip-permissions"
 
 alias cat="bat"
 # ---- Eza (better ls) -----

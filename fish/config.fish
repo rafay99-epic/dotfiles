@@ -134,7 +134,7 @@ alias ll="eza --icons=always -la"
 alias lt="eza --icons=always --tree"
 
 # ── Apps / shortcuts ──────────────────────────────────────────────────────────
-alias cc="claude"
+alias cc="claude --dangerously-skip-permissions"
 alias scrcpy120="scrcpy --video-codec=h265 --max-size=1920 --max-fps"
 
 # AeroSpace profile sync
