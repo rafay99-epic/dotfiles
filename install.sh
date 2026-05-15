@@ -855,6 +855,23 @@ if prompt "Show seconds in menu bar clock?"; then
   NEEDS_SYSTEMUI_RESTART=true
 fi
 
+# ── Microsoft Office telemetry ────────────────────────────────────────────
+if prompt "Disable Microsoft Office telemetry (Word, Excel, PowerPoint, Outlook, OneNote, AutoUpdate, Office365 Service)?"; then
+  if [[ "$DRY_RUN" == false ]]; then
+    defaults write com.microsoft.Word              SendAllTelemetryEnabled -bool FALSE
+    defaults write com.microsoft.Excel             SendAllTelemetryEnabled -bool FALSE
+    defaults write com.microsoft.Powerpoint        SendAllTelemetryEnabled -bool FALSE
+    defaults write com.microsoft.Outlook           SendAllTelemetryEnabled -bool FALSE
+    defaults write com.microsoft.onenote.mac       SendAllTelemetryEnabled -bool FALSE
+    defaults write com.microsoft.autoupdate2       SendAllTelemetryEnabled -bool FALSE
+    defaults write com.microsoft.Office365ServiceV2 SendAllTelemetryEnabled -bool FALSE
+    success "Microsoft Office telemetry disabled (7 bundles)"
+    INSTALLED+=("macos: office telemetry off")
+  else
+    dry "defaults write com.microsoft.{Word,Excel,Powerpoint,Outlook,onenote.mac,autoupdate2,Office365ServiceV2} SendAllTelemetryEnabled -bool FALSE"
+  fi
+fi
+
 # ── Battery ───────────────────────────────────────────────────────────────
 if prompt "Show battery percentage in menu bar?"; then
   if [[ "$DRY_RUN" == false ]]; then

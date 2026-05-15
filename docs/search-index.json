@@ -390,5 +390,12 @@
     "url": "/gallery",
     "snippet": "Screenshots and Tokyo Night wallpaper downloads.",
     "kind": "page"
+  },
+  {
+    "title": "MS Office: disable telemetry",
+    "page": "macOS Tweaks",
+    "url": "/macos#office-telemetry",
+    "snippet": "Disables SendAllTelemetryEnabled for Microsoft Word, Excel, PowerPoint, Outlook, OneNote, AutoUpdate, and the Office365 Service so the apps stop sending diagnostic and usage data to Microsoft.",
+    "kind": "section"
   }
 ]

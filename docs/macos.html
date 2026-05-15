@@ -215,6 +215,19 @@
                 <td class="text-tn-sub">Shows the exact battery percentage next to the battery icon in the menu bar</td>
                 <td><code class="inline-code text-xs">defaults write com.apple.controlcenter BatteryShowPercentage -bool true</code></td>
               </tr>
+              <tr id="office-telemetry">
+                <td class="font-mono text-tn-cyan text-xs">MS Office: disable telemetry</td>
+                <td class="text-tn-sub">Stops Word, Excel, PowerPoint, Outlook, OneNote, Microsoft AutoUpdate, and the Office365 Service from sending diagnostic / usage data to Microsoft. Applied to all seven bundle IDs in one go.</td>
+                <td>
+                  <code class="inline-code text-xs">defaults write com.microsoft.Word SendAllTelemetryEnabled -bool FALSE</code><br>
+                  <code class="inline-code text-xs">defaults write com.microsoft.Excel SendAllTelemetryEnabled -bool FALSE</code><br>
+                  <code class="inline-code text-xs">defaults write com.microsoft.Powerpoint SendAllTelemetryEnabled -bool FALSE</code><br>
+                  <code class="inline-code text-xs">defaults write com.microsoft.Outlook SendAllTelemetryEnabled -bool FALSE</code><br>
+                  <code class="inline-code text-xs">defaults write com.microsoft.onenote.mac SendAllTelemetryEnabled -bool FALSE</code><br>
+                  <code class="inline-code text-xs">defaults write com.microsoft.autoupdate2 SendAllTelemetryEnabled -bool FALSE</code><br>
+                  <code class="inline-code text-xs">defaults write com.microsoft.Office365ServiceV2 SendAllTelemetryEnabled -bool FALSE</code>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
