@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maintenance — Prometheus Dotfiles</title>
+  <meta name="description" content="Brewfile, gitconfig with delta, and the one-command update script." />
+  <meta property="og:title" content="Maintenance — Prometheus Dotfiles" />
+  <meta property="og:description" content="Brewfile, gitconfig with delta, and the one-command update script." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tn: {
+              bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868',
+              fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7',
+              cyan:'#7dcfff', green:'#9ece6a', yellow:'#e0af68',
+              red:'#f7768e', orange:'#ff9e64',
+            }
+          },
+          fontFamily: { mono: ['JetBrains Mono', 'Fira Code', 'monospace'] }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-tn-bg text-tn-fg min-h-screen">
+
+  <!-- Skip link: visible only on keyboard focus -->
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Reading progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Mobile header -->
+  <header class="lg:hidden sticky top-0 z-50 bg-tn-bg/95 backdrop-blur-md border-b border-tn-border px-5 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <i data-lucide="zap" class="w-4 h-4 text-tn-blue"></i>
+      <span class="font-bold text-tn-blue text-base tracking-tight">Prometheus</span>
+    </div>
+    <div class="flex items-center gap-1">
+      <button id="theme-toggle-mobile" aria-label="Toggle theme" class="text-tn-sub hover:text-tn-fg transition-colors p-2 rounded-lg hover:bg-tn-bg2">
+        <i id="theme-icon-mobile" data-lucide="moon" class="w-4 h-4"></i>
+      </button>
+      <button id="menu-toggle" aria-label="Open navigation" class="text-tn-sub hover:text-tn-fg transition-colors p-2 -mr-2 rounded-lg hover:bg-tn-bg2">
+        <i id="icon-menu" data-lucide="menu" class="w-5 h-5"></i>
+        <i id="icon-close" data-lucide="x" class="w-5 h-5 hidden"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile nav drawer -->
+  <div id="mobile-nav" class="lg:hidden fixed inset-0 z-40" aria-hidden="true" style="display:none">
+    <div id="nav-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" style="opacity:0;transition:opacity 0.25s ease"></div>
+    <nav id="mobile-nav-panel" class="absolute left-0 top-0 bottom-0 w-72 bg-tn-bg border-r border-tn-border flex flex-col" style="transform:translateX(-100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1)">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-tn-border shrink-0">
+        <div class="flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <span class="font-bold text-tn-blue text-sm tracking-tight">Prometheus Dotfiles</span>
+        </div>
+        <button id="drawer-close" aria-label="Close navigation" class="text-tn-sub hover:text-tn-fg p-1.5 rounded-lg hover:bg-tn-bg2 transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="mobile-nav-links" class="flex-1 overflow-y-auto py-4 px-3"></div>
+      <div class="shrink-0 px-5 py-4 border-t border-tn-border">
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-tn-sub hover:text-tn-fg text-xs transition-colors">
+          <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <div class="flex">
+    <!-- Desktop sidebar -->
+    <aside id="desktop-sidebar" class="hidden lg:flex flex-col shrink-0 h-screen sticky top-0">
+      <div class="sb-header">
+        <div class="sb-brand">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <div>
+            <div class="sb-brand-name">Prometheus</div>
+            <div class="sb-brand-sub">Tokyo Night · macOS</div>
+          </div>
+        </div>
+        <button id="sidebar-toggle" class="sb-toggle-btn" aria-label="Collapse sidebar" title="Toggle sidebar">
+          <i data-lucide="chevron-left" class="w-4 h-4 sb-chevron"></i>
+        </button>
+      </div>
+      <nav id="sidebar-nav" class="sb-nav flex-1"></nav>
+      <div class="sb-footer">
+        <button id="theme-toggle-desktop" class="sb-footer-btn" aria-label="Toggle theme" title="Toggle theme">
+          <i id="theme-icon-desktop" data-lucide="moon" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">Toggle theme</span>
+        </button>
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="sb-footer-btn">
+          <i data-lucide="github" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">View on GitHub</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="main" tabindex="-1" class="flex-1 min-w-0 px-5 lg:px-12 py-8 lg:py-10 max-w-4xl mx-auto w-full">
+
+      <!-- ── Overview ──────────────────────────────────────────────────────── -->
+      <!-- ── Maintenance ───────────────────────────────────────────────────── -->
+      <section id="maintenance" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="refresh-cw" class="w-6 h-6 text-tn-green shrink-0"></i>
+          <h2 class="section-title mb-0">Maintenance</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Declarative package lists, a global gitconfig with delta diffs, and a one-command updater. Keeps the system reproducible and current without thought.</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <a href="#maint-brewfile" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-cyan/50">
+            <i data-lucide="box" class="w-5 h-5 text-tn-cyan shrink-0 mt-0.5"></i>
+            <div><div class="font-semibold text-tn-fg text-sm">Brewfile</div><div class="text-tn-sub text-xs mt-0.5">Declarative package list</div></div>
+          </a>
+          <a href="#maint-git" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-purple/50">
+            <i data-lucide="git-branch" class="w-5 h-5 text-tn-purple shrink-0 mt-0.5"></i>
+            <div><div class="font-semibold text-tn-fg text-sm">~/.gitconfig</div><div class="text-tn-sub text-xs mt-0.5">Delta diffs · aliases</div></div>
+          </a>
+          <a href="#maint-update" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-green/50">
+            <i data-lucide="refresh-cw" class="w-5 h-5 text-tn-green shrink-0 mt-0.5"></i>
+            <div><div class="font-semibold text-tn-fg text-sm">bin/update</div><div class="text-tn-sub text-xs mt-0.5">One-command updater</div></div>
+          </a>
+        </div>
+
+        <!-- Brewfile -->
+        <div id="maint-brewfile" class="mb-8">
+          <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="box" class="w-5 h-5 text-tn-cyan"></i>Brewfile</h3>
+          <p class="text-tn-sub text-sm mb-3">Three declarative package lists at the repo root. <code class="inline-code">install.sh</code> runs <code class="inline-code">brew bundle</code> against the right one based on your WM choice. Adding a new tool is one line in a file instead of editing a shell script.</p>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>File</th><th>When applied</th><th>Contents</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code">Brewfile</code></td><td class="text-tn-sub">Always</td><td class="text-tn-sub">fish, starship, fastfetch, bat, eza, lsd, fzf, <strong class="text-tn-green">zoxide</strong>, thefuck, jq, git-delta, rbenv, nvm, fnm, openjdk@17, scrcpy, JetBrains Mono Nerd Font</td></tr>
+                <tr><td><code class="inline-code">Brewfile.omniwm</code></td><td class="text-tn-sub">If WM = OmniWM</td><td class="text-tn-sub">omniwm, sketchybar, sf-symbols, codexbar</td></tr>
+                <tr><td><code class="inline-code">Brewfile.aerospace</code></td><td class="text-tn-sub">If WM = AeroSpace</td><td class="text-tn-sub">aerospace, sketchybar, sf-symbols, codexbar</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">Apply manually</span><button class="copy-btn" data-code="cd ~/dotfiles
+brew bundle --file=Brewfile
+brew bundle --file=Brewfile.aerospace   # or Brewfile.omniwm">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">cd</span> ~/dotfiles
+<span class="text-tn-blue">brew</span> bundle --file=Brewfile
+<span class="text-tn-blue">brew</span> bundle --file=Brewfile.aerospace   <span class="text-tn-sub"># or Brewfile.omniwm</span></pre>
+          </div>
+          <p class="text-tn-sub text-xs mt-3"><em>Optional GUI apps (Ghostty, Cursor, Claude, Spotify, LM Studio) remain as prompts in <code class="inline-code">install.sh</code> — they're not in any Brewfile so <code class="inline-code">brew bundle</code> doesn't force every app on you.</em></p>
+        </div>
+
+        <!-- gitconfig -->
+        <div id="maint-git" class="mb-8">
+          <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="git-branch" class="w-5 h-5 text-tn-purple"></i>~/.gitconfig</h3>
+          <p class="text-tn-sub text-sm mb-3">Symlinked from <code class="inline-code">git/.gitconfig</code>. Delta diffs in Tokyo Night, sensible defaults, and a tight alias set.</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="bg-tn-bg2 border border-tn-border rounded-xl p-4">
+              <div class="text-tn-fg font-semibold text-sm mb-2">Defaults</div>
+              <ul class="text-tn-sub text-xs space-y-1 list-disc list-inside">
+                <li><code class="inline-code">init.defaultBranch = main</code></li>
+                <li><code class="inline-code">push.autoSetupRemote</code> — no more <code class="inline-code">--set-upstream</code></li>
+                <li><code class="inline-code">rebase.autoStash</code> + <code class="inline-code">autoSquash</code></li>
+                <li><code class="inline-code">fetch.prune</code> + <code class="inline-code">pruneTags</code></li>
+                <li><code class="inline-code">merge.conflictstyle = zdiff3</code></li>
+                <li><code class="inline-code">rerere.enabled</code> — replay conflict resolutions</li>
+                <li><code class="inline-code">branch.sort = -committerdate</code> — recent first</li>
+              </ul>
+            </div>
+            <div class="bg-tn-bg2 border border-tn-border rounded-xl p-4">
+              <div class="text-tn-fg font-semibold text-sm mb-2">Delta integration</div>
+              <p class="text-tn-sub text-xs mb-2">Syntax-highlighted, hyperlinked, line-numbered diffs in <code class="inline-code">git diff</code> / <code class="inline-code">log</code> / <code class="inline-code">show</code>.</p>
+              <ul class="text-tn-sub text-xs space-y-1 list-disc list-inside">
+                <li>Tokyo Night-tinted plus/minus backgrounds</li>
+                <li><kbd>n</kbd> / <kbd>N</kbd> navigates between files</li>
+                <li>File paths are <kbd>⌘-click</kbd> hyperlinks</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Alias</th><th>Expands to</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code text-tn-cyan">git s</code></td><td class="text-tn-sub"><code class="inline-code">git status -sb</code></td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git lg</code></td><td class="text-tn-sub">graph log with author, date, refs</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git last</code></td><td class="text-tn-sub"><code class="inline-code">git log -1 HEAD --stat</code></td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git who</code></td><td class="text-tn-sub"><code class="inline-code">git shortlog -sne</code> — author leaderboard</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git swc &lt;name&gt;</code></td><td class="text-tn-sub"><code class="inline-code">git switch -c</code> — new branch</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git cm "msg"</code></td><td class="text-tn-sub"><code class="inline-code">git commit -m</code></td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git amend</code></td><td class="text-tn-sub"><code class="inline-code">git commit --amend --no-edit</code></td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git undo</code></td><td class="text-tn-sub"><code class="inline-code">git reset --soft HEAD~1</code></td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git unstage</code></td><td class="text-tn-sub"><code class="inline-code">git reset HEAD --</code></td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git pushf</code></td><td class="text-tn-sub"><code class="inline-code">git push --force-with-lease</code> (safe force)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git cleanup</code></td><td class="text-tn-sub">Delete branches already merged into <code class="inline-code">main</code></td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">git aliases</code></td><td class="text-tn-sub">List every alias in this file</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-tn-sub text-xs"><em>Machine-specific overrides (work email, GPG key) go in <code class="inline-code">~/.gitconfig.local</code> — it's silently included if it exists.</em></p>
+        </div>
+
+        <!-- bin/update -->
+        <div id="maint-update">
+          <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="refresh-cw" class="w-5 h-5 text-tn-green"></i>bin/update</h3>
+          <p class="text-tn-sub text-sm mb-3">A single command that keeps the whole stack current. Symlinked to <code class="inline-code">~/.local/bin/update</code> so it's on your <code class="inline-code">$PATH</code> from anywhere.</p>
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Run weekly</span><button class="copy-btn" data-code="update">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">update</span></pre>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+            <table>
+              <thead><tr><th>Step</th><th>What it does</th></tr></thead>
+              <tbody>
+                <tr><td class="text-tn-cyan">Dotfiles</td><td class="text-tn-sub"><code class="inline-code">git pull --ff-only</code> in <code class="inline-code">~/dotfiles</code> (skips if dirty)</td></tr>
+                <tr><td class="text-tn-cyan">Homebrew</td><td class="text-tn-sub"><code class="inline-code">brew update + upgrade + upgrade --cask + bundle + cleanup</code></td></tr>
+                <tr><td class="text-tn-cyan">Bun</td><td class="text-tn-sub"><code class="inline-code">bun upgrade</code></td></tr>
+                <tr><td class="text-tn-cyan">npm globals</td><td class="text-tn-sub"><code class="inline-code">npm update -g</code></td></tr>
+                <tr><td class="text-tn-cyan">Claude Code</td><td class="text-tn-sub">Best-effort <code class="inline-code">claude update</code> (Claude self-updates on launch anyway)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-tn-sub text-xs mt-3"><em>Safe to re-run. Each step is gated behind <code class="inline-code">command -v</code> so missing tools are quietly skipped instead of erroring.</em></p>
+        </div>
+      </section>
+
+      <footer class="border-t border-tn-border pt-8 pb-4 text-center text-tn-sub text-xs">
+        <p>Built by <a href="https://github.com/rafay99-epic" target="_blank" rel="noopener noreferrer" class="text-tn-blue hover:underline">rafay99-epic</a> · MIT License</p>
+        <p class="mt-1">Tokyo Night · macOS · SketchyBar · AeroSpace · Ghostty · Zsh · Fish</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div id="lightbox-content">
+      <div id="lightbox-inner"></div>
+      <div id="lightbox-caption"></div>
+      <button id="lightbox-close" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <button id="lightbox-prev" class="lightbox-arrow" aria-label="Previous"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+      <button id="lightbox-next" class="lightbox-arrow" aria-label="Next"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+
+  <!-- Back to top -->
+  <button id="back-to-top" aria-label="Back to top">
+    <i data-lucide="chevron-up" class="w-4 h-4"></i>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>

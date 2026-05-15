@@ -942,6 +942,7 @@ fi
 # Individual file symlinks
 link "$DOTFILES/lsd/config.yaml"                    "$HOME/.config/lsd/config.yaml"
 link "$DOTFILES/starship/starship.toml"             "$HOME/.config/starship.toml"
+link "$DOTFILES/atuin/config.toml"                  "$HOME/.config/atuin/config.toml"
 link "$DOTFILES/fastfetch/config.jsonc"             "$HOME/.config/fastfetch/config.jsonc"
 link "$DOTFILES/fastfetch/eldritch.png"             "$HOME/.config/fastfetch/eldritch.png"
 link "$DOTFILES/ghostty/config"                     "$HOME/.config/ghostty/config"
@@ -954,6 +955,35 @@ if [[ "$DRY_RUN" == false ]]; then
   chmod +x "$HOME/.local/bin/update" 2>/dev/null || true
 fi
 link "$DOTFILES/bin/killport"                       "$HOME/.local/bin/killport"
+link "$DOTFILES/bin/tm-status"                      "$HOME/.local/bin/tm-status"
+link "$DOTFILES/bin/tm-backup"                      "$HOME/.local/bin/tm-backup"
+if [[ "$DRY_RUN" == false ]]; then
+  chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" 2>/dev/null || true
+fi
+
+# ── Time Machine: monthly LaunchDaemon ───────────────────────────────────────
+# Replaces TM's default hourly schedule with a single backup on the 1st of
+# each month at 03:00. Disables the hourly auto-backup at the same time.
+TM_PLIST_SRC="$DOTFILES/launchd/com.prometheus.tm-monthly.plist"
+TM_PLIST_DST="/Library/LaunchDaemons/com.prometheus.tm-monthly.plist"
+if [[ -f "$TM_PLIST_SRC" ]]; then
+  if [[ -f "$TM_PLIST_DST" ]] && cmp -s "$TM_PLIST_SRC" "$TM_PLIST_DST"; then
+    success "Already installed: monthly Time Machine schedule"
+    SKIPPED+=("tm-monthly LaunchDaemon")
+  elif [[ "$DRY_RUN" == false ]]; then
+    info "Installing monthly Time Machine LaunchDaemon (requires sudo)..."
+    sudo cp "$TM_PLIST_SRC" "$TM_PLIST_DST" \
+      && sudo chown root:wheel "$TM_PLIST_DST" \
+      && sudo chmod 644 "$TM_PLIST_DST" \
+      && sudo launchctl unload "$TM_PLIST_DST" 2>/dev/null; \
+       sudo launchctl load "$TM_PLIST_DST" \
+      && sudo tmutil disable \
+      && success "Monthly Time Machine schedule installed (fires 1st of each month at 03:00)"
+    INSTALLED+=("tm-monthly LaunchDaemon")
+  else
+    dry "install $TM_PLIST_DST + sudo tmutil disable"
+  fi
+fi
 link "$DOTFILES/fish/functions/killport.fish"       "$HOME/.config/fish/functions/killport.fish"
 link "$DOTFILES/fish/functions/dev.fish"            "$HOME/.config/fish/functions/dev.fish"
 link "$DOTFILES/fish/completions/dev.fish"          "$HOME/.config/fish/completions/dev.fish"

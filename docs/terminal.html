@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terminal & Shell — Prometheus Dotfiles</title>
+  <meta name="description" content="Ghostty terminal, Starship prompt, and Zsh/Fish shell configs with shared tools." />
+  <meta property="og:title" content="Terminal & Shell — Prometheus Dotfiles" />
+  <meta property="og:description" content="Ghostty terminal, Starship prompt, and Zsh/Fish shell configs with shared tools." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tn: {
+              bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868',
+              fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7',
+              cyan:'#7dcfff', green:'#9ece6a', yellow:'#e0af68',
+              red:'#f7768e', orange:'#ff9e64',
+            }
+          },
+          fontFamily: { mono: ['JetBrains Mono', 'Fira Code', 'monospace'] }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-tn-bg text-tn-fg min-h-screen">
+
+  <!-- Skip link: visible only on keyboard focus -->
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Reading progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Mobile header -->
+  <header class="lg:hidden sticky top-0 z-50 bg-tn-bg/95 backdrop-blur-md border-b border-tn-border px-5 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <i data-lucide="zap" class="w-4 h-4 text-tn-blue"></i>
+      <span class="font-bold text-tn-blue text-base tracking-tight">Prometheus</span>
+    </div>
+    <div class="flex items-center gap-1">
+      <button id="theme-toggle-mobile" aria-label="Toggle theme" class="text-tn-sub hover:text-tn-fg transition-colors p-2 rounded-lg hover:bg-tn-bg2">
+        <i id="theme-icon-mobile" data-lucide="moon" class="w-4 h-4"></i>
+      </button>
+      <button id="menu-toggle" aria-label="Open navigation" class="text-tn-sub hover:text-tn-fg transition-colors p-2 -mr-2 rounded-lg hover:bg-tn-bg2">
+        <i id="icon-menu" data-lucide="menu" class="w-5 h-5"></i>
+        <i id="icon-close" data-lucide="x" class="w-5 h-5 hidden"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile nav drawer -->
+  <div id="mobile-nav" class="lg:hidden fixed inset-0 z-40" aria-hidden="true" style="display:none">
+    <div id="nav-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" style="opacity:0;transition:opacity 0.25s ease"></div>
+    <nav id="mobile-nav-panel" class="absolute left-0 top-0 bottom-0 w-72 bg-tn-bg border-r border-tn-border flex flex-col" style="transform:translateX(-100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1)">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-tn-border shrink-0">
+        <div class="flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <span class="font-bold text-tn-blue text-sm tracking-tight">Prometheus Dotfiles</span>
+        </div>
+        <button id="drawer-close" aria-label="Close navigation" class="text-tn-sub hover:text-tn-fg p-1.5 rounded-lg hover:bg-tn-bg2 transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="mobile-nav-links" class="flex-1 overflow-y-auto py-4 px-3"></div>
+      <div class="shrink-0 px-5 py-4 border-t border-tn-border">
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-tn-sub hover:text-tn-fg text-xs transition-colors">
+          <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <div class="flex">
+    <!-- Desktop sidebar -->
+    <aside id="desktop-sidebar" class="hidden lg:flex flex-col shrink-0 h-screen sticky top-0">
+      <div class="sb-header">
+        <div class="sb-brand">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <div>
+            <div class="sb-brand-name">Prometheus</div>
+            <div class="sb-brand-sub">Tokyo Night · macOS</div>
+          </div>
+        </div>
+        <button id="sidebar-toggle" class="sb-toggle-btn" aria-label="Collapse sidebar" title="Toggle sidebar">
+          <i data-lucide="chevron-left" class="w-4 h-4 sb-chevron"></i>
+        </button>
+      </div>
+      <nav id="sidebar-nav" class="sb-nav flex-1"></nav>
+      <div class="sb-footer">
+        <button id="theme-toggle-desktop" class="sb-footer-btn" aria-label="Toggle theme" title="Toggle theme">
+          <i id="theme-icon-desktop" data-lucide="moon" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">Toggle theme</span>
+        </button>
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="sb-footer-btn">
+          <i data-lucide="github" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">View on GitHub</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="main" tabindex="-1" class="flex-1 min-w-0 px-5 lg:px-12 py-8 lg:py-10 max-w-4xl mx-auto w-full">
+
+      <!-- ── Overview ──────────────────────────────────────────────────────── -->
+      <!-- ── Ghostty ────────────────────────────────────────────────────────── -->
+      <section id="ghostty" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="terminal" class="w-6 h-6 text-tn-cyan shrink-0"></i>
+          <h2 class="section-title mb-0">Ghostty</h2>
+        </div>
+        <p class="text-tn-sub mb-6">GPU-accelerated terminal. Tokyo Night theme, JetBrains Mono Nerd Font, tabs, splits, clipboard.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Setup</span>
+            <button class="copy-btn" data-code="brew install --cask ghostty
+mkdir -p ~/.config/ghostty
+ln -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> install --cask ghostty
+<span class="text-tn-blue">mkdir</span> -p ~/.config/ghostty
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/ghostty/config ~/.config/ghostty/config</pre>
+        </div>
+
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table>
+            <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+            <tbody>
+              <tr><td class="text-tn-fg">Theme</td><td class="text-tn-sub">Tokyo Night (built-in)</td></tr>
+              <tr><td class="text-tn-fg">Font</td><td class="text-tn-sub">JetBrains Mono Nerd Font · 13pt</td></tr>
+              <tr><td class="text-tn-fg">Background</td><td class="text-tn-sub">95% opacity + blur radius 20</td></tr>
+              <tr><td class="text-tn-fg">Working dir</td><td class="text-tn-sub"><code class="inline-code">~</code> on every new tab/window</td></tr>
+              <tr><td class="text-tn-fg">Scrollback</td><td class="text-tn-sub">10 MB</td></tr>
+              <tr><td class="text-tn-fg">Copy on select</td><td class="text-tn-green">Enabled</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="flex gap-1 mb-3 flex-wrap" id="ghostty-tabs">
+          <button class="tab-btn active-tab" data-tab="ghostty-tabs-panel">Tabs</button>
+          <button class="tab-btn" data-tab="ghostty-splits">Splits</button>
+          <button class="tab-btn" data-tab="ghostty-power">Power</button>
+          <button class="tab-btn" data-tab="ghostty-misc">Misc</button>
+        </div>
+
+        <div id="ghostty-tabs-panel" class="tab-panel bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table><thead><tr><th>Key</th><th>Action</th></tr></thead><tbody>
+            <tr><td><kbd>⌘ T</kbd></td><td class="text-tn-sub">New tab</td></tr>
+            <tr><td><kbd>⌘ W</kbd></td><td class="text-tn-sub">Close tab / split</td></tr>
+            <tr><td><kbd>⌘ ]</kbd> / <kbd>⌘ [</kbd></td><td class="text-tn-sub">Next / previous tab</td></tr>
+            <tr><td><kbd>⌘ 1–8</kbd></td><td class="text-tn-sub">Jump to tab</td></tr>
+            <tr><td><kbd>Ctrl + Tab</kbd></td><td class="text-tn-sub">Next tab</td></tr>
+          </tbody></table>
+        </div>
+        <div id="ghostty-splits" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table><thead><tr><th>Key</th><th>Action</th></tr></thead><tbody>
+            <tr><td><kbd>⌘ D</kbd></td><td class="text-tn-sub">Split right</td></tr>
+            <tr><td><kbd>⌘ ⇧ D</kbd></td><td class="text-tn-sub">Split down</td></tr>
+            <tr><td><kbd>⌘ ⌥ H/J/K/L</kbd></td><td class="text-tn-sub">Navigate splits</td></tr>
+            <tr><td class="text-tn-sub" colspan="2"><em>Inactive splits are dimmed (0.7 opacity), mouse-hover switches focus.</em></td></tr>
+          </tbody></table>
+        </div>
+        <div id="ghostty-power" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table><thead><tr><th>Key</th><th>Action</th></tr></thead><tbody>
+            <tr><td><kbd>⌘ `</kbd></td><td class="text-tn-sub">Toggle <strong class="text-tn-cyan">Quick Terminal</strong> — global Quake drop-down (works anywhere)</td></tr>
+            <tr><td><kbd>⌘ ⇧ P</kbd></td><td class="text-tn-sub">Command palette — fuzzy-search every Ghostty action</td></tr>
+            <tr><td><kbd>⌘ ↑</kbd> / <kbd>⌘ ↓</kbd></td><td class="text-tn-sub">Jump to previous / next shell prompt</td></tr>
+            <tr><td><kbd>⌘ ⇧ S</kbd></td><td class="text-tn-sub">Dump current screen to a file and open in <code class="inline-code">$EDITOR</code></td></tr>
+            <tr><td><kbd>⌘ ⇧ Y</kbd></td><td class="text-tn-sub">Dump current selection to a file and open in <code class="inline-code">$EDITOR</code></td></tr>
+            <tr><td><kbd>⌘ ⇧ R</kbd></td><td class="text-tn-sub">Reload Ghostty config without restarting</td></tr>
+            <tr><td class="text-tn-sub" colspan="2"><em>Notifications: any command that runs &gt; 10s in an unfocused tab triggers a macOS notification on completion.</em></td></tr>
+          </tbody></table>
+        </div>
+        <div id="ghostty-misc" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table><thead><tr><th>Key</th><th>Action</th></tr></thead><tbody>
+            <tr><td><kbd>⌘ K</kbd></td><td class="text-tn-sub">Clear screen</td></tr>
+            <tr><td><kbd>⌘ ↩</kbd></td><td class="text-tn-sub">Toggle fullscreen</td></tr>
+            <tr><td><kbd>⌘ =</kbd> / <kbd>⌘ -</kbd></td><td class="text-tn-sub">Font size up / down</td></tr>
+            <tr><td><kbd>⌘ 0</kbd></td><td class="text-tn-sub">Reset font size</td></tr>
+            <tr><td><kbd>⌘ N</kbd></td><td class="text-tn-sub">New window</td></tr>
+            <tr><td><kbd>⌘ ,</kbd></td><td class="text-tn-sub">Open config</td></tr>
+            <tr><td class="text-tn-sub" colspan="2"><em>Option key acts as Alt (vim/fish Alt-bindings work). Cursor hides while typing.</em></td></tr>
+          </tbody></table>
+        </div>
+      </section>
+
+      <!-- ── Starship ───────────────────────────────────────────────────────── -->
+      <section id="starship" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="rocket" class="w-6 h-6 text-tn-purple shrink-0"></i>
+          <h2 class="section-title mb-0">Starship</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Two-line bracket prompt with live tech-stack, git, command status, monorepo detection, and a dedicated Claude Code statusline. Tokyo Night palette throughout.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Prompt layout</span>
+          </div>
+          <pre class="code-body text-xs"><span class="text-tn-sub">╭─</span> <span class="text-tn-blue">~/dots/sketchybar</span>  <span class="text-tn-purple">main</span> <span class="text-tn-yellow">●</span><span class="text-tn-green">✚</span><span class="text-tn-green">⇡</span> <span class="text-tn-green">+12</span> <span class="text-tn-red">-3</span>      <span class="text-tn-cyan">⬢ Nx</span> <span class="text-tn-red">⚡ Turbo</span>  <span class="text-tn-green"> v22</span>  <span class="text-tn-yellow"> $2.34</span>          <span class="text-tn-sub">10:42</span>
+<span class="text-tn-sub">╰─</span> <span class="text-tn-yellow"> 2.3s</span> <span class="text-tn-red">✗1</span> <span class="text-tn-green">❯</span></pre>
+        </div>
+
+        <div class="flex gap-1 mb-3 flex-wrap" id="starship-tabs">
+          <button class="tab-btn active-tab" data-tab="starship-stack">Tech Stack</button>
+          <button class="tab-btn" data-tab="starship-git">Git</button>
+          <button class="tab-btn" data-tab="starship-monorepo">Monorepo</button>
+          <button class="tab-btn" data-tab="starship-status">Command Status</button>
+          <button class="tab-btn" data-tab="starship-claude">Claude Code</button>
+        </div>
+
+        <div id="starship-stack" class="tab-panel bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table><thead><tr><th>Module</th><th>Triggered by</th></tr></thead><tbody>
+            <tr><td class="text-tn-green">Node · Bun · Deno</td><td class="text-tn-sub"><code class="inline-code">package.json</code> · <code class="inline-code">bun.lock</code> · <code class="inline-code">deno.json</code></td></tr>
+            <tr><td class="text-tn-yellow">Python</td><td class="text-tn-sub"><code class="inline-code">pyproject.toml</code> · <code class="inline-code">requirements.txt</code> · <code class="inline-code">Pipfile</code></td></tr>
+            <tr><td class="text-tn-orange">Rust · OCaml · Swift</td><td class="text-tn-sub"><code class="inline-code">Cargo.toml</code> · <code class="inline-code">dune-project</code> · <code class="inline-code">Package.swift</code></td></tr>
+            <tr><td class="text-tn-cyan">Go · Perl · Elm · Crystal</td><td class="text-tn-sub"><code class="inline-code">go.mod</code> · <code class="inline-code">cpanfile</code> · <code class="inline-code">elm.json</code> · <code class="inline-code">shard.yml</code></td></tr>
+            <tr><td class="text-tn-red">Java · Ruby · Erlang · Scala</td><td class="text-tn-sub"><code class="inline-code">pom.xml</code> · <code class="inline-code">Gemfile</code> · <code class="inline-code">rebar.config</code> · <code class="inline-code">build.sbt</code></td></tr>
+            <tr><td class="text-tn-purple">Kotlin · Haskell · Elixir · Julia · .NET · PHP · Gleam</td><td class="text-tn-sub">native project files</td></tr>
+            <tr><td class="text-tn-blue">C · C++ · Lua · Dart · V · R · Solidity · CMake · Buf</td><td class="text-tn-sub">native project files</td></tr>
+            <tr><td class="text-tn-yellow">Zig · Nim</td><td class="text-tn-sub"><code class="inline-code">build.zig</code> · <code class="inline-code">nim.cfg</code></td></tr>
+            <tr><td class="text-tn-sub" colspan="2"><em>Each module renders only inside a project of that language — your daily prompt stays clean.</em></td></tr>
+          </tbody></table>
+        </div>
+
+        <div id="starship-git" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table><thead><tr><th>Icon</th><th>Meaning</th></tr></thead><tbody>
+            <tr><td><span class="text-tn-green font-mono">✓</span></td><td class="text-tn-sub">Clean working tree, up-to-date with remote</td></tr>
+            <tr><td><span class="text-tn-yellow font-mono">●</span></td><td class="text-tn-sub">Modified files in the working tree</td></tr>
+            <tr><td><span class="text-tn-green font-mono">✚</span></td><td class="text-tn-sub">Staged for commit</td></tr>
+            <tr><td><span class="text-tn-green font-mono">⇡</span> / <span class="text-tn-yellow font-mono">⇣</span> / <span class="text-tn-red font-mono">⇕</span></td><td class="text-tn-sub">Ahead / behind / diverged from remote</td></tr>
+            <tr><td><span class="text-tn-muted font-mono">…</span></td><td class="text-tn-sub">Untracked files</td></tr>
+            <tr><td><span class="text-tn-cyan font-mono">⊙</span></td><td class="text-tn-sub">Stashed changes exist</td></tr>
+            <tr><td><span class="text-tn-cyan font-mono">»</span> / <span class="text-tn-red font-mono">✖</span></td><td class="text-tn-sub">Renamed / deleted in index</td></tr>
+            <tr><td><span class="text-tn-green font-mono">+12</span> <span class="text-tn-red font-mono">-3</span></td><td class="text-tn-sub">Lines added / removed (git metrics)</td></tr>
+            <tr><td><span class="text-tn-yellow font-mono">REBASE 3/10</span></td><td class="text-tn-sub">Operation in progress: rebase, merge, revert, cherry-pick, bisect, am</td></tr>
+          </tbody></table>
+        </div>
+
+        <div id="starship-monorepo" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table><thead><tr><th>Badge</th><th>Tool</th><th>Triggered by</th></tr></thead><tbody>
+            <tr><td><span class="text-tn-cyan font-mono">⬢ Nx</span></td><td class="text-tn-fg">Nx</td><td class="text-tn-sub"><code class="inline-code">nx.json</code> · <code class="inline-code">workspace.json</code></td></tr>
+            <tr><td><span class="text-tn-red font-mono">⚡ Turbo</span></td><td class="text-tn-fg">Turborepo</td><td class="text-tn-sub"><code class="inline-code">turbo.json</code></td></tr>
+            <tr><td><span class="text-tn-yellow font-mono"> pnpm-ws</span></td><td class="text-tn-fg">pnpm workspaces</td><td class="text-tn-sub"><code class="inline-code">pnpm-workspace.yaml</code></td></tr>
+            <tr><td><span class="text-tn-purple font-mono">⚛ Lerna</span></td><td class="text-tn-fg">Lerna</td><td class="text-tn-sub"><code class="inline-code">lerna.json</code></td></tr>
+            <tr><td><span class="text-tn-cyan font-mono">⇶ Rush</span></td><td class="text-tn-fg">Rush</td><td class="text-tn-sub"><code class="inline-code">rush.json</code></td></tr>
+            <tr><td><span class="text-tn-purple font-mono">☾ Moon</span></td><td class="text-tn-fg">Moonrepo</td><td class="text-tn-sub"><code class="inline-code">.moon/</code></td></tr>
+            <tr><td><span class="text-tn-green font-mono"> Bazel</span></td><td class="text-tn-fg">Bazel</td><td class="text-tn-sub"><code class="inline-code">WORKSPACE</code> · <code class="inline-code">MODULE.bazel</code></td></tr>
+            <tr><td><span class="text-tn-cyan font-mono"> go.work</span></td><td class="text-tn-fg">Go workspaces</td><td class="text-tn-sub"><code class="inline-code">go.work</code></td></tr>
+            <tr><td><span class="text-tn-orange font-mono">󱘗 cargo-ws</span></td><td class="text-tn-fg">Cargo workspace</td><td class="text-tn-sub"><code class="inline-code">Cargo.toml</code> with <code class="inline-code">[workspace]</code></td></tr>
+            <tr><td class="text-tn-sub" colspan="3"><em>Badges stack — e.g. an Nx + pnpm repo lights up both. Cargo workspace uses a grep check, the rest are pure file/folder detection (zero cost outside monorepos).</em></td></tr>
+          </tbody></table>
+        </div>
+
+        <div id="starship-status" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table><thead><tr><th>Indicator</th><th>Meaning</th></tr></thead><tbody>
+            <tr><td><span class="text-tn-red font-mono">✗ 1</span></td><td class="text-tn-sub">Exit code of last command (only on failure)</td></tr>
+            <tr><td><span class="text-tn-yellow font-mono"> 2.3s</span></td><td class="text-tn-sub">Command duration (only if &gt; 2s)</td></tr>
+            <tr><td><span class="text-tn-cyan font-mono">✦ 2</span></td><td class="text-tn-sub">Backgrounded jobs (<kbd>Ctrl-Z</kbd>'d processes)</td></tr>
+            <tr><td><span class="text-tn-muted font-mono">10:42</span></td><td class="text-tn-sub">Current time, right-aligned via <code class="inline-code">right_format</code></td></tr>
+            <tr><td><span class="text-tn-yellow font-mono"> $2.34</span></td><td class="text-tn-sub">Project version from <code class="inline-code">package.json</code> / <code class="inline-code">Cargo.toml</code> / <code class="inline-code">pyproject.toml</code> etc.</td></tr>
+            <tr><td><span class="text-tn-red font-mono"> </span> / <span class="text-tn-yellow font-mono">↕ 3</span></td><td class="text-tn-sub">Cached sudo creds / nested shells (SHLVL ≥ 3)</td></tr>
+            <tr><td><span class="text-tn-cyan font-mono">⎈ ctx</span> · <span class="text-tn-purple font-mono"> ws</span> · <span class="text-tn-orange font-mono"> profile</span></td><td class="text-tn-sub">Kubernetes context · Terraform workspace · AWS profile</td></tr>
+          </tbody></table>
+        </div>
+
+        <div id="starship-claude" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden p-5">
+          <p class="text-tn-sub text-sm mb-4">Starship doubles as Claude Code's statusline via the <code class="inline-code">starship statusline claude-code</code> profile. Renders the active model, a context-window gauge, session cost, and the git branch.</p>
+          <div class="code-block-wrap mb-4">
+            <div class="code-header"><span class="text-tn-sub text-xs">Rendered output</span></div>
+            <pre class="code-body text-xs"><span class="text-tn-purple">󰚩 Opus 4.7 (1M)</span>  <span class="text-tn-green">████░░░░░░ 38%</span>  <span class="text-tn-yellow"> $2.34</span>   <span class="text-tn-purple">main</span> <span class="text-tn-green">✓</span></pre>
+          </div>
+          <table><thead><tr><th>Module</th><th>Behaviour</th></tr></thead><tbody>
+            <tr><td class="text-tn-purple">claude_model</td><td class="text-tn-sub">Short alias for the active model (<code class="inline-code">Opus 4.7</code>, <code class="inline-code">Sonnet 4.6</code>, <code class="inline-code">Haiku 4.5</code>)</td></tr>
+            <tr><td class="text-tn-green">claude_context</td><td class="text-tn-sub">10-wide gauge — green &lt; 50% · yellow 50–75% · orange 75–90% · red 90%+</td></tr>
+            <tr><td class="text-tn-yellow">claude_cost</td><td class="text-tn-sub">Session USD — muted &lt; $1 · yellow $1+ · orange $5+ · red $20+</td></tr>
+          </tbody></table>
+          <div class="code-block-wrap mt-4">
+            <div class="code-header">
+              <span class="text-tn-sub text-xs">Wire into Claude Code</span>
+              <button class="copy-btn" data-code='jq ".statusLine = {type: \"command\", command: \"starship statusline claude-code\"}" ~/.claude/settings.json | sponge ~/.claude/settings.json'>Copy</button>
+            </div>
+            <pre class="code-body text-xs"><span class="text-tn-sub"># Auto-configured by install.sh — answer "yes" to the Starship statusline prompt.</span>
+<span class="text-tn-sub"># Or merge manually with jq (preserves existing keys):</span>
+<span class="text-tn-blue">jq</span> <span class="text-tn-green">'.statusLine = {type: "command", command: "starship statusline claude-code"}'</span> \
+   ~/.claude/settings.json | sponge ~/.claude/settings.json</pre>
+          </div>
+        </div>
+
+        <div class="code-block-wrap mt-6">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Install</span>
+            <button class="copy-btn" data-code="brew install starship
+ln -sf ~/dotfiles/starship/starship.toml ~/.config/starship.toml">Copy</button>
+          </div>
+          <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install starship
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/starship/starship.toml ~/.config/starship.toml</pre>
+        </div>
+      </section>
+
+      <!-- ── Shell Tools ────────────────────────────────────────────────────── -->
+      <section id="shell" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="layers" class="w-6 h-6 text-tn-green shrink-0"></i>
+          <h2 class="section-title mb-0">Shell Tools</h2>
+        </div>
+        <p class="text-tn-sub mb-6">lsd · Starship prompt · Fastfetch · CodexBar AI tracker</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3"><span class="text-tn-green font-bold font-mono text-sm">lsd</span><span class="text-tn-sub text-xs">Modern ls replacement</span></div>
+            <div class="code-block-wrap"><div class="code-header"><button class="copy-btn" data-code="brew install lsd
+alias ls='lsd'
+alias ll='lsd -la'
+alias lt='lsd --tree'">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install lsd
+<span class="text-tn-blue">alias</span> ls=<span class="text-tn-green">'lsd'</span>
+<span class="text-tn-blue">alias</span> ll=<span class="text-tn-green">'lsd -la'</span>
+<span class="text-tn-blue">alias</span> lt=<span class="text-tn-green">'lsd --tree'</span></pre></div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3"><span class="text-tn-yellow font-bold font-mono text-sm">starship</span><span class="text-tn-sub text-xs">Cross-shell prompt</span></div>
+            <div class="code-block-wrap"><div class="code-header"><button class="copy-btn" data-code="brew install starship
+echo 'eval &quot;$(starship init zsh)&quot;' >> ~/.zshrc">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install starship
+<span class="text-tn-blue">eval</span> <span class="text-tn-green">"$(starship init zsh)"</span></pre></div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3"><span class="text-tn-cyan font-bold font-mono text-sm">fastfetch</span><span class="text-tn-sub text-xs">System info on open</span></div>
+            <div class="code-block-wrap"><div class="code-header"><button class="copy-btn" data-code="brew install fastfetch
+fastfetch">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install fastfetch
+fastfetch <span class="text-tn-sub"># add to .zshrc</span></pre></div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
+            <div class="flex items-center gap-2 mb-3"><span class="text-tn-purple font-bold font-mono text-sm">codexbar</span><span class="text-tn-sub text-xs">AI token usage tracker</span></div>
+            <p class="text-tn-sub text-xs mb-3">Install from <a href="https://github.com/steipete/CodexBar" target="_blank" rel="noopener noreferrer" class="text-tn-blue hover:underline">github.com/steipete/CodexBar</a>, then log in to Claude and Gemini via the menu bar app.</p>
+            <div class="bg-tn-bg3 rounded-lg px-3 py-2 font-mono text-xs text-tn-sub">codexbar usage --provider claude --format json</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Zsh ───────────────────────────────────────────────────────────── -->
+      <section id="zsh" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="settings-2" class="w-6 h-6 text-tn-yellow shrink-0"></i>
+          <h2 class="section-title mb-0">Zsh</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Default shell on macOS. Starship prompt, fzf fuzzy finder, lsd/eza aliases, git shortcuts, and fastfetch on open.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header"><span class="text-tn-sub text-xs">Setup</span><button class="copy-btn" data-code="ln -sf ~/dotfiles/zsh/.zshrc ~/.zshrc">Copy</button></div>
+          <pre class="code-body"><span class="text-tn-blue">ln</span> -sf ~/dotfiles/zsh/.zshrc ~/.zshrc</pre>
+        </div>
+
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">What's included</h3>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table><thead><tr><th>Feature</th><th>Details</th></tr></thead><tbody>
+            <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — cross-shell, fast, Tokyo Night compatible</td></tr>
+            <tr><td class="text-tn-fg">Fuzzy finder</td><td class="text-tn-sub">fzf with custom Tokyo Night colour scheme</td></tr>
+            <tr><td class="text-tn-fg">Smart cd</td><td class="text-tn-sub">zoxide rebinds <code class="inline-code">cd</code> — frecency-based jumps</td></tr>
+            <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">eza with icons — <code class="inline-code">ls</code> alias</td></tr>
+            <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — syntax-highlighted output</td></tr>
+            <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch runs on every new shell open</td></tr>
+            <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">nvm · conda · rbenv · bun</td></tr>
+            <tr><td class="text-tn-fg">Plugin</td><td class="text-tn-sub">zsh-autosuggestions</td></tr>
+          </tbody></table>
+        </div>
+
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Aliases</h3>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-4">
+          <table><thead><tr><th>Alias</th><th>Command</th></tr></thead><tbody>
+            <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">eza --icons=always</td></tr>
+            <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
+            <tr><td><code class="inline-code">cc</code></td><td class="text-tn-sub">claude --dangerously-skip-permissions (Claude Code)</td></tr>
+            <tr><td><code class="inline-code">cd</code></td><td class="text-tn-sub">zoxide — fuzzy jump by frecency (see Customization)</td></tr>
+            <tr><td><code class="inline-code">dev [subpath]</code></td><td class="text-tn-sub">cd into <code class="inline-code">~/Code</code> or a subdirectory (tab-completes)</td></tr>
+            <tr><td><code class="inline-code">killport &lt;port&gt;</code></td><td class="text-tn-sub">free a TCP port (SIGTERM then SIGKILL fallback)</td></tr>
+            <tr><td><code class="inline-code">dock / undock</code></td><td class="text-tn-sub">aerospace-sync (profile switch)</td></tr>
+            <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
+            <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
+            <tr><td><code class="inline-code">gc</code></td><td class="text-tn-sub">git clone</td></tr>
+            <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git commit -a</td></tr>
+          </tbody></table>
+        </div>
+
+        <div class="code-block-wrap">
+          <div class="code-header"><span class="text-tn-sub text-xs">Install dependencies</span><button class="copy-btn" data-code="brew install fzf zoxide eza bat starship fastfetch zsh-autosuggestions">Copy</button></div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> install fzf zoxide eza bat starship fastfetch zsh-autosuggestions</pre>
+        </div>
+      </section>
+
+      <!-- ── Fish ──────────────────────────────────────────────────────────── -->
+      <section id="fish" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="waves" class="w-6 h-6 text-tn-orange shrink-0"></i>
+          <h2 class="section-title mb-0">Fish</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Friendly interactive shell. Starship prompt, lsd for ls, git aliases, conda, and fastfetch — same workflow as Zsh but with fish's autocompletion out of the box.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header"><span class="text-tn-sub text-xs">Setup</span><button class="copy-btn" data-code="brew install fish
+mkdir -p ~/.config/fish
+ln -sf ~/dotfiles/fish/config.fish ~/.config/fish/config.fish
+echo $(which fish) | sudo tee -a /etc/shells
+chsh -s $(which fish)">Copy</button></div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> install fish
+<span class="text-tn-blue">mkdir</span> -p ~/.config/fish
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/fish/config.fish ~/.config/fish/config.fish
+
+<span class="text-tn-sub"># Set as default shell (optional)</span>
+<span class="text-tn-blue">echo</span> $(which fish) | sudo tee -a /etc/shells
+<span class="text-tn-blue">chsh</span> -s $(which fish)</pre>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">What's included</h3>
+            <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+              <table><thead><tr><th>Feature</th><th>Details</th></tr></thead><tbody>
+                <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — <code class="inline-code">starship init fish | source</code></td></tr>
+                <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch on every shell open</td></tr>
+                <tr><td class="text-tn-fg">Smart cd</td><td class="text-tn-sub">zoxide rebinds <code class="inline-code">cd</code> — frecency-based jumps</td></tr>
+                <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">lsd -al — <code class="inline-code">ls</code> alias</td></tr>
+                <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — <code class="inline-code">cat</code> alias</td></tr>
+                <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">conda · bun · LM Studio</td></tr>
+              </tbody></table>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Aliases</h3>
+            <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+              <table><thead><tr><th>Alias</th><th>Command</th></tr></thead><tbody>
+                <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">lsd -al</td></tr>
+                <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
+                <tr><td><code class="inline-code">cd</code></td><td class="text-tn-sub">zoxide (frecency jump)</td></tr>
+                <tr><td><code class="inline-code">dev [subpath]</code></td><td class="text-tn-sub">cd into <code class="inline-code">~/Code/&lt;arg&gt;</code> (tab-completes)</td></tr>
+                <tr><td><code class="inline-code">killport &lt;port&gt;</code></td><td class="text-tn-sub">free a TCP port</td></tr>
+                <tr><td><code class="inline-code">dock / undock</code></td><td class="text-tn-sub">aerospace-sync</td></tr>
+                <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
+                <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
+                <tr><td><code class="inline-code">gc</code></td><td class="text-tn-sub">git clone</td></tr>
+                <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git commit -a</td></tr>
+              </tbody></table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="border-t border-tn-border pt-8 pb-4 text-center text-tn-sub text-xs">
+        <p>Built by <a href="https://github.com/rafay99-epic" target="_blank" rel="noopener noreferrer" class="text-tn-blue hover:underline">rafay99-epic</a> · MIT License</p>
+        <p class="mt-1">Tokyo Night · macOS · SketchyBar · AeroSpace · Ghostty · Zsh · Fish</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div id="lightbox-content">
+      <div id="lightbox-inner"></div>
+      <div id="lightbox-caption"></div>
+      <button id="lightbox-close" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <button id="lightbox-prev" class="lightbox-arrow" aria-label="Previous"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+      <button id="lightbox-next" class="lightbox-arrow" aria-label="Next"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+
+  <!-- Back to top -->
+  <button id="back-to-top" aria-label="Back to top">
+    <i data-lucide="chevron-up" class="w-4 h-4"></i>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>

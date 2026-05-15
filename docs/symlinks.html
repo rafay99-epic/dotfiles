@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symlinks — Prometheus Dotfiles</title>
+  <meta name="description" content="How config files in this repo get linked into ~/.config and ~/." />
+  <meta property="og:title" content="Symlinks — Prometheus Dotfiles" />
+  <meta property="og:description" content="How config files in this repo get linked into ~/.config and ~/." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tn: {
+              bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868',
+              fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7',
+              cyan:'#7dcfff', green:'#9ece6a', yellow:'#e0af68',
+              red:'#f7768e', orange:'#ff9e64',
+            }
+          },
+          fontFamily: { mono: ['JetBrains Mono', 'Fira Code', 'monospace'] }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-tn-bg text-tn-fg min-h-screen">
+
+  <!-- Skip link: visible only on keyboard focus -->
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Reading progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Mobile header -->
+  <header class="lg:hidden sticky top-0 z-50 bg-tn-bg/95 backdrop-blur-md border-b border-tn-border px-5 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <i data-lucide="zap" class="w-4 h-4 text-tn-blue"></i>
+      <span class="font-bold text-tn-blue text-base tracking-tight">Prometheus</span>
+    </div>
+    <div class="flex items-center gap-1">
+      <button id="theme-toggle-mobile" aria-label="Toggle theme" class="text-tn-sub hover:text-tn-fg transition-colors p-2 rounded-lg hover:bg-tn-bg2">
+        <i id="theme-icon-mobile" data-lucide="moon" class="w-4 h-4"></i>
+      </button>
+      <button id="menu-toggle" aria-label="Open navigation" class="text-tn-sub hover:text-tn-fg transition-colors p-2 -mr-2 rounded-lg hover:bg-tn-bg2">
+        <i id="icon-menu" data-lucide="menu" class="w-5 h-5"></i>
+        <i id="icon-close" data-lucide="x" class="w-5 h-5 hidden"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile nav drawer -->
+  <div id="mobile-nav" class="lg:hidden fixed inset-0 z-40" aria-hidden="true" style="display:none">
+    <div id="nav-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" style="opacity:0;transition:opacity 0.25s ease"></div>
+    <nav id="mobile-nav-panel" class="absolute left-0 top-0 bottom-0 w-72 bg-tn-bg border-r border-tn-border flex flex-col" style="transform:translateX(-100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1)">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-tn-border shrink-0">
+        <div class="flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <span class="font-bold text-tn-blue text-sm tracking-tight">Prometheus Dotfiles</span>
+        </div>
+        <button id="drawer-close" aria-label="Close navigation" class="text-tn-sub hover:text-tn-fg p-1.5 rounded-lg hover:bg-tn-bg2 transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="mobile-nav-links" class="flex-1 overflow-y-auto py-4 px-3"></div>
+      <div class="shrink-0 px-5 py-4 border-t border-tn-border">
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-tn-sub hover:text-tn-fg text-xs transition-colors">
+          <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <div class="flex">
+    <!-- Desktop sidebar -->
+    <aside id="desktop-sidebar" class="hidden lg:flex flex-col shrink-0 h-screen sticky top-0">
+      <div class="sb-header">
+        <div class="sb-brand">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <div>
+            <div class="sb-brand-name">Prometheus</div>
+            <div class="sb-brand-sub">Tokyo Night · macOS</div>
+          </div>
+        </div>
+        <button id="sidebar-toggle" class="sb-toggle-btn" aria-label="Collapse sidebar" title="Toggle sidebar">
+          <i data-lucide="chevron-left" class="w-4 h-4 sb-chevron"></i>
+        </button>
+      </div>
+      <nav id="sidebar-nav" class="sb-nav flex-1"></nav>
+      <div class="sb-footer">
+        <button id="theme-toggle-desktop" class="sb-footer-btn" aria-label="Toggle theme" title="Toggle theme">
+          <i id="theme-icon-desktop" data-lucide="moon" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">Toggle theme</span>
+        </button>
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="sb-footer-btn">
+          <i data-lucide="github" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">View on GitHub</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="main" tabindex="-1" class="flex-1 min-w-0 px-5 lg:px-12 py-8 lg:py-10 max-w-4xl mx-auto w-full">
+
+      <!-- ── Overview ──────────────────────────────────────────────────────── -->
+      <!-- ── Symlinks ───────────────────────────────────────────────────────── -->
+      <section id="symlinks" class="section-fade mb-16">
+        <h2 class="section-title">How Symlinks Work</h2>
+        <p class="text-tn-sub mb-4">The dotfiles repo <em class="text-tn-fg not-italic font-medium">is</em> the source of truth. Every config file is symlinked from <code class="inline-code">~/.config/</code> back into this repo — so edits are instantly live and automatically tracked by git.</p>
+        <div class="code-block-wrap">
+          <div class="code-header"><span class="text-tn-sub text-xs">symlink map</span></div>
+          <pre class="code-body"><span class="text-tn-blue">~/.config/sketchybar</span>             <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/sketchybar/</span>
+<span class="text-tn-blue">~/.config/aerospace/aerospace.toml</span> <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/aerospace/aerospace.toml</span>
+<span class="text-tn-blue">~/.config/ghostty/config</span>           <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/ghostty/config</span>
+<span class="text-tn-blue">~/.config/starship.toml</span>            <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/starship/starship.toml</span>
+<span class="text-tn-blue">~/.config/lsd/config.yaml</span>          <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/lsd/config.yaml</span>
+<span class="text-tn-blue">~/.config/fastfetch/config.jsonc</span>   <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/fastfetch/config.jsonc</span>
+<span class="text-tn-blue">~/.zshrc</span>                           <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/zsh/.zshrc</span>
+<span class="text-tn-blue">~/.config/fish/config.fish</span>         <span class="text-tn-sub">→</span>  <span class="text-tn-green">~/dotfiles/fish/config.fish</span></pre>
+        </div>
+        <div class="mt-4 code-block-wrap">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Verify all symlinks</span>
+            <button class="copy-btn" data-code="readlink ~/.config/sketchybar
+readlink ~/.config/aerospace/aerospace.toml
+readlink ~/.config/ghostty/config
+readlink ~/.config/starship.toml
+readlink ~/.config/lsd/config.yaml
+readlink ~/.zshrc
+readlink ~/.config/fish/config.fish">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">readlink</span> ~/.config/sketchybar
+<span class="text-tn-blue">readlink</span> ~/.config/aerospace/aerospace.toml
+<span class="text-tn-blue">readlink</span> ~/.config/ghostty/config
+<span class="text-tn-blue">readlink</span> ~/.config/starship.toml
+<span class="text-tn-blue">readlink</span> ~/.config/lsd/config.yaml
+<span class="text-tn-blue">readlink</span> ~/.zshrc
+<span class="text-tn-blue">readlink</span> ~/.config/fish/config.fish</pre>
+        </div>
+      </section>
+
+      <footer class="border-t border-tn-border pt-8 pb-4 text-center text-tn-sub text-xs">
+        <p>Built by <a href="https://github.com/rafay99-epic" target="_blank" rel="noopener noreferrer" class="text-tn-blue hover:underline">rafay99-epic</a> · MIT License</p>
+        <p class="mt-1">Tokyo Night · macOS · SketchyBar · AeroSpace · Ghostty · Zsh · Fish</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div id="lightbox-content">
+      <div id="lightbox-inner"></div>
+      <div id="lightbox-caption"></div>
+      <button id="lightbox-close" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <button id="lightbox-prev" class="lightbox-arrow" aria-label="Previous"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+      <button id="lightbox-next" class="lightbox-arrow" aria-label="Next"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+
+  <!-- Back to top -->
+  <button id="back-to-top" aria-label="Back to top">
+    <i data-lucide="chevron-up" class="w-4 h-4"></i>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>

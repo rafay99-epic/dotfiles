@@ -116,6 +116,13 @@ if command -q thefuck
     thefuck --alias | source
 end
 
+# ── Atuin (shell history) ─────────────────────────────────────────────────────
+# Config: ~/.config/atuin/config.toml (symlinked from dotfiles/atuin/config.toml)
+# Ctrl+R → atuin TUI search. Up-arrow is left to default fish history.
+if command -q atuin
+    atuin init fish --disable-up-arrow | source
+end
+
 # ── rbenv shims ───────────────────────────────────────────────────────────────
 # (already handled above via rbenv init)
 

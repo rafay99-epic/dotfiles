@@ -1,0 +1,394 @@
+[
+  {
+    "title": "Prometheus Dotfiles",
+    "page": "Overview",
+    "url": "/",
+    "snippet": "Prometheus Dotfiles — minimal macOS setup with Tokyo Night theme, AeroSpace tiling WM, SketchyBar, Ghostty terminal, Zsh and Fish shell configs.",
+    "kind": "page"
+  },
+  {
+    "title": "Quick Install",
+    "page": "Quick Install",
+    "url": "/install",
+    "snippet": "One-command install: clone the dotfiles, run install.sh, pick your tools.",
+    "kind": "page"
+  },
+  {
+    "title": "Applications",
+    "page": "Applications",
+    "url": "/apps",
+    "snippet": "Every app and CLI tool installed by install.sh, grouped by category.",
+    "kind": "page"
+  },
+  {
+    "title": "Symlinks",
+    "page": "Symlinks",
+    "url": "/symlinks",
+    "snippet": "How config files in this repo get linked into ~/.config and ~/.",
+    "kind": "page"
+  },
+  {
+    "title": "How Symlinks Work",
+    "page": "Symlinks",
+    "url": "/symlinks#symlinks",
+    "snippet": "How Symlinks Work The dotfiles repo is the source of truth. Every config file is symlinked from ~/.config/ back into this repo — so edits are instantly live and automatically track…",
+    "kind": "section"
+  },
+  {
+    "title": "Desktop & WM",
+    "page": "Desktop & WM",
+    "url": "/desktop",
+    "snippet": "SketchyBar, OmniWM, AeroSpace, and multi-monitor profiles.",
+    "kind": "page"
+  },
+  {
+    "title": "SketchyBar",
+    "page": "Desktop & WM",
+    "url": "/desktop#sketchybar",
+    "snippet": "SketchyBar Floating, notch-aware menu bar replacement. Two frosted-glass pills sit on either side of the MacBook notch. SPACES AeroSpace workspaces MEDIA Now playing SYSTEM Battery…",
+    "kind": "section"
+  },
+  {
+    "title": "OmniWM",
+    "page": "Desktop & WM",
+    "url": "/desktop#omniwm",
+    "snippet": "OmniWM Hyprland-style dwindle/BSP tiling window manager for macOS by BarutSRB. GUI-configured (no TOML) with a built-in Quake terminal. Peer alternative to AeroSpace — pick one at…",
+    "kind": "section"
+  },
+  {
+    "title": "AeroSpace",
+    "page": "Desktop & WM",
+    "url": "/desktop#aerospace",
+    "snippet": "AeroSpace i3-inspired tiling window manager for macOS. Vim-style keybindings, workspace-based layout. Supports dual-monitor profiles via aerospace-sync. Setup Copy brew tap nikitab…",
+    "kind": "section"
+  },
+  {
+    "title": "Aerospace Tabs",
+    "page": "Desktop & WM",
+    "url": "/desktop#aerospace-tabs",
+    "snippet": "Navigation Workspaces Service Mode KeyAction Alt + H/J/K/LFocus window left / down / up / right Alt + Shift + H/J/K/LMove window Alt + THorizontal tiles (side-by-side) Alt + FToggl…",
+    "kind": "section"
+  },
+  {
+    "title": "Aerospace Nav",
+    "page": "Desktop & WM",
+    "url": "/desktop#aerospace-nav",
+    "snippet": "KeyAction Alt + H/J/K/LFocus window left / down / up / right Alt + Shift + H/J/K/LMove window Alt + THorizontal tiles (side-by-side) Alt + FToggle floating / tiling Alt + Shift + -…",
+    "kind": "section"
+  },
+  {
+    "title": "Aerospace Ws",
+    "page": "Desktop & WM",
+    "url": "/desktop#aerospace-ws",
+    "snippet": "KeyAction Alt + 1–9Switch to workspace Alt + Shift + 1–9Move window to workspace Alt + TabPrevious workspace (back and forth) Alt + Shift + TabMove workspace to next monitor Alt +…",
+    "kind": "section"
+  },
+  {
+    "title": "Multi-Config Profiles",
+    "page": "Desktop & WM",
+    "url": "/desktop#aerospace-service",
+    "snippet": "KeyAction Alt + Shift + ;Enter service mode EscReload config + exit service mode RFlatten workspace tree (reset layout) FToggle floating / tiling BackspaceClose all windows but cur…",
+    "kind": "section"
+  },
+  {
+    "title": "Multi-Config Profiles",
+    "page": "Desktop & WM",
+    "url": "/desktop#profiles",
+    "snippet": "Multi-Config Profiles AeroSpace has no per-monitor gap support, so two separate config files handle the different setups. The aerospace-sync script auto-detects your monitor count…",
+    "kind": "section"
+  },
+  {
+    "title": "Terminal & Shell",
+    "page": "Terminal & Shell",
+    "url": "/terminal",
+    "snippet": "Ghostty terminal, Starship prompt, and Zsh/Fish shell configs with shared tools.",
+    "kind": "page"
+  },
+  {
+    "title": "Ghostty",
+    "page": "Terminal & Shell",
+    "url": "/terminal#ghostty",
+    "snippet": "Ghostty GPU-accelerated terminal. Tokyo Night theme, JetBrains Mono Nerd Font, tabs, splits, clipboard. Setup Copy brew install --cask ghostty mkdir -p ~/.config/ghostty ln -sf ~/d…",
+    "kind": "section"
+  },
+  {
+    "title": "Ghostty Tabs",
+    "page": "Terminal & Shell",
+    "url": "/terminal#ghostty-tabs",
+    "snippet": "Tabs Splits Power Misc KeyAction ⌘ TNew tab ⌘ WClose tab / split ⌘ ] / ⌘ [Next / previous tab ⌘ 1–8Jump to tab Ctrl + TabNext tab KeyAction ⌘ DSplit right ⌘ ⇧ DSplit down ⌘ ⌥ H/J/K…",
+    "kind": "section"
+  },
+  {
+    "title": "Ghostty Tabs Panel",
+    "page": "Terminal & Shell",
+    "url": "/terminal#ghostty-tabs-panel",
+    "snippet": "KeyAction ⌘ TNew tab ⌘ WClose tab / split ⌘ ] / ⌘ [Next / previous tab ⌘ 1–8Jump to tab Ctrl + TabNext tab KeyAction ⌘ DSplit right ⌘ ⇧ DSplit down ⌘ ⌥ H/J/K/LNavigate splits Inact…",
+    "kind": "section"
+  },
+  {
+    "title": "Ghostty Splits",
+    "page": "Terminal & Shell",
+    "url": "/terminal#ghostty-splits",
+    "snippet": "KeyAction ⌘ DSplit right ⌘ ⇧ DSplit down ⌘ ⌥ H/J/K/LNavigate splits Inactive splits are dimmed (0.7 opacity), mouse-hover switches focus. KeyAction ⌘ `Toggle Quick Terminal — globa…",
+    "kind": "section"
+  },
+  {
+    "title": "Ghostty Power",
+    "page": "Terminal & Shell",
+    "url": "/terminal#ghostty-power",
+    "snippet": "KeyAction ⌘ `Toggle Quick Terminal — global Quake drop-down (works anywhere) ⌘ ⇧ PCommand palette — fuzzy-search every Ghostty action ⌘ ↑ / ⌘ ↓Jump to previous / next shell prompt…",
+    "kind": "section"
+  },
+  {
+    "title": "Starship",
+    "page": "Terminal & Shell",
+    "url": "/terminal#ghostty-misc",
+    "snippet": "KeyAction ⌘ KClear screen ⌘ ↩Toggle fullscreen ⌘ = / ⌘ -Font size up / down ⌘ 0Reset font size ⌘ NNew window ⌘ ,Open config Option key acts as Alt (vim/fish Alt-bindings work). Cur…",
+    "kind": "section"
+  },
+  {
+    "title": "Starship",
+    "page": "Terminal & Shell",
+    "url": "/terminal#starship",
+    "snippet": "Starship Two-line bracket prompt with live tech-stack, git, command status, monorepo detection, and a dedicated Claude Code statusline. Tokyo Night palette throughout. Prompt layou…",
+    "kind": "section"
+  },
+  {
+    "title": "Starship Tabs",
+    "page": "Terminal & Shell",
+    "url": "/terminal#starship-tabs",
+    "snippet": "Tech Stack Git Monorepo Command Status Claude Code ModuleTriggered by Node · Bun · Denopackage.json · bun.lock · deno.json Pythonpyproject.toml · requirements.txt · Pipfile Rust ·…",
+    "kind": "section"
+  },
+  {
+    "title": "Starship Stack",
+    "page": "Terminal & Shell",
+    "url": "/terminal#starship-stack",
+    "snippet": "ModuleTriggered by Node · Bun · Denopackage.json · bun.lock · deno.json Pythonpyproject.toml · requirements.txt · Pipfile Rust · OCaml · SwiftCargo.toml · dune-project · Package.sw…",
+    "kind": "section"
+  },
+  {
+    "title": "Starship Git",
+    "page": "Terminal & Shell",
+    "url": "/terminal#starship-git",
+    "snippet": "IconMeaning ✓Clean working tree, up-to-date with remote ●Modified files in the working tree ✚Staged for commit ⇡ / ⇣ / ⇕Ahead / behind / diverged from remote …Untracked files ⊙Stas…",
+    "kind": "section"
+  },
+  {
+    "title": "Starship Monorepo",
+    "page": "Terminal & Shell",
+    "url": "/terminal#starship-monorepo",
+    "snippet": "BadgeToolTriggered by ⬢ NxNxnx.json · workspace.json ⚡ TurboTurborepoturbo.json pnpm-wspnpm workspacespnpm-workspace.yaml ⚛ LernaLernalerna.json ⇶ RushRushrush.json ☾ MoonMoonrepo.…",
+    "kind": "section"
+  },
+  {
+    "title": "Starship Status",
+    "page": "Terminal & Shell",
+    "url": "/terminal#starship-status",
+    "snippet": "IndicatorMeaning ✗ 1Exit code of last command (only on failure) 2.3sCommand duration (only if &gt; 2s) ✦ 2Backgrounded jobs (Ctrl-Z'd processes) 10:42Current time, right-aligned vi…",
+    "kind": "section"
+  },
+  {
+    "title": "Starship Claude",
+    "page": "Terminal & Shell",
+    "url": "/terminal#starship-claude",
+    "snippet": "Starship doubles as Claude Code's statusline via the starship statusline claude-code profile. Renders the active model, a context-window gauge, session cost, and the git branch. Re…",
+    "kind": "section"
+  },
+  {
+    "title": "Shell Tools",
+    "page": "Terminal & Shell",
+    "url": "/terminal#shell",
+    "snippet": "Shell Tools lsd · Starship prompt · Fastfetch · CodexBar AI tracker lsdModern ls replacement Copy brew install lsd alias ls='lsd' alias ll='lsd -la' alias lt='lsd --tree' starshipC…",
+    "kind": "section"
+  },
+  {
+    "title": "Zsh",
+    "page": "Terminal & Shell",
+    "url": "/terminal#zsh",
+    "snippet": "Zsh Default shell on macOS. Starship prompt, fzf fuzzy finder, lsd/eza aliases, git shortcuts, and fastfetch on open. SetupCopy ln -sf ~/dotfiles/zsh/.zshrc ~/.zshrc What's include…",
+    "kind": "section"
+  },
+  {
+    "title": "Fish",
+    "page": "Terminal & Shell",
+    "url": "/terminal#fish",
+    "snippet": "Fish Friendly interactive shell. Starship prompt, lsd for ls, git aliases, conda, and fastfetch — same workflow as Zsh but with fish's autocompletion out of the box. SetupCopy brew…",
+    "kind": "section"
+  },
+  {
+    "title": "Customization",
+    "page": "Customization",
+    "url": "/customize",
+    "snippet": "Theme tokens, commands, and per-tool customization knobs.",
+    "kind": "page"
+  },
+  {
+    "title": "Add a simple alias",
+    "page": "Customization",
+    "url": "/customize#recipe-alias",
+    "snippet": "Add a simple alias Aliases are textual substitutions — they don't take arguments. Use them for fixed-shape commands. For anything that needs an arg, use a function (next recipe). z…",
+    "kind": "section"
+  },
+  {
+    "title": "Add a function (takes arguments)",
+    "page": "Customization",
+    "url": "/customize#recipe-function",
+    "snippet": "Add a function (takes arguments) When the alias needs to receive a port number, a path, or any user input, write a function instead. dev and killport in this repo are functions for…",
+    "kind": "section"
+  },
+  {
+    "title": "Add a Homebrew package",
+    "page": "Customization",
+    "url": "/customize#recipe-brew",
+    "snippet": "Add a Homebrew package One line in the Brewfile — install.sh runs brew bundle against it so a fresh machine installs it automatically. BrewfileCopy brew \"ripgrep\" # ultra-fast grep…",
+    "kind": "section"
+  },
+  {
+    "title": "Reload after edits",
+    "page": "Customization",
+    "url": "/customize#recipe-reload",
+    "snippet": "Reload after edits zshCopy source ~/.zshrc fishCopy exec fish brew packagesCopy brew bundle --file=Brewfile Fish functions placed under ~/.config/fish/functions/ are autoloaded on…",
+    "kind": "section"
+  },
+  {
+    "title": "Useful Commands",
+    "page": "Customization",
+    "url": "/customize#commands",
+    "snippet": "Useful Commands SketchyBar ReloadCopysketchybar --reload RestartCopybrew services restart sketchybar StopCopybrew services stop sketchybar AeroSpace Reload",
+    "kind": "section"
+  },
+  {
+    "title": "Maintenance",
+    "page": "Maintenance",
+    "url": "/maintenance",
+    "snippet": "Brewfile, gitconfig with delta, and the one-command update script.",
+    "kind": "page"
+  },
+  {
+    "title": "Brewfile",
+    "page": "Maintenance",
+    "url": "/maintenance#maint-brewfile",
+    "snippet": "Brewfile Three declarative package lists at the repo root. install.sh runs brew bundle against the right one based on your WM choice. Adding a new tool is one line in a file instea…",
+    "kind": "section"
+  },
+  {
+    "title": "~/.gitconfig",
+    "page": "Maintenance",
+    "url": "/maintenance#maint-git",
+    "snippet": "~/.gitconfig Symlinked from git/.gitconfig. Delta diffs in Tokyo Night, sensible defaults, and a tight alias set. Defaults init.defaultBranch = main push.autoSetupRemote — no more…",
+    "kind": "section"
+  },
+  {
+    "title": "bin/update",
+    "page": "Maintenance",
+    "url": "/maintenance#maint-update",
+    "snippet": "bin/update A single command that keeps the whole stack current. Symlinked to ~/.local/bin/update so it's on your $PATH from anywhere. Run weeklyCopy update StepWhat it does Dotfile…",
+    "kind": "section"
+  },
+  {
+    "title": "Time Machine + TrueNAS — Setup Guide",
+    "page": "Backup",
+    "url": "/backup",
+    "snippet": "Step-by-step guide to setting up Time Machine backups over SMB to a self-hosted TrueNAS box, with a monthly LaunchDaemon schedule and helper commands.",
+    "kind": "page"
+  },
+  {
+    "title": "Overview",
+    "page": "Backup",
+    "url": "/backup#overview",
+    "snippet": "Overview This setup replaces a physical Time Machine drive with an SMB share on a self-hosted TrueNAS server on your local network. You get the same hourly-style backups Apple ship…",
+    "kind": "section"
+  },
+  {
+    "title": "Prerequisites",
+    "page": "Backup",
+    "url": "/backup#prereqs",
+    "snippet": "Prerequisites ThingNotes TrueNAS box runningSCALE or CORE, web UI reachable. This guide uses SCALE labels; CORE differs slightly. A storage poolWith enough free space for ~2-3× you…",
+    "kind": "section"
+  },
+  {
+    "title": "1 TrueNAS — create the dataset",
+    "page": "Backup",
+    "url": "/backup#part-1-dataset",
+    "snippet": "1 TrueNAS — create the dataset Time Machine writes to a sparse-bundle disk image inside the share. A dedicated dataset gives you per-feature quotas and snapshot policies separate f…",
+    "kind": "section"
+  },
+  {
+    "title": "2 TrueNAS — create the SMB share",
+    "page": "Backup",
+    "url": "/backup#part-2-smb",
+    "snippet": "2 TrueNAS — create the SMB share Apple removed NFS as a Time Machine destination years ago — SMB is the only network protocol that works. The share must have the Time Machine purpo…",
+    "kind": "section"
+  },
+  {
+    "title": "3 macOS — mount and test write",
+    "page": "Backup",
+    "url": "/backup#part-3-mount",
+    "snippet": "3 macOS — mount and test write Mount the share once via Finder so macOS caches the credentials in your login Keychain. This avoids password prompts later. 3.1 — Connect via Finder…",
+    "kind": "section"
+  },
+  {
+    "title": "4 macOS — register as Time Machine destination",
+    "page": "Backup",
+    "url": "/backup#part-4-destination",
+    "snippet": "4 macOS — register as Time Machine destination tmutil setdestination tells Time Machine where to back up. It does not read from your login Keychain — you must embed credentials in…",
+    "kind": "section"
+  },
+  {
+    "title": "5 Exclusions",
+    "page": "Backup",
+    "url": "/backup#part-5-exclusions",
+    "snippet": "5 Exclusions By default Time Machine backs up everything. For a developer machine, that means hauling tens of GB of node_modules, build caches, and emulator disk images over the ne…",
+    "kind": "section"
+  },
+  {
+    "title": "6 Monthly LaunchDaemon",
+    "page": "Backup",
+    "url": "/backup#part-6-schedule",
+    "snippet": "6 Monthly LaunchDaemon Apple's default TM schedule is one backup per hour. Over a network link to a NAS with finite storage, that's wasteful and noisy. The dotfiles ship a LaunchDa…",
+    "kind": "section"
+  },
+  {
+    "title": "7 Helper commands",
+    "page": "Backup",
+    "url": "/backup#part-7-helpers",
+    "snippet": "7 Helper commands Two thin wrappers over tmutil. Both live in dotfiles/bin/ and get symlinked to ~/.local/bin/ by install.sh. tm-status CommandWhat it does tm-statusOne-shot pretty…",
+    "kind": "section"
+  },
+  {
+    "title": "Customizing for your setup",
+    "page": "Backup",
+    "url": "/backup#customize",
+    "snippet": "Customizing for your setup Every value in this guide is replaceable. Here's the map. ValueReference setupWhere to change it TrueNAS IP / hostname 192.168.100.215 In the tmutil setd…",
+    "kind": "section"
+  },
+  {
+    "title": "Troubleshooting",
+    "page": "Backup",
+    "url": "/backup#troubleshooting",
+    "snippet": "Troubleshooting \"Backup destination doesn't support Time Machine\" The SMB share is missing the Time Machine purpose flag on the TrueNAS side. Go to Shares → SMB Shares → Edit on th…",
+    "kind": "section"
+  },
+  {
+    "title": "Tearing it down",
+    "page": "Backup",
+    "url": "/backup#teardown",
+    "snippet": "Tearing it down If you want to remove this setup entirely: Reverse everythingCopy # 1. Stop and remove the LaunchDaemon sudo launchctl unload /Library/LaunchDaemons/com.prometheus.…",
+    "kind": "section"
+  },
+  {
+    "title": "macOS Tweaks",
+    "page": "macOS Tweaks",
+    "url": "/macos",
+    "snippet": "System preferences applied by install.sh via defaults write.",
+    "kind": "page"
+  },
+  {
+    "title": "Gallery",
+    "page": "Gallery",
+    "url": "/gallery",
+    "snippet": "Screenshots and Tokyo Night wallpaper downloads.",
+    "kind": "page"
+  }
+]

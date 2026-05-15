@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Customization — Prometheus Dotfiles</title>
+  <meta name="description" content="Theme tokens, commands, and per-tool customization knobs." />
+  <meta property="og:title" content="Customization — Prometheus Dotfiles" />
+  <meta property="og:description" content="Theme tokens, commands, and per-tool customization knobs." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tn: {
+              bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868',
+              fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7',
+              cyan:'#7dcfff', green:'#9ece6a', yellow:'#e0af68',
+              red:'#f7768e', orange:'#ff9e64',
+            }
+          },
+          fontFamily: { mono: ['JetBrains Mono', 'Fira Code', 'monospace'] }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-tn-bg text-tn-fg min-h-screen">
+
+  <!-- Skip link: visible only on keyboard focus -->
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Reading progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Mobile header -->
+  <header class="lg:hidden sticky top-0 z-50 bg-tn-bg/95 backdrop-blur-md border-b border-tn-border px-5 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <i data-lucide="zap" class="w-4 h-4 text-tn-blue"></i>
+      <span class="font-bold text-tn-blue text-base tracking-tight">Prometheus</span>
+    </div>
+    <div class="flex items-center gap-1">
+      <button id="theme-toggle-mobile" aria-label="Toggle theme" class="text-tn-sub hover:text-tn-fg transition-colors p-2 rounded-lg hover:bg-tn-bg2">
+        <i id="theme-icon-mobile" data-lucide="moon" class="w-4 h-4"></i>
+      </button>
+      <button id="menu-toggle" aria-label="Open navigation" class="text-tn-sub hover:text-tn-fg transition-colors p-2 -mr-2 rounded-lg hover:bg-tn-bg2">
+        <i id="icon-menu" data-lucide="menu" class="w-5 h-5"></i>
+        <i id="icon-close" data-lucide="x" class="w-5 h-5 hidden"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile nav drawer -->
+  <div id="mobile-nav" class="lg:hidden fixed inset-0 z-40" aria-hidden="true" style="display:none">
+    <div id="nav-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" style="opacity:0;transition:opacity 0.25s ease"></div>
+    <nav id="mobile-nav-panel" class="absolute left-0 top-0 bottom-0 w-72 bg-tn-bg border-r border-tn-border flex flex-col" style="transform:translateX(-100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1)">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-tn-border shrink-0">
+        <div class="flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <span class="font-bold text-tn-blue text-sm tracking-tight">Prometheus Dotfiles</span>
+        </div>
+        <button id="drawer-close" aria-label="Close navigation" class="text-tn-sub hover:text-tn-fg p-1.5 rounded-lg hover:bg-tn-bg2 transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="mobile-nav-links" class="flex-1 overflow-y-auto py-4 px-3"></div>
+      <div class="shrink-0 px-5 py-4 border-t border-tn-border">
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-tn-sub hover:text-tn-fg text-xs transition-colors">
+          <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <div class="flex">
+    <!-- Desktop sidebar -->
+    <aside id="desktop-sidebar" class="hidden lg:flex flex-col shrink-0 h-screen sticky top-0">
+      <div class="sb-header">
+        <div class="sb-brand">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <div>
+            <div class="sb-brand-name">Prometheus</div>
+            <div class="sb-brand-sub">Tokyo Night · macOS</div>
+          </div>
+        </div>
+        <button id="sidebar-toggle" class="sb-toggle-btn" aria-label="Collapse sidebar" title="Toggle sidebar">
+          <i data-lucide="chevron-left" class="w-4 h-4 sb-chevron"></i>
+        </button>
+      </div>
+      <nav id="sidebar-nav" class="sb-nav flex-1"></nav>
+      <div class="sb-footer">
+        <button id="theme-toggle-desktop" class="sb-footer-btn" aria-label="Toggle theme" title="Toggle theme">
+          <i id="theme-icon-desktop" data-lucide="moon" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">Toggle theme</span>
+        </button>
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="sb-footer-btn">
+          <i data-lucide="github" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">View on GitHub</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="main" tabindex="-1" class="flex-1 min-w-0 px-5 lg:px-12 py-8 lg:py-10 max-w-4xl mx-auto w-full">
+
+      <!-- ── Overview ──────────────────────────────────────────────────────── -->
+      <!-- ── Customization ───────────────────────────────────────────────────── -->
+      <section id="customize" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="sliders-horizontal" class="w-6 h-6 text-tn-purple shrink-0"></i>
+          <h2 class="section-title mb-0">Customization</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Everything here is plain text in this repo. Adding your own aliases, functions, package installs, or directory jumps is a one-line edit and a shell reload.</p>
+
+        <!-- ─────── Reference ─────── -->
+        <h3 class="text-tn-fg font-semibold text-lg mb-3 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5 text-tn-cyan"></i>Reference</h3>
+
+        <!-- where things live -->
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Where things live</h4>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table>
+            <thead><tr><th>You want to add…</th><th>Edit this file</th></tr></thead>
+            <tbody>
+              <tr><td class="text-tn-fg">A zsh alias</td><td><code class="inline-code">zsh/.zshrc</code></td></tr>
+              <tr><td class="text-tn-fg">A fish alias or one-liner</td><td><code class="inline-code">fish/config.fish</code></td></tr>
+              <tr><td class="text-tn-fg">A fish function (takes args)</td><td><code class="inline-code">fish/functions/&lt;name&gt;.fish</code> + entry in <code class="inline-code">install.sh</code></td></tr>
+              <tr><td class="text-tn-fg">A standalone script</td><td><code class="inline-code">bin/&lt;name&gt;</code> + entry in <code class="inline-code">install.sh</code> (linked into <code class="inline-code">~/.local/bin</code>)</td></tr>
+              <tr><td class="text-tn-fg">A Homebrew package</td><td><code class="inline-code">Brewfile</code> (or <code class="inline-code">Brewfile.aerospace</code> / <code class="inline-code">Brewfile.omniwm</code> for WM-only)</td></tr>
+              <tr><td class="text-tn-fg">A starship prompt module</td><td><code class="inline-code">starship/starship.toml</code></td></tr>
+              <tr><td class="text-tn-fg">A ghostty keybinding</td><td><code class="inline-code">ghostty/config</code></td></tr>
+              <tr><td class="text-tn-fg">An aerospace shortcut</td><td><code class="inline-code">aerospace/laptop.toml</code> and <code class="inline-code">aerospace/docked.toml</code> (keep both in sync)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- zoxide cheat-sheet (reference, not recipe) -->
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">zoxide (smart cd) cheat-sheet</h4>
+        <p class="text-tn-sub text-sm mb-3"><code class="inline-code">cd</code> is rebound to zoxide. The database builds automatically as you navigate — no manual config. After visiting a directory once, you can jump there by any unique substring of its path.</p>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+          <table>
+            <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code class="inline-code">cd /full/path</code></td><td class="text-tn-sub">Works exactly like the builtin — full paths are honoured first</td></tr>
+              <tr><td><code class="inline-code">cd lumo</code></td><td class="text-tn-sub">Fuzzy jump to the highest-scored dir whose path contains "lumo"</td></tr>
+              <tr><td><code class="inline-code">cd code lumo</code></td><td class="text-tn-sub">Multiple substrings — matches paths containing both</td></tr>
+              <tr><td><code class="inline-code">cdi</code></td><td class="text-tn-sub">Interactive fzf picker over your frecency list</td></tr>
+              <tr><td><code class="inline-code">cd -</code></td><td class="text-tn-sub">Previous directory (passes through to builtin)</td></tr>
+              <tr><td><code class="inline-code">zoxide query foo</code></td><td class="text-tn-sub">Show the path <code class="inline-code">cd foo</code> would jump to (no cd)</td></tr>
+              <tr><td><code class="inline-code">zoxide remove &lt;path&gt;</code></td><td class="text-tn-sub">Forget a directory — useful after deleting/moving it</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-tn-sub text-sm mb-10">If you'd rather keep the builtin <code class="inline-code">cd</code> and use a separate command, remove <code class="inline-code">--cmd cd</code> from the <code class="inline-code">zoxide init</code> lines in <code class="inline-code">zsh/.zshrc</code> and <code class="inline-code">fish/config.fish</code>; zoxide then exposes <code class="inline-code">z</code> and <code class="inline-code">zi</code> instead.</p>
+
+        <!-- ─────── Recipes ─────── -->
+        <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="chef-hat" class="w-5 h-5 text-tn-yellow"></i>Recipes</h3>
+        <p class="text-tn-sub text-sm mb-4">Step-by-step examples. Jump to:
+          <a href="#recipe-alias" class="text-tn-blue hover:underline">alias</a> ·
+          <a href="#recipe-function" class="text-tn-blue hover:underline">function</a> ·
+          <a href="#recipe-brew" class="text-tn-blue hover:underline">brew package</a> ·
+          <a href="#recipe-reload" class="text-tn-blue hover:underline">reload</a>
+        </p>
+
+        <!-- recipe: alias -->
+        <div id="recipe-alias" class="bg-tn-bg2 border border-tn-border rounded-xl p-5 mb-4">
+          <h4 class="text-tn-fg font-semibold mb-2 flex items-center gap-2"><i data-lucide="zap" class="w-4 h-4 text-tn-blue"></i>Add a simple alias</h4>
+          <p class="text-tn-sub text-sm mb-3">Aliases are textual substitutions — they don't take arguments. Use them for fixed-shape commands. For anything that needs an arg, use a function (next recipe).</p>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">zsh — <code class="inline-code">zsh/.zshrc</code></span><button class="copy-btn" data-code='alias serve="python3 -m http.server"'>Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">alias</span> serve=<span class="text-tn-green">"python3 -m http.server"</span></pre>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">fish — <code class="inline-code">fish/config.fish</code></span><button class="copy-btn" data-code='alias serve="python3 -m http.server"'>Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">alias</span> serve=<span class="text-tn-green">"python3 -m http.server"</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- recipe: function -->
+        <div id="recipe-function" class="bg-tn-bg2 border border-tn-border rounded-xl p-5 mb-4">
+          <h4 class="text-tn-fg font-semibold mb-2 flex items-center gap-2"><i data-lucide="braces" class="w-4 h-4 text-tn-purple"></i>Add a function (takes arguments)</h4>
+          <p class="text-tn-sub text-sm mb-3">When the alias needs to receive a port number, a path, or any user input, write a function instead. <code class="inline-code">dev</code> and <code class="inline-code">killport</code> in this repo are functions for exactly this reason.</p>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">zsh — append to <code class="inline-code">zsh/.zshrc</code></span><button class="copy-btn" data-code='mkcd() {
+  mkdir -p "$1" && cd "$1"
+}'>Copy</button></div>
+              <pre class="code-body"><span class="text-tn-yellow">mkcd</span>() {
+  <span class="text-tn-blue">mkdir</span> -p <span class="text-tn-green">"$1"</span> &amp;&amp; <span class="text-tn-blue">cd</span> <span class="text-tn-green">"$1"</span>
+}</pre>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">fish — new file <code class="inline-code">fish/functions/mkcd.fish</code></span><button class="copy-btn" data-code='function mkcd --description "mkdir + cd"
+    mkdir -p $argv[1]; and cd $argv[1]
+end'>Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">function</span> <span class="text-tn-yellow">mkcd</span> --description <span class="text-tn-green">"mkdir + cd"</span>
+    <span class="text-tn-blue">mkdir</span> -p $argv[1]; <span class="text-tn-blue">and</span> <span class="text-tn-blue">cd</span> $argv[1]
+<span class="text-tn-blue">end</span></pre>
+            </div>
+          </div>
+          <p class="text-tn-sub text-sm">For the fish version, also add a symlink line to <code class="inline-code">install.sh</code> so a fresh machine picks it up — copy the pattern next to the existing <code class="inline-code">killport.fish</code> entry.</p>
+        </div>
+
+        <!-- recipe: brew -->
+        <div id="recipe-brew" class="bg-tn-bg2 border border-tn-border rounded-xl p-5 mb-4">
+          <h4 class="text-tn-fg font-semibold mb-2 flex items-center gap-2"><i data-lucide="box" class="w-4 h-4 text-tn-cyan"></i>Add a Homebrew package</h4>
+          <p class="text-tn-sub text-sm mb-3">One line in the Brewfile — <code class="inline-code">install.sh</code> runs <code class="inline-code">brew bundle</code> against it so a fresh machine installs it automatically.</p>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs"><code class="inline-code">Brewfile</code></span><button class="copy-btn" data-code='brew "ripgrep"      # ultra-fast grep
+brew "fd"           # ultra-fast find'>Copy</button></div>
+            <pre class="code-body"><span class="text-tn-blue">brew</span> <span class="text-tn-green">"ripgrep"</span>      <span class="text-tn-sub"># ultra-fast grep</span>
+<span class="text-tn-blue">brew</span> <span class="text-tn-green">"fd"</span>           <span class="text-tn-sub"># ultra-fast find</span></pre>
+          </div>
+        </div>
+
+        <!-- recipe: reload -->
+        <div id="recipe-reload" class="bg-tn-bg2 border border-tn-border rounded-xl p-5 mb-4">
+          <h4 class="text-tn-fg font-semibold mb-2 flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4 text-tn-green"></i>Reload after edits</h4>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-3">
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">zsh</span><button class="copy-btn" data-code="source ~/.zshrc">Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">source</span> ~/.zshrc</pre>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">fish</span><button class="copy-btn" data-code="exec fish">Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">exec</span> fish</pre>
+            </div>
+            <div class="code-block-wrap">
+              <div class="code-header"><span class="text-tn-sub text-xs">brew packages</span><button class="copy-btn" data-code="brew bundle --file=Brewfile">Copy</button></div>
+              <pre class="code-body"><span class="text-tn-blue">brew</span> bundle --file=Brewfile</pre>
+            </div>
+          </div>
+          <p class="text-tn-sub text-sm">Fish functions placed under <code class="inline-code">~/.config/fish/functions/</code> are autoloaded on next invocation — no reload needed for those.</p>
+        </div>
+      </section>
+
+      <!-- ── Useful Commands ────────────────────────────────────────────────── -->
+      <section id="commands" class="section-fade mb-16">
+        <h2 class="section-title">Useful Commands</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-2">SketchyBar</h3>
+            <div class="flex flex-col gap-2">
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Reload</span><button class="copy-btn" data-code="sketchybar --reload">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">sketchybar</span> --reload</pre></div>
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Restart</span><button class="copy-btn" data-code="brew services restart sketchybar">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">brew</span> services restart sketchybar</pre></div>
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Stop</span><button class="copy-btn" data-code="brew services stop sketchybar">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">brew</span> services stop sketchybar</pre></div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-2">AeroSpace</h3>
+            <div class="flex flex-col gap-2">
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Reload config</span><button class="copy-btn" data-code="aerospace reload-config">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">aerospace</span> reload-config</pre></div>
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Sync profile</span><button class="copy-btn" data-code="dock">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-green">dock</span> <span class="text-tn-sub"># or undock</span></pre></div>
+              <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">List windows</span><button class="copy-btn" data-code="aerospace list-windows --all">Copy</button></div><pre class="code-body text-xs"><span class="text-tn-blue">aerospace</span> list-windows --all</pre></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="border-t border-tn-border pt-8 pb-4 text-center text-tn-sub text-xs">
+        <p>Built by <a href="https://github.com/rafay99-epic" target="_blank" rel="noopener noreferrer" class="text-tn-blue hover:underline">rafay99-epic</a> · MIT License</p>
+        <p class="mt-1">Tokyo Night · macOS · SketchyBar · AeroSpace · Ghostty · Zsh · Fish</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div id="lightbox-content">
+      <div id="lightbox-inner"></div>
+      <div id="lightbox-caption"></div>
+      <button id="lightbox-close" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <button id="lightbox-prev" class="lightbox-arrow" aria-label="Previous"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+      <button id="lightbox-next" class="lightbox-arrow" aria-label="Next"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+
+  <!-- Back to top -->
+  <button id="back-to-top" aria-label="Back to top">
+    <i data-lucide="chevron-up" class="w-4 h-4"></i>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>

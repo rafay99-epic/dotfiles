@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ============================================================================
+  com.prometheus.tm-monthly — monthly Time Machine trigger
+
+  Time Machine's built-in schedule is hourly — too aggressive for an
+  SMB-over-NAS setup with limited NAS storage. This LaunchDaemon replaces
+  it: one backup on the 1st of each month at 03:00 local time.
+
+  Install (as a LaunchDaemon — runs as root, no sudo prompts at fire time):
+    sudo cp /Users/prometheus/dotfiles/launchd/com.prometheus.tm-monthly.plist \
+            /Library/LaunchDaemons/
+    sudo chown root:wheel /Library/LaunchDaemons/com.prometheus.tm-monthly.plist
+    sudo chmod 644       /Library/LaunchDaemons/com.prometheus.tm-monthly.plist
+    sudo launchctl load  /Library/LaunchDaemons/com.prometheus.tm-monthly.plist
+
+  Uninstall:
+    sudo launchctl unload /Library/LaunchDaemons/com.prometheus.tm-monthly.plist
+    sudo rm               /Library/LaunchDaemons/com.prometheus.tm-monthly.plist
+
+  Trigger immediately for testing (without waiting for the 1st):
+    sudo launchctl start com.prometheus.tm-monthly
+
+  Logs:
+    tail -f /var/log/tm-monthly.log
+  ============================================================================
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.prometheus.tm-monthly</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/tmutil</string>
+        <string>startbackup</string>
+        <string>--auto</string>
+    </array>
+
+    <!-- Fires on the 1st of every month at 03:00 local time -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Day</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>3</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- If the Mac was off/asleep at 03:00, run on next wake -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/var/log/tm-monthly.log</string>
+    <key>StandardErrorPath</key>
+    <string>/var/log/tm-monthly.log</string>
+</dict>
+</plist>

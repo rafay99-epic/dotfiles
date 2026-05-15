@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# =============================================================================
+# tm-backup — manually trigger a Time Machine backup
+# =============================================================================
+#
+#  Usage:
+#    tm-backup           Start a backup now (idempotent — skips if running)
+#    tm-backup --watch   Start, then live-update progress until done
+#    tm-backup --stop    Stop the running backup
+#
+#  Symlinked from dotfiles/bin/tm-backup → ~/.local/bin/tm-backup
+#
+# =============================================================================
+
+set -euo pipefail
+
+WATCH=false
+STOP=false
+for arg in "$@"; do
+  case "$arg" in
+    -w|--watch) WATCH=true ;;
+    -s|--stop)  STOP=true ;;
+    -h|--help)
+      sed -n '4,12p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+  esac
+done
+
+if [[ -t 1 ]]; then
+  BOLD=$'\033[1m'; CYAN=$'\033[0;36m'; GREEN=$'\033[0;32m'; YELLOW=$'\033[0;33m'; RESET=$'\033[0m'
+else
+  BOLD=''; CYAN=''; GREEN=''; YELLOW=''; RESET=''
+fi
+
+if [[ "$STOP" == true ]]; then
+  echo "${YELLOW}→ Stopping Time Machine backup...${RESET}"
+  sudo tmutil stopbackup
+  exit 0
+fi
+
+if tmutil status 2>/dev/null | grep -q "Running = 1"; then
+  echo "${YELLOW}A backup is already running.${RESET}"
+  tm-status 2>/dev/null || tmutil status
+  [[ "$WATCH" == true ]] && exec tm-status --watch
+  exit 0
+fi
+
+echo "${CYAN}${BOLD}→ Starting Time Machine backup...${RESET}"
+sudo tmutil startbackup --auto
+sleep 2
+echo "${GREEN}✓ Backup started.${RESET}"
+echo
+
+if [[ "$WATCH" == true ]]; then
+  exec tm-status --watch
+else
+  tm-status 2>/dev/null || tmutil status
+  echo
+  echo "  ${CYAN}Watch live:${RESET}  tm-status --watch"
+  echo "  ${CYAN}Stop:${RESET}        tm-backup --stop"
+fi

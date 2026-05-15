@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# =============================================================================
+# tm-status — pretty Time Machine status with ETA
+# =============================================================================
+#
+#  Usage:
+#    tm-status           Show current backup phase, progress, ETA, history
+#    tm-status --watch   Live-update every 5 seconds (Ctrl+C to exit)
+#    tm-status --json    Raw tmutil status (for scripts)
+#
+#  Symlinked from dotfiles/bin/tm-status → ~/.local/bin/tm-status
+#
+# =============================================================================
+
+set -euo pipefail
+
+WATCH=false
+JSON=false
+for arg in "$@"; do
+  case "$arg" in
+    -w|--watch) WATCH=true ;;
+    -j|--json)  JSON=true ;;
+    -h|--help)
+      sed -n '4,12p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+  esac
+done
+
+if [[ -t 1 ]]; then
+  BOLD=$'\033[1m'; DIM=$'\033[2m'; CYAN=$'\033[0;36m'; GREEN=$'\033[0;32m'
+  YELLOW=$'\033[0;33m'; RED=$'\033[0;31m'; BLUE=$'\033[0;34m'; RESET=$'\033[0m'
+else
+  BOLD=''; DIM=''; CYAN=''; GREEN=''; YELLOW=''; RED=''; BLUE=''; RESET=''
+fi
+
+bytes_to_human() {
+  local b=${1:-0}
+  awk -v b="$b" 'BEGIN{
+    split("B KB MB GB TB", u);
+    i=1; while (b>=1024 && i<5) { b/=1024; i++ }
+    printf "%.1f %s", b, u[i]
+  }'
+}
+
+secs_to_human() {
+  local s=${1:-0}
+  (( s <= 0 )) && { echo "—"; return; }
+  local h=$((s/3600)) m=$(((s%3600)/60))
+  if (( h > 0 )); then printf "%dh %dm" "$h" "$m"
+  else                  printf "%dm" "$m"
+  fi
+}
+
+print_status() {
+  local status phase running pct copied total files total_files start_epoch
+  status="$(tmutil status 2>/dev/null)" || { echo "${RED}Time Machine not configured${RESET}"; return 1; }
+
+  running=$(printf '%s\n' "$status" | awk -F'= *' '/Running/{gsub(";",""); print $2; exit}')
+  phase=$(printf '%s\n' "$status"   | awk -F'= *' '/BackupPhase/{gsub(/[";]/,""); print $2; exit}')
+  pct=$(printf '%s\n' "$status"     | awk -F'= *' '/Percent/{gsub(/[";]/,""); print $2; exit}')
+  copied=$(printf '%s\n' "$status"  | awk -F'= *' '/"bytes" *=/{gsub(/[";]/,""); print $2; exit}')
+  total=$(printf '%s\n' "$status"   | awk -F'= *' '/"TotalBytes"/{gsub(/[";]/,""); print $2; exit}')
+  files=$(printf '%s\n' "$status"   | awk -F'= *' '/"files" *=/{gsub(/[";]/,""); print $2; exit}')
+  total_files=$(printf '%s\n' "$status" | awk -F'= *' '/TotalFiles/{gsub(/[";]/,""); print $2; exit}')
+
+  echo
+  echo "${BOLD}${CYAN}▸ Time Machine${RESET}"
+  echo
+
+  local dest
+  dest="$(tmutil destinationinfo 2>/dev/null | awk '/^URL/{sub(/^URL[[:space:]]*:[[:space:]]*/, ""); print; exit}')"
+  [[ -n "$dest" ]] && echo "  ${DIM}Destination:${RESET}  ${dest}"
+
+  if [[ "$running" != "1" ]]; then
+    echo "  ${DIM}Status:${RESET}       ${YELLOW}idle${RESET}"
+    local last
+    last="$(tmutil latestbackup 2>/dev/null || true)"
+    if [[ -n "$last" ]]; then
+      echo "  ${DIM}Last backup:${RESET}  ${GREEN}$(basename "$last")${RESET}"
+    else
+      echo "  ${DIM}Last backup:${RESET}  ${RED}none yet${RESET}"
+    fi
+    echo
+    return 0
+  fi
+
+  echo "  ${DIM}Status:${RESET}       ${GREEN}running${RESET}"
+  echo "  ${DIM}Phase:${RESET}        ${BOLD}${phase:-?}${RESET}"
+
+  if [[ -n "${total:-}" && "${total:-0}" -gt 0 ]]; then
+    local pct_num=0 bar_len=30 filled
+    pct_num=$(awk -v c="${copied:-0}" -v t="$total" 'BEGIN{printf "%d", c*100/t}')
+    filled=$((pct_num * bar_len / 100))
+    local bar
+    bar="$(printf '%*s' "$filled" '' | tr ' ' '█')$(printf '%*s' "$((bar_len-filled))" '' | tr ' ' '░')"
+    echo "  ${DIM}Progress:${RESET}     ${GREEN}${bar}${RESET} ${BOLD}${pct_num}%${RESET}"
+    echo "  ${DIM}Copied:${RESET}       $(bytes_to_human "${copied:-0}") / $(bytes_to_human "$total")"
+    [[ -n "${files:-}" && -n "${total_files:-}" ]] && \
+      echo "  ${DIM}Files:${RESET}        ${files} / ${total_files}"
+  elif [[ -n "${pct:-}" && "$pct" != "-1" ]]; then
+    local pn
+    pn=$(awk -v p="$pct" 'BEGIN{printf "%d", p*100}')
+    echo "  ${DIM}Progress:${RESET}     ${pn}%"
+  fi
+  echo
+}
+
+if [[ "$JSON" == true ]]; then
+  tmutil status
+  exit 0
+fi
+
+if [[ "$WATCH" == true ]]; then
+  trap 'tput cnorm 2>/dev/null; exit 0' INT TERM
+  tput civis 2>/dev/null || true
+  while true; do
+    clear
+    print_status
+    echo "  ${DIM}(refreshing every 5s — Ctrl+C to exit)${RESET}"
+    sleep 5
+  done
+fi
+
+print_status

@@ -90,6 +90,13 @@ autoload -Uz compinit
 compinit
 # End of Docker CLI completions
 
+# ---- Atuin (shell history) -----
+# Config: ~/.config/atuin/config.toml (symlinked from dotfiles/atuin/config.toml)
+# Ctrl+R → atuin TUI search. Up-arrow is left to default shell history.
+if command -v atuin >/dev/null 2>&1; then
+  eval "$(atuin init zsh --disable-up-arrow)"
+fi
+
 
 #-----------------
 # Git Aliases

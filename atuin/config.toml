@@ -1,0 +1,72 @@
+# =============================================================================
+# Atuin — shell history config (https://atuin.sh)
+# =============================================================================
+#
+#  Local-only setup. Storage is SQLite under ~/.local/share/atuin/.
+#  To enable sync later:    atuin register   (or)   atuin login
+#  Then sync with:          atuin sync
+#
+#  This file is symlinked from dotfiles/atuin/config.toml → ~/.config/atuin/config.toml
+#  by install.sh. Edit it here — never edit the symlinked copy directly.
+#
+# =============================================================================
+
+# ── Sync ─────────────────────────────────────────────────────────────────────
+# Disabled until the user explicitly runs `atuin register` / `atuin login`.
+auto_sync = false
+update_check = false
+# sync_address = "https://api.atuin.sh"   # uncomment if you want hosted sync
+# sync_frequency = "10m"
+
+# ── Search UX ────────────────────────────────────────────────────────────────
+search_mode  = "fuzzy"      # prefix | fulltext | fuzzy | skim
+filter_mode  = "global"     # global | host | session | directory
+# Default filter when invoked with Ctrl+R (overrides filter_mode for that path).
+filter_mode_shell_up_key_binding = "session"
+
+style          = "compact"  # auto | full | compact
+inline_height  = 20         # rows of history shown inline (0 = full screen)
+show_preview   = true
+show_help      = true
+show_tabs      = true
+invert         = false      # set true to put prompt at the top
+
+# Press Enter once to run the highlighted command (vs requiring it to be inserted first).
+enter_accept   = true
+
+# ── Keybindings ──────────────────────────────────────────────────────────────
+# Ctrl+R is bound by `atuin init`. Up-arrow is left alone by the init flag
+# `--disable-up-arrow` in each shell's rc — keeps default shell history behavior.
+
+# ── History ──────────────────────────────────────────────────────────────────
+# Commands matching these patterns are not recorded.
+history_filter = [
+  "^secret-",
+  "^ *export +.*(TOKEN|SECRET|KEY|PASSWORD)",
+]
+
+# Don't record commands run from these directories.
+# cwd_filter = [
+#   "^/private/tmp",
+# ]
+
+# Max chars to store per command.
+max_preview_height = 4
+
+# ── Stats ────────────────────────────────────────────────────────────────────
+# Commands to ignore in `atuin stats`.
+[stats]
+common_subcommands = [
+  "cargo",
+  "go",
+  "git",
+  "kubectl",
+  "npm",
+  "yarn",
+  "pnpm",
+  "bun",
+  "make",
+  "brew",
+]
+common_prefix = ["sudo"]
+ignored_commands = ["cd", "ls", "ll"]

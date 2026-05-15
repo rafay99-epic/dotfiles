@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desktop & WM — Prometheus Dotfiles</title>
+  <meta name="description" content="SketchyBar, OmniWM, AeroSpace, and multi-monitor profiles." />
+  <meta property="og:title" content="Desktop & WM — Prometheus Dotfiles" />
+  <meta property="og:description" content="SketchyBar, OmniWM, AeroSpace, and multi-monitor profiles." />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            tn: {
+              bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868',
+              fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7',
+              cyan:'#7dcfff', green:'#9ece6a', yellow:'#e0af68',
+              red:'#f7768e', orange:'#ff9e64',
+            }
+          },
+          fontFamily: { mono: ['JetBrains Mono', 'Fira Code', 'monospace'] }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-tn-bg text-tn-fg min-h-screen">
+
+  <!-- Skip link: visible only on keyboard focus -->
+  <a href="#main" class="skip-link">Skip to main content</a>
+
+  <!-- Reading progress bar -->
+  <div id="progress-bar"></div>
+
+  <!-- Mobile header -->
+  <header class="lg:hidden sticky top-0 z-50 bg-tn-bg/95 backdrop-blur-md border-b border-tn-border px-5 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <i data-lucide="zap" class="w-4 h-4 text-tn-blue"></i>
+      <span class="font-bold text-tn-blue text-base tracking-tight">Prometheus</span>
+    </div>
+    <div class="flex items-center gap-1">
+      <button id="theme-toggle-mobile" aria-label="Toggle theme" class="text-tn-sub hover:text-tn-fg transition-colors p-2 rounded-lg hover:bg-tn-bg2">
+        <i id="theme-icon-mobile" data-lucide="moon" class="w-4 h-4"></i>
+      </button>
+      <button id="menu-toggle" aria-label="Open navigation" class="text-tn-sub hover:text-tn-fg transition-colors p-2 -mr-2 rounded-lg hover:bg-tn-bg2">
+        <i id="icon-menu" data-lucide="menu" class="w-5 h-5"></i>
+        <i id="icon-close" data-lucide="x" class="w-5 h-5 hidden"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile nav drawer -->
+  <div id="mobile-nav" class="lg:hidden fixed inset-0 z-40" aria-hidden="true" style="display:none">
+    <div id="nav-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm" style="opacity:0;transition:opacity 0.25s ease"></div>
+    <nav id="mobile-nav-panel" class="absolute left-0 top-0 bottom-0 w-72 bg-tn-bg border-r border-tn-border flex flex-col" style="transform:translateX(-100%);transition:transform 0.28s cubic-bezier(.4,0,.2,1)">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-tn-border shrink-0">
+        <div class="flex items-center gap-2">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <span class="font-bold text-tn-blue text-sm tracking-tight">Prometheus Dotfiles</span>
+        </div>
+        <button id="drawer-close" aria-label="Close navigation" class="text-tn-sub hover:text-tn-fg p-1.5 rounded-lg hover:bg-tn-bg2 transition-colors">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+      <div id="mobile-nav-links" class="flex-1 overflow-y-auto py-4 px-3"></div>
+      <div class="shrink-0 px-5 py-4 border-t border-tn-border">
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-tn-sub hover:text-tn-fg text-xs transition-colors">
+          <svg class="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <div class="flex">
+    <!-- Desktop sidebar -->
+    <aside id="desktop-sidebar" class="hidden lg:flex flex-col shrink-0 h-screen sticky top-0">
+      <div class="sb-header">
+        <div class="sb-brand">
+          <i data-lucide="zap" class="w-4 h-4 text-tn-blue shrink-0"></i>
+          <div>
+            <div class="sb-brand-name">Prometheus</div>
+            <div class="sb-brand-sub">Tokyo Night · macOS</div>
+          </div>
+        </div>
+        <button id="sidebar-toggle" class="sb-toggle-btn" aria-label="Collapse sidebar" title="Toggle sidebar">
+          <i data-lucide="chevron-left" class="w-4 h-4 sb-chevron"></i>
+        </button>
+      </div>
+      <nav id="sidebar-nav" class="sb-nav flex-1"></nav>
+      <div class="sb-footer">
+        <button id="theme-toggle-desktop" class="sb-footer-btn" aria-label="Toggle theme" title="Toggle theme">
+          <i id="theme-icon-desktop" data-lucide="moon" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">Toggle theme</span>
+        </button>
+        <a href="https://github.com/rafay99-epic/dotfiles" target="_blank" rel="noopener noreferrer" class="sb-footer-btn">
+          <i data-lucide="github" class="w-4 h-4 shrink-0"></i>
+          <span class="sb-label">View on GitHub</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="main" tabindex="-1" class="flex-1 min-w-0 px-5 lg:px-12 py-8 lg:py-10 max-w-4xl mx-auto w-full">
+
+      <!-- ── Overview ──────────────────────────────────────────────────────── -->
+      <!-- ── SketchyBar ─────────────────────────────────────────────────────── -->
+      <section id="sketchybar" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="palette" class="w-6 h-6 text-tn-blue shrink-0"></i>
+          <h2 class="section-title mb-0">SketchyBar</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Floating, notch-aware menu bar replacement. Two frosted-glass pills sit on either side of the MacBook notch.</p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+          <div class="bg-tn-bg2 border border-tn-border rounded-lg p-3 text-center">
+            <div class="text-tn-blue font-mono text-xs mb-1">SPACES</div>
+            <div class="text-tn-sub text-xs">AeroSpace workspaces</div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-lg p-3 text-center">
+            <div class="text-tn-purple font-mono text-xs mb-1">MEDIA</div>
+            <div class="text-tn-sub text-xs">Now playing</div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-lg p-3 text-center">
+            <div class="text-tn-cyan font-mono text-xs mb-1">SYSTEM</div>
+            <div class="text-tn-sub text-xs">Battery · Volume · Wi-Fi</div>
+          </div>
+          <div class="bg-tn-bg2 border border-tn-border rounded-lg p-3 text-center">
+            <div class="text-tn-green font-mono text-xs mb-1">AI</div>
+            <div class="text-tn-sub text-xs">Claude + Gemini usage</div>
+          </div>
+        </div>
+
+        <div class="code-block-wrap mb-4">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Setup</span>
+            <button class="copy-btn" data-code="brew tap FelixKratz/formulae
+brew install sketchybar
+brew services start sketchybar
+curl -fsSL https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf \
+  -o ~/Library/Fonts/sketchybar-app-font.ttf
+ln -sf ~/dotfiles/sketchybar ~/.config/sketchybar
+sketchybar --reload">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> tap FelixKratz/formulae
+<span class="text-tn-blue">brew</span> install sketchybar
+<span class="text-tn-blue">brew</span> services start sketchybar
+
+<span class="text-tn-sub"># App font (workspace icons)</span>
+<span class="text-tn-blue">curl</span> -fsSL https://github.com/kvndrsslr/sketchybar-app-font/releases/download/v2.0.28/sketchybar-app-font.ttf \
+  -o ~/Library/Fonts/sketchybar-app-font.ttf
+
+<span class="text-tn-sub"># Symlink + reload</span>
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/sketchybar ~/.config/sketchybar
+<span class="text-tn-blue">sketchybar</span> --reload</pre>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Reload config</span><button class="copy-btn" data-code="sketchybar --reload">Copy</button></div><pre class="code-body"><span class="text-tn-blue">sketchybar</span> --reload</pre></div>
+          <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Restart service</span><button class="copy-btn" data-code="brew services restart sketchybar">Copy</button></div><pre class="code-body"><span class="text-tn-blue">brew</span> services restart sketchybar</pre></div>
+          <div class="code-block-wrap"><div class="code-header"><span class="text-tn-sub text-xs">Check status</span><button class="copy-btn" data-code="brew services list | grep sketchybar">Copy</button></div><pre class="code-body"><span class="text-tn-blue">brew</span> services list | grep sketchybar</pre></div>
+        </div>
+
+        <h3 class="text-tn-fg font-semibold mb-3 text-sm uppercase tracking-wider text-tn-sub">Color Scheme</h3>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <table>
+            <thead><tr><th>Variable</th><th>Color</th><th>Use</th></tr></thead>
+            <tbody>
+              <tr><td class="font-mono text-tn-sub text-xs">BAR_COLOR</td><td><span class="color-swatch" style="background:#1a1b26"></span><span class="text-tn-fg">#1a1b26</span></td><td class="text-tn-sub">Bar / pill background</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">ACCENT_COLOR</td><td><span class="color-swatch" style="background:#7aa2f7"></span><span class="text-tn-blue">#7aa2f7</span></td><td class="text-tn-sub">Active space · Wi-Fi</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">PURPLE</td><td><span class="color-swatch" style="background:#bb9af7"></span><span class="text-tn-purple">#bb9af7</span></td><td class="text-tn-sub">Calendar icon</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">CYAN</td><td><span class="color-swatch" style="background:#7dcfff"></span><span class="text-tn-cyan">#7dcfff</span></td><td class="text-tn-sub">Volume icon</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">GREEN</td><td><span class="color-swatch" style="background:#9ece6a"></span><span class="text-tn-green">#9ece6a</span></td><td class="text-tn-sub">Battery full · AI low</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">YELLOW</td><td><span class="color-swatch" style="background:#e0af68"></span><span class="text-tn-yellow">#e0af68</span></td><td class="text-tn-sub">Battery mid · AI mid</td></tr>
+              <tr><td class="font-mono text-tn-sub text-xs">RED</td><td><span class="color-swatch" style="background:#f7768e"></span><span class="text-tn-red">#f7768e</span></td><td class="text-tn-sub">Battery low · AI high</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── OmniWM ─────────────────────────────────────────────────────────── -->
+      <section id="omniwm" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="layers-3" class="w-6 h-6 text-tn-cyan shrink-0"></i>
+          <h2 class="section-title mb-0">OmniWM</h2>
+        </div>
+        <p class="text-tn-sub mb-6">Hyprland-style dwindle/BSP tiling window manager for macOS by <a href="https://github.com/BarutSRB" class="text-tn-cyan hover:underline">BarutSRB</a>. GUI-configured (no TOML) with a built-in Quake terminal. Peer alternative to AeroSpace — pick one at install time.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Setup</span>
+            <button class="copy-btn" data-code="brew tap BarutSRB/tap
+brew install --cask omniwm
+~/dotfiles/omniwm/configure.sh">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> tap BarutSRB/tap
+<span class="text-tn-blue">brew</span> install --cask omniwm
+~/dotfiles/omniwm/configure.sh   <span class="text-tn-sub"># pre-seed sensible defaults</span></pre>
+        </div>
+
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Default hotkeys</h3>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table>
+            <thead><tr><th>Key</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>Option + 1–9</kbd></td><td class="text-tn-sub">Switch to workspace</td></tr>
+              <tr><td><kbd>Option + Shift + 1–9</kbd></td><td class="text-tn-sub">Move window to workspace</td></tr>
+              <tr><td><kbd>Option + ←/↓/↑/→</kbd></td><td class="text-tn-sub">Focus window</td></tr>
+              <tr><td><kbd>Option + Shift + ←/↓/↑/→</kbd></td><td class="text-tn-sub">Move window</td></tr>
+              <tr><td><kbd>Option + Shift + B</kbd></td><td class="text-tn-sub">Balance sizes</td></tr>
+              <tr><td><kbd>Option + Return</kbd></td><td class="text-tn-sub">Toggle fullscreen</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Config flow — <code class="inline-code">omniwm/configure.sh</code></h3>
+        <p class="text-tn-sub text-sm mb-3">OmniWM stores settings under the <code class="inline-code">com.barut.OmniWM</code> defaults domain, so the config is binary plist rather than text. <code class="inline-code">configure.sh</code> wraps <code class="inline-code">defaults write</code>/<code class="inline-code">export</code>/<code class="inline-code">import</code> so the settings stay version-controlled.</p>
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-6">
+          <table>
+            <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td><code class="inline-code">./configure.sh</code></td><td class="text-tn-sub">Apply repo defaults (borders on, workspace bar off, focus-follows-mouse off)</td></tr>
+              <tr><td><code class="inline-code">./configure.sh --export</code></td><td class="text-tn-sub">Save your current OmniWM settings into <code class="inline-code">omniwm/backup.plist</code> — commit this</td></tr>
+              <tr><td><code class="inline-code">./configure.sh --import</code></td><td class="text-tn-sub">Restore settings from <code class="inline-code">backup.plist</code> on a new machine</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-tn-bg2 border border-tn-yellow/30 rounded-xl p-4 flex gap-3 mb-4">
+          <i data-lucide="alert-triangle" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">
+            <strong class="text-tn-fg">Manual steps still required in the OmniWM GUI</strong> after running <code class="inline-code">configure.sh</code>: set default layout to <strong class="text-tn-fg">Dwindle (BSP)</strong>, set inner/outer gaps to <strong class="text-tn-fg">10</strong>, and set the top gap to <strong class="text-tn-fg">40</strong> on external monitors (<strong class="text-tn-fg">8</strong> on the laptop) so SketchyBar has room.
+          </div>
+        </div>
+
+        <div class="bg-tn-bg2 border border-tn-blue/20 rounded-xl p-4 flex gap-3">
+          <i data-lucide="info" class="w-5 h-5 text-tn-blue shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">
+            <strong class="text-tn-fg">OmniWM vs AeroSpace</strong> — both ship in this repo. OmniWM is friendlier if you like GUI config and want a Hyprland-flavoured dwindle layout; AeroSpace wins if you prefer TOML, vim-style HJKL, and reproducible text configs. <code class="inline-code">install.sh</code> asks you to pick one and installs the matching <code class="inline-code">Brewfile.&lt;wm&gt;</code>.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── AeroSpace ──────────────────────────────────────────────────────── -->
+      <section id="aerospace" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="layout-grid" class="w-6 h-6 text-tn-purple shrink-0"></i>
+          <h2 class="section-title mb-0">AeroSpace</h2>
+        </div>
+        <p class="text-tn-sub mb-6">i3-inspired tiling window manager for macOS. Vim-style keybindings, workspace-based layout. Supports dual-monitor profiles via <code class="inline-code">aerospace-sync</code>.</p>
+
+        <div class="code-block-wrap mb-6">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">Setup</span>
+            <button class="copy-btn" data-code="brew tap nikitabobko/tap
+brew install --cask nikitabobko/tap/aerospace
+mkdir -p ~/.config/aerospace
+ln -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-blue">brew</span> tap nikitabobko/tap
+<span class="text-tn-blue">brew</span> install --cask nikitabobko/tap/aerospace
+<span class="text-tn-blue">mkdir</span> -p ~/.config/aerospace
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/aerospace/aerospace.toml ~/.config/aerospace/aerospace.toml</pre>
+        </div>
+
+        <div class="mb-6">
+          <div class="flex gap-1 mb-3" id="aerospace-tabs">
+            <button class="tab-btn active-tab" data-tab="aerospace-nav">Navigation</button>
+            <button class="tab-btn" data-tab="aerospace-ws">Workspaces</button>
+            <button class="tab-btn" data-tab="aerospace-service">Service Mode</button>
+          </div>
+
+          <div id="aerospace-nav" class="tab-panel bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+            <table>
+              <thead><tr><th>Key</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><kbd>Alt + H/J/K/L</kbd></td><td class="text-tn-sub">Focus window left / down / up / right</td></tr>
+                <tr><td><kbd>Alt + Shift + H/J/K/L</kbd></td><td class="text-tn-sub">Move window</td></tr>
+                <tr><td><kbd>Alt + T</kbd></td><td class="text-tn-sub">Horizontal tiles (side-by-side)</td></tr>
+                <tr><td><kbd>Alt + F</kbd></td><td class="text-tn-sub">Toggle floating / tiling</td></tr>
+                <tr><td><kbd>Alt + Shift + -</kbd></td><td class="text-tn-sub">Resize smart –50</td></tr>
+                <tr><td><kbd>Alt + Shift + =</kbd></td><td class="text-tn-sub">Resize smart +50</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="aerospace-ws" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+            <table>
+              <thead><tr><th>Key</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><kbd>Alt + 1–9</kbd></td><td class="text-tn-sub">Switch to workspace</td></tr>
+                <tr><td><kbd>Alt + Shift + 1–9</kbd></td><td class="text-tn-sub">Move window to workspace</td></tr>
+                <tr><td><kbd>Alt + Tab</kbd></td><td class="text-tn-sub">Previous workspace (back and forth)</td></tr>
+                <tr><td><kbd>Alt + Shift + Tab</kbd></td><td class="text-tn-sub">Move workspace to next monitor</td></tr>
+                <tr><td><kbd>Alt + D</kbd></td><td class="text-tn-sub">Sync profile (laptop / docked auto-detect)</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div id="aerospace-service" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+            <table>
+              <thead><tr><th>Key</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><kbd>Alt + Shift + ;</kbd></td><td class="text-tn-sub">Enter service mode</td></tr>
+                <tr><td><kbd>Esc</kbd></td><td class="text-tn-sub">Reload config + exit service mode</td></tr>
+                <tr><td><kbd>R</kbd></td><td class="text-tn-sub">Flatten workspace tree (reset layout)</td></tr>
+                <tr><td><kbd>F</kbd></td><td class="text-tn-sub">Toggle floating / tiling</td></tr>
+                <tr><td><kbd>Backspace</kbd></td><td class="text-tn-sub">Close all windows but current</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-tn-bg2 border border-tn-blue/20 rounded-xl p-4 flex gap-3">
+          <i data-lucide="info" class="w-5 h-5 text-tn-blue shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">
+            <strong class="text-tn-fg">Ghostty tabs</strong> are OS-level windows. AeroSpace floats post-startup Ghostty windows automatically so new tabs don't break your layout. Use <kbd>⌘ D</kbd> / <kbd>⌘ ⇧ D</kbd> for splits inside a single tile.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Multi-Config Profiles ──────────────────────────────────────────── -->
+      <section id="profiles" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="monitor" class="w-6 h-6 text-tn-cyan shrink-0"></i>
+          <h2 class="section-title mb-0">Multi-Config Profiles</h2>
+        </div>
+        <p class="text-tn-sub mb-4">AeroSpace has no per-monitor gap support, so two separate config files handle the different setups. The <code class="inline-code">aerospace-sync</code> script auto-detects your monitor count and applies the right profile.</p>
+
+        <div class="mb-6 bg-tn-bg2 border border-tn-yellow/30 rounded-xl p-4 flex gap-3">
+          <i data-lucide="triangle-alert" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">In System Settings → Displays, drag the menu bar to your preferred external monitor so it is always <code class="inline-code">main</code> when docked. This is required for workspace-to-monitor assignments to be consistent.</div>
+        </div>
+
+        <!-- Profile comparison -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+          <div class="profile-card">
+            <div class="profile-card-header">
+              <i data-lucide="laptop" class="w-5 h-5 text-tn-blue shrink-0"></i>
+              <div>
+                <div class="font-semibold text-tn-fg text-sm">Laptop Profile</div>
+                <div class="text-tn-sub text-xs font-mono">aerospace/laptop.toml</div>
+              </div>
+            </div>
+            <div class="profile-card-body">
+              <div class="profile-stat"><span class="profile-stat-key">outer.top</span><span class="profile-stat-val text-tn-blue">8</span></div>
+              <div class="profile-stat"><span class="profile-stat-key">workspace assignment</span><span class="profile-stat-val text-tn-sub">none</span></div>
+              <div class="profile-stat"><span class="profile-stat-key">monitors</span><span class="profile-stat-val text-tn-blue">1 (built-in)</span></div>
+              <p class="text-tn-sub text-xs mt-3">macOS manages the notch offset automatically. Minimal top gap keeps content flush to the bar.</p>
+            </div>
+          </div>
+          <div class="profile-card">
+            <div class="profile-card-header">
+              <i data-lucide="monitor" class="w-5 h-5 text-tn-purple shrink-0"></i>
+              <div>
+                <div class="font-semibold text-tn-fg text-sm">Docked Profile</div>
+                <div class="text-tn-sub text-xs font-mono">aerospace/docked.toml</div>
+              </div>
+            </div>
+            <div class="profile-card-body">
+              <div class="profile-stat"><span class="profile-stat-key">outer.top</span><span class="profile-stat-val text-tn-purple">35</span></div>
+              <div class="profile-stat"><span class="profile-stat-key">workspaces 1–5</span><span class="profile-stat-val text-tn-purple">main monitor</span></div>
+              <div class="profile-stat"><span class="profile-stat-key">workspaces 6–9</span><span class="profile-stat-val text-tn-purple">secondary monitor</span></div>
+              <p class="text-tn-sub text-xs mt-3">Top gap of 35px clears SketchyBar (height 36 + margin 10, bottom at y=46) on external monitors.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 ways to switch -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-4">Three Ways to Switch</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+          <div class="switch-card">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="terminal" class="w-4 h-4 text-tn-green shrink-0"></i>
+              <span class="font-semibold text-tn-fg text-sm">Terminal</span>
+            </div>
+            <p class="text-tn-sub text-xs mb-3">Run either alias from Zsh or Fish. Both call the same script.</p>
+            <div class="code-block-wrap">
+              <div class="code-header"><button class="copy-btn" data-code="dock">Copy</button></div>
+              <pre class="code-body text-xs"><span class="text-tn-green">dock</span>    <span class="text-tn-sub"># or undock</span></pre>
+            </div>
+          </div>
+          <div class="switch-card">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="keyboard" class="w-4 h-4 text-tn-blue shrink-0"></i>
+              <span class="font-semibold text-tn-fg text-sm">Keybinding</span>
+            </div>
+            <p class="text-tn-sub text-xs mb-3">Works from anywhere — no terminal needed. Bound directly in AeroSpace.</p>
+            <div class="bg-tn-bg3 rounded-lg px-4 py-3 flex items-center justify-center">
+              <kbd class="text-base">Alt + D</kbd>
+            </div>
+          </div>
+          <div class="switch-card">
+            <div class="flex items-center gap-2 mb-3">
+              <i data-lucide="cpu" class="w-4 h-4 text-tn-purple shrink-0"></i>
+              <span class="font-semibold text-tn-fg text-sm">Auto-detect</span>
+            </div>
+            <p class="text-tn-sub text-xs mb-3">The script counts connected monitors and picks the right profile every time.</p>
+            <div class="code-block-wrap">
+              <div class="code-header"><button class="copy-btn" data-code="aerospace-sync">Copy</button></div>
+              <pre class="code-body text-xs"><span class="text-tn-blue">aerospace-sync</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- How the script works -->
+        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">How aerospace-sync Works</h3>
+        <div class="code-block-wrap mb-4">
+          <div class="code-header">
+            <span class="text-tn-sub text-xs">bin/aerospace-sync</span>
+            <button class="copy-btn" data-code="ln -sf ~/dotfiles/bin/aerospace-sync ~/.local/bin/aerospace-sync
+chmod +x ~/.local/bin/aerospace-sync">Copy</button>
+          </div>
+          <pre class="code-body"><span class="text-tn-sub"># Counts monitors via aerospace list-monitors</span>
+<span class="text-tn-sub"># 1 monitor  →  copies laptop.toml  →  outer.top = 8</span>
+<span class="text-tn-sub"># 2+ monitors →  copies docked.toml →  outer.top = 35, workspace assignments</span>
+
+<span class="text-tn-blue">ln</span> -sf ~/dotfiles/bin/aerospace-sync ~/.local/bin/aerospace-sync
+<span class="text-tn-blue">chmod</span> +x ~/.local/bin/aerospace-sync</pre>
+        </div>
+
+        <!-- Shell aliases -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">Zsh aliases (~/.zshrc)</span></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">alias</span> dock=<span class="text-tn-green">'aerospace-sync'</span>
+<span class="text-tn-blue">alias</span> undock=<span class="text-tn-green">'aerospace-sync'</span></pre>
+          </div>
+          <div class="code-block-wrap">
+            <div class="code-header"><span class="text-tn-sub text-xs">Fish aliases (config.fish)</span></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">alias</span> dock=<span class="text-tn-green">'aerospace-sync'</span>
+<span class="text-tn-blue">alias</span> undock=<span class="text-tn-green">'aerospace-sync'</span></pre>
+          </div>
+        </div>
+
+      </section>
+
+      <footer class="border-t border-tn-border pt-8 pb-4 text-center text-tn-sub text-xs">
+        <p>Built by <a href="https://github.com/rafay99-epic" target="_blank" rel="noopener noreferrer" class="text-tn-blue hover:underline">rafay99-epic</a> · MIT License</p>
+        <p class="mt-1">Tokyo Night · macOS · SketchyBar · AeroSpace · Ghostty · Zsh · Fish</p>
+      </footer>
+
+    </main>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div id="lightbox-content">
+      <div id="lightbox-inner"></div>
+      <div id="lightbox-caption"></div>
+      <button id="lightbox-close" aria-label="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
+      <button id="lightbox-prev" class="lightbox-arrow" aria-label="Previous"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+      <button id="lightbox-next" class="lightbox-arrow" aria-label="Next"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+
+  <!-- Back to top -->
+  <button id="back-to-top" aria-label="Back to top">
+    <i data-lucide="chevron-up" class="w-4 h-4"></i>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>
