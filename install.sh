@@ -1003,9 +1003,21 @@ if [[ -f "$TM_PLIST_SRC" ]]; then
 fi
 link "$DOTFILES/fish/functions/killport.fish"       "$HOME/.config/fish/functions/killport.fish"
 link "$DOTFILES/fish/functions/dev.fish"            "$HOME/.config/fish/functions/dev.fish"
+link "$DOTFILES/fish/functions/gm.fish"             "$HOME/.config/fish/functions/gm.fish"
 link "$DOTFILES/fish/completions/dev.fish"          "$HOME/.config/fish/completions/dev.fish"
 if [[ "$DRY_RUN" == false ]]; then
   chmod +x "$HOME/.local/bin/killport" 2>/dev/null || true
+fi
+
+# ── fzf-tab plugin (no brew formula — git clone idempotently) ────────────────
+FZF_TAB_DIR="$HOME/.local/share/zsh/fzf-tab"
+if [[ ! -d "$FZF_TAB_DIR" ]]; then
+  if [[ "$DRY_RUN" == false ]]; then
+    mkdir -p "$HOME/.local/share/zsh"
+    git clone --depth=1 https://github.com/Aloxaf/fzf-tab "$FZF_TAB_DIR" 2>/dev/null || true
+  else
+    dry "git clone --depth=1 https://github.com/Aloxaf/fzf-tab $FZF_TAB_DIR"
+  fi
 fi
 
 # WM-specific symlinks

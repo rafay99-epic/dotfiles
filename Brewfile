@@ -18,6 +18,13 @@ brew "fish"
 brew "starship"
 brew "fastfetch"
 
+# ── Zsh plugins ──────────────────────────────────────────────────────────────
+# fish-like input experience for zsh. fzf-tab is git-cloned by install.sh
+# (no homebrew formula).
+brew "zsh-autosuggestions"          # greyed-out inline suggestions
+brew "zsh-syntax-highlighting"      # colour as you type
+brew "zsh-history-substring-search" # Ctrl+↑/↓ fuzzy-walk history
+
 # ── CLI Tools ───────────────────────────────────────────────────────────────
 brew "bat"            # better cat with syntax highlighting
 brew "eza"            # modern ls

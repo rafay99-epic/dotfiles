@@ -334,11 +334,11 @@ echo 'eval &quot;$(starship init zsh)&quot;' >> ~/.zshrc">Copy</button></div>
 <span class="text-tn-blue">eval</span> <span class="text-tn-green">"$(starship init zsh)"</span></pre></div>
           </div>
           <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
-            <div class="flex items-center gap-2 mb-3"><span class="text-tn-cyan font-bold font-mono text-sm">fastfetch</span><span class="text-tn-sub text-xs">System info on open</span></div>
+            <div class="flex items-center gap-2 mb-3"><span class="text-tn-cyan font-bold font-mono text-sm">fastfetch</span><span class="text-tn-sub text-xs">System info (run on demand)</span></div>
             <div class="code-block-wrap"><div class="code-header"><button class="copy-btn" data-code="brew install fastfetch
 fastfetch">Copy</button></div>
             <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install fastfetch
-fastfetch <span class="text-tn-sub"># add to .zshrc</span></pre></div>
+fastfetch <span class="text-tn-sub"># run manually; not auto-loaded</span></pre></div>
           </div>
           <div class="bg-tn-bg2 border border-tn-border rounded-xl p-5">
             <div class="flex items-center gap-2 mb-3"><span class="text-tn-purple font-bold font-mono text-sm">codexbar</span><span class="text-tn-sub text-xs">AI token usage tracker</span></div>
@@ -354,7 +354,7 @@ fastfetch <span class="text-tn-sub"># add to .zshrc</span></pre></div>
           <i data-lucide="settings-2" class="w-6 h-6 text-tn-yellow shrink-0"></i>
           <h2 class="section-title mb-0">Zsh</h2>
         </div>
-        <p class="text-tn-sub mb-6">Default shell on macOS. Starship prompt, fzf fuzzy finder, lsd/eza aliases, git shortcuts, and fastfetch on open.</p>
+        <p class="text-tn-sub mb-6">Default shell on macOS. Starship prompt, fzf, zoxide, eza, Atuin history, and a fish-like input experience via four zsh plugins.</p>
 
         <div class="code-block-wrap mb-6">
           <div class="code-header"><span class="text-tn-sub text-xs">Setup</span><button class="copy-btn" data-code="ln -sf ~/dotfiles/zsh/.zshrc ~/.zshrc">Copy</button></div>
@@ -367,34 +367,117 @@ fastfetch <span class="text-tn-sub"># add to .zshrc</span></pre></div>
             <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — cross-shell, fast, Tokyo Night compatible</td></tr>
             <tr><td class="text-tn-fg">Fuzzy finder</td><td class="text-tn-sub">fzf with custom Tokyo Night colour scheme</td></tr>
             <tr><td class="text-tn-fg">Smart cd</td><td class="text-tn-sub">zoxide rebinds <code class="inline-code">cd</code> — frecency-based jumps</td></tr>
-            <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">eza with icons — <code class="inline-code">ls</code> alias</td></tr>
+            <tr><td class="text-tn-fg">History</td><td class="text-tn-sub">Atuin — SQLite-backed, fuzzy Ctrl+R (local-only, no sync)</td></tr>
+            <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">eza with icons — see <strong>Eza</strong> tab below</td></tr>
             <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — syntax-highlighted output</td></tr>
-            <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch runs on every new shell open</td></tr>
-            <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">nvm · conda · rbenv · bun</td></tr>
-            <tr><td class="text-tn-fg">Plugin</td><td class="text-tn-sub">zsh-autosuggestions</td></tr>
+            <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">nvm · rbenv · bun · fnm</td></tr>
+            <tr><td class="text-tn-fg">Input plugins</td><td class="text-tn-sub">autosuggestions · syntax-highlighting · history-substring-search · fzf-tab — see <strong>Plugins</strong> tab below</td></tr>
           </tbody></table>
         </div>
 
-        <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Aliases</h3>
-        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-4">
+        <div class="flex gap-1 mb-3 flex-wrap" id="zsh-tabs">
+          <button class="tab-btn active-tab" data-tab="zsh-eza">Eza</button>
+          <button class="tab-btn" data-tab="zsh-plugins">Plugins</button>
+          <button class="tab-btn" data-tab="zsh-aliases">Aliases</button>
+        </div>
+
+        <!-- Eza tab -->
+        <div id="zsh-eza" class="tab-panel bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <div class="p-5">
+            <p class="text-tn-sub text-sm mb-4">Every <code class="inline-code">ls</code>-family alias is driven from a single <code class="inline-code">$EZA_BASE</code> variable plus a Tokyo-Night palette. <code class="inline-code">ls</code> is bound to the long view (same body as <code class="inline-code">ll</code>); plain grid is reachable via <code class="inline-code">lG</code>.</p>
+
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-2">Shared base flags ($EZA_BASE)</h4>
+            <div class="code-block-wrap mb-4">
+              <pre class="code-body text-xs"><span class="text-tn-cyan">--icons=always</span>                <span class="text-tn-sub"># nerd-font glyphs</span>
+<span class="text-tn-cyan">--group-directories-first</span>     <span class="text-tn-sub"># folders rise to the top</span>
+<span class="text-tn-cyan">--classify=auto</span>               <span class="text-tn-sub"># /, *, @ markers on a TTY</span>
+<span class="text-tn-cyan">--color=always</span>                <span class="text-tn-sub"># keep colour through pagers</span>
+<span class="text-tn-cyan">--color-scale=all</span>             <span class="text-tn-sub"># gradient on size + age columns</span>
+<span class="text-tn-cyan">--color-scale-mode=gradient</span>   <span class="text-tn-sub"># smooth gradient, not buckets</span>
+<span class="text-tn-cyan">--hyperlink</span>                   <span class="text-tn-sub"># OSC-8 clickable paths</span></pre>
+            </div>
+
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-2">Aliases</h4>
+            <table class="mb-4"><thead><tr><th>Alias</th><th>Adds to $EZA_BASE</th><th>Purpose</th></tr></thead><tbody>
+              <tr><td><code class="inline-code">ls</code> / <code class="inline-code">ll</code></td><td class="text-tn-sub"><code class="inline-code">--long --header --git --time-style=relative</code></td><td class="text-tn-sub">long view, git column, "3h ago" times</td></tr>
+              <tr><td><code class="inline-code">l</code></td><td class="text-tn-sub"><code class="inline-code">--oneline</code></td><td class="text-tn-sub">one file per line</td></tr>
+              <tr><td><code class="inline-code">lG</code></td><td class="text-tn-sub">—</td><td class="text-tn-sub">plain grid view</td></tr>
+              <tr><td><code class="inline-code">la</code> / <code class="inline-code">lla</code></td><td class="text-tn-sub"><code class="inline-code">--long ... --all</code></td><td class="text-tn-sub">long view + hidden files</td></tr>
+              <tr><td><code class="inline-code">lt</code> / <code class="inline-code">lt3</code></td><td class="text-tn-sub"><code class="inline-code">--tree --level=2|3</code></td><td class="text-tn-sub">tree, depth-capped</td></tr>
+              <tr><td><code class="inline-code">lta</code></td><td class="text-tn-sub"><code class="inline-code">--tree --all --git-ignore</code></td><td class="text-tn-sub">tree honouring <code class="inline-code">.gitignore</code></td></tr>
+              <tr><td><code class="inline-code">ltd</code></td><td class="text-tn-sub"><code class="inline-code">--tree --only-dirs</code></td><td class="text-tn-sub">directories-only tree</td></tr>
+              <tr><td><code class="inline-code">lr</code></td><td class="text-tn-sub"><code class="inline-code">--sort=modified --reverse</code></td><td class="text-tn-sub">newest first</td></tr>
+              <tr><td><code class="inline-code">lS</code></td><td class="text-tn-sub"><code class="inline-code">--sort=size --reverse</code></td><td class="text-tn-sub">largest first</td></tr>
+              <tr><td><code class="inline-code">lg</code></td><td class="text-tn-sub"><code class="inline-code">--git --git-repos</code></td><td class="text-tn-sub">long view with repo state per dir</td></tr>
+              <tr><td><code class="inline-code">ld</code></td><td class="text-tn-sub"><code class="inline-code">--only-dirs</code></td><td class="text-tn-sub">directories only</td></tr>
+            </tbody></table>
+
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-2">Tokyo-Night palette ($EZA_COLORS)</h4>
+            <p class="text-tn-sub text-sm mb-3">eza uses LS_COLORS syntax. ~80 rules cover file-type metadata, permissions, git status, and per-extension hues. Reorder freely — first match wins.</p>
+            <table><thead><tr><th>Category</th><th>Hue</th><th>Examples</th></tr></thead><tbody>
+              <tr><td class="text-tn-fg">Directories</td><td><span class="text-tn-blue font-mono font-bold">Bold blue</span></td><td class="text-tn-sub">all dirs</td></tr>
+              <tr><td class="text-tn-fg">Executables / shell scripts</td><td><span class="text-tn-green font-mono">Green</span></td><td class="text-tn-sub"><code class="inline-code">.sh</code> · <code class="inline-code">.zsh</code> · <code class="inline-code">.fish</code> · <code class="inline-code">.vue</code></td></tr>
+              <tr><td class="text-tn-fg">Source code (typed)</td><td><span class="text-tn-cyan font-mono">Cyan</span></td><td class="text-tn-sub"><code class="inline-code">.ts</code> · <code class="inline-code">.py</code> · <code class="inline-code">.go</code> · <code class="inline-code">.c</code> · <code class="inline-code">.css</code> · <code class="inline-code">Dockerfile</code></td></tr>
+              <tr><td class="text-tn-fg">JavaScript / audio</td><td><span class="text-tn-yellow font-mono">Yellow</span></td><td class="text-tn-sub"><code class="inline-code">.js</code> · <code class="inline-code">.mp3</code> · <code class="inline-code">.wav</code></td></tr>
+              <tr><td class="text-tn-fg">Configs / HTML / Rust</td><td><span class="text-tn-orange font-mono">Orange</span></td><td class="text-tn-sub"><code class="inline-code">.json</code> · <code class="inline-code">.toml</code> · <code class="inline-code">.yaml</code> · <code class="inline-code">.html</code> · <code class="inline-code">.rs</code> · <code class="inline-code">Makefile</code></td></tr>
+              <tr><td class="text-tn-fg">Markup / images / video</td><td><span class="text-tn-purple font-mono">Purple</span></td><td class="text-tn-sub"><code class="inline-code">.md</code> · <code class="inline-code">.png</code> · <code class="inline-code">.svg</code> · <code class="inline-code">.mp4</code></td></tr>
+              <tr><td class="text-tn-fg">Archives / .env / PDFs</td><td><span class="text-tn-red font-mono font-bold">Bold red</span></td><td class="text-tn-sub"><code class="inline-code">.zip</code> · <code class="inline-code">.tar.gz</code> · <code class="inline-code">.env</code> · <code class="inline-code">.pdf</code></td></tr>
+              <tr><td class="text-tn-fg">Noise (dimmed)</td><td><span class="text-tn-muted font-mono">Grey</span></td><td class="text-tn-sub"><code class="inline-code">.lock</code> · <code class="inline-code">.log</code> · <code class="inline-code">.bak</code> · <code class="inline-code">.DS_Store</code></td></tr>
+              <tr><td class="text-tn-fg">Special</td><td><span class="text-tn-green font-mono font-bold underline">Bold + underline</span></td><td class="text-tn-sub"><code class="inline-code">README.md</code> (pops in every repo)</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+
+        <!-- Plugins tab -->
+        <div id="zsh-plugins" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
+          <div class="p-5">
+            <p class="text-tn-sub text-sm mb-4">Four plugins make zsh feel like fish. Loading order matters — <code class="inline-code">fzf-tab</code> first (touches compdef), <code class="inline-code">syntax-highlighting</code> second-to-last, <code class="inline-code">history-substring-search</code> dead last.</p>
+            <table><thead><tr><th>Plugin</th><th>What it does</th><th>Keybinding</th></tr></thead><tbody>
+              <tr><td><code class="inline-code">fzf-tab</code></td><td class="text-tn-sub">Replaces <kbd>Tab</kbd> with an fzf picker. <code class="inline-code">cd</code> previews use <strong>eza --tree</strong>; <code class="inline-code">cat</code>/<code class="inline-code">bat</code>/<code class="inline-code">vim</code> previews use <strong>bat</strong>.</td><td><kbd>Tab</kbd></td></tr>
+              <tr><td><code class="inline-code">zsh-autosuggestions</code></td><td class="text-tn-sub">Fades in a suggested completion in Tokyo-Night grey (<code class="inline-code">#565f89</code>) as you type.</td><td><kbd>→</kbd> / <kbd>Ctrl+F</kbd> to accept</td></tr>
+              <tr><td><code class="inline-code">zsh-syntax-highlighting</code></td><td class="text-tn-sub">Colours valid commands green, invalid red, strings yellow — as you type.</td><td>—</td></tr>
+              <tr><td><code class="inline-code">zsh-history-substring-search</code></td><td class="text-tn-sub">Type the start of an old command, then walk through matching history entries.</td><td><kbd>Ctrl+↑</kbd> / <kbd>Ctrl+↓</kbd></td></tr>
+            </tbody></table>
+            <div class="bg-tn-bg3 border-l-2 border-tn-cyan rounded-lg px-4 py-3 mt-4 text-sm">
+              <p class="text-tn-fg font-semibold mb-1">Install</p>
+              <p class="text-tn-sub mb-2">The brew packages are in the <code class="inline-code">Brewfile</code>. <code class="inline-code">fzf-tab</code> has no brew formula — <code class="inline-code">install.sh</code> clones it idempotently to <code class="inline-code">~/.local/share/zsh/fzf-tab</code>.</p>
+              <div class="code-block-wrap"><pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
+<span class="text-tn-blue">git</span> clone --depth=1 https://github.com/Aloxaf/fzf-tab ~/.local/share/zsh/fzf-tab</pre></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aliases tab -->
+        <div id="zsh-aliases" class="tab-panel hidden bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
           <table><thead><tr><th>Alias</th><th>Command</th></tr></thead><tbody>
-            <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">eza --icons=always</td></tr>
+            <tr><td colspan="2" class="text-tn-sub text-xs uppercase tracking-wider font-semibold">Listings (see <strong>Eza</strong> tab for the full set)</td></tr>
+            <tr><td><code class="inline-code">ls</code> / <code class="inline-code">ll</code></td><td class="text-tn-sub">long view with git column + relative times</td></tr>
             <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
-            <tr><td><code class="inline-code">cc</code></td><td class="text-tn-sub">claude --dangerously-skip-permissions (Claude Code)</td></tr>
-            <tr><td><code class="inline-code">cd</code></td><td class="text-tn-sub">zoxide — fuzzy jump by frecency (see Customization)</td></tr>
-            <tr><td><code class="inline-code">dev [subpath]</code></td><td class="text-tn-sub">cd into <code class="inline-code">~/Code</code> or a subdirectory (tab-completes)</td></tr>
-            <tr><td><code class="inline-code">killport &lt;port&gt;</code></td><td class="text-tn-sub">free a TCP port (SIGTERM then SIGKILL fallback)</td></tr>
-            <tr><td><code class="inline-code">dock / undock</code></td><td class="text-tn-sub">aerospace-sync (profile switch)</td></tr>
+            <tr><td colspan="2" class="text-tn-sub text-xs uppercase tracking-wider font-semibold pt-3">Git</td></tr>
             <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
             <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
             <tr><td><code class="inline-code">gc</code></td><td class="text-tn-sub">git clone</td></tr>
-            <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git commit -a</td></tr>
+            <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git add *</td></tr>
+            <tr><td><code class="inline-code">gm "msg"</code></td><td class="text-tn-sub">git commit -m + git push (function)</td></tr>
+            <tr><td><code class="inline-code">branch</code></td><td class="text-tn-sub">git branch -r</td></tr>
+            <tr><td colspan="2" class="text-tn-sub text-xs uppercase tracking-wider font-semibold pt-3">Navigation</td></tr>
+            <tr><td><code class="inline-code">cd</code></td><td class="text-tn-sub">zoxide — fuzzy jump by frecency</td></tr>
+            <tr><td><code class="inline-code">dev [subpath]</code></td><td class="text-tn-sub">cd into <code class="inline-code">~/Code</code> or a subdirectory (tab-completes)</td></tr>
+            <tr><td><code class="inline-code">lumo</code> · <code class="inline-code">envpilot.dev</code> · <code class="inline-code">tudo_tech_lab</code></td><td class="text-tn-sub">project shortcuts under <code class="inline-code">~/Code</code></td></tr>
+            <tr><td colspan="2" class="text-tn-sub text-xs uppercase tracking-wider font-semibold pt-3">System</td></tr>
+            <tr><td><code class="inline-code">cc</code></td><td class="text-tn-sub">claude --dangerously-skip-permissions (Claude Code)</td></tr>
+            <tr><td><code class="inline-code">killport &lt;port&gt;</code></td><td class="text-tn-sub">free a TCP port (SIGTERM then SIGKILL fallback)</td></tr>
+            <tr><td><code class="inline-code">dock / undock</code></td><td class="text-tn-sub">aerospace-sync (profile switch)</td></tr>
+            <tr><td><code class="inline-code">scrcpy120</code></td><td class="text-tn-sub">scrcpy --video-codec=h265 --max-size=1920 --max-fps</td></tr>
           </tbody></table>
         </div>
 
-        <div class="code-block-wrap">
-          <div class="code-header"><span class="text-tn-sub text-xs">Install dependencies</span><button class="copy-btn" data-code="brew install fzf zoxide eza bat starship fastfetch zsh-autosuggestions">Copy</button></div>
-          <pre class="code-body"><span class="text-tn-blue">brew</span> install fzf zoxide eza bat starship fastfetch zsh-autosuggestions</pre>
+        <div class="code-block-wrap mt-6">
+          <div class="code-header"><span class="text-tn-sub text-xs">Install dependencies (Brewfile covers all of these)</span><button class="copy-btn" data-code="brew install fzf zoxide eza bat starship atuin zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
+git clone --depth=1 https://github.com/Aloxaf/fzf-tab ~/.local/share/zsh/fzf-tab">Copy</button></div>
+          <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install fzf zoxide eza bat starship atuin \
+   zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
+<span class="text-tn-blue">git</span> clone --depth=1 https://github.com/Aloxaf/fzf-tab ~/.local/share/zsh/fzf-tab</pre>
         </div>
       </section>
 
@@ -404,7 +487,7 @@ fastfetch <span class="text-tn-sub"># add to .zshrc</span></pre></div>
           <i data-lucide="waves" class="w-6 h-6 text-tn-orange shrink-0"></i>
           <h2 class="section-title mb-0">Fish</h2>
         </div>
-        <p class="text-tn-sub mb-6">Friendly interactive shell. Starship prompt, lsd for ls, git aliases, conda, and fastfetch — same workflow as Zsh but with fish's autocompletion out of the box.</p>
+        <p class="text-tn-sub mb-6">Friendly interactive shell. Aliases, eza palette, git function, and project shortcuts mirror zsh one-to-one. Autosuggestions / syntax-highlighting / history-substring-search are built-in to fish — no plugins needed.</p>
 
         <div class="code-block-wrap mb-6">
           <div class="code-header"><span class="text-tn-sub text-xs">Setup</span><button class="copy-btn" data-code="brew install fish
@@ -427,28 +510,30 @@ chsh -s $(which fish)">Copy</button></div>
             <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
               <table><thead><tr><th>Feature</th><th>Details</th></tr></thead><tbody>
                 <tr><td class="text-tn-fg">Prompt</td><td class="text-tn-sub">Starship — <code class="inline-code">starship init fish | source</code></td></tr>
-                <tr><td class="text-tn-fg">System info</td><td class="text-tn-sub">fastfetch on every shell open</td></tr>
                 <tr><td class="text-tn-fg">Smart cd</td><td class="text-tn-sub">zoxide rebinds <code class="inline-code">cd</code> — frecency-based jumps</td></tr>
-                <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">lsd -al — <code class="inline-code">ls</code> alias</td></tr>
+                <tr><td class="text-tn-fg">History</td><td class="text-tn-sub">Atuin — same Ctrl+R TUI as zsh, local-only</td></tr>
+                <tr><td class="text-tn-fg">ls replacement</td><td class="text-tn-sub">eza — same <code class="inline-code">$EZA_BASE</code> + Tokyo Night palette as zsh</td></tr>
                 <tr><td class="text-tn-fg">cat replacement</td><td class="text-tn-sub">bat — <code class="inline-code">cat</code> alias</td></tr>
-                <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">conda · bun · LM Studio</td></tr>
+                <tr><td class="text-tn-fg">Runtime managers</td><td class="text-tn-sub">rbenv · fnm · bun</td></tr>
+                <tr><td class="text-tn-fg">Built-in UX</td><td class="text-tn-sub">autosuggestions · syntax-highlight · history search — no plugins required</td></tr>
               </tbody></table>
             </div>
           </div>
           <div>
-            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Aliases</h3>
+            <h3 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">Aliases (one-to-one with zsh)</h3>
             <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden">
               <table><thead><tr><th>Alias</th><th>Command</th></tr></thead><tbody>
-                <tr><td><code class="inline-code">ls</code></td><td class="text-tn-sub">lsd -al</td></tr>
+                <tr><td><code class="inline-code">ls</code> / <code class="inline-code">ll</code></td><td class="text-tn-sub">eza long view (git + relative time)</td></tr>
                 <tr><td><code class="inline-code">cat</code></td><td class="text-tn-sub">bat</td></tr>
                 <tr><td><code class="inline-code">cd</code></td><td class="text-tn-sub">zoxide (frecency jump)</td></tr>
                 <tr><td><code class="inline-code">dev [subpath]</code></td><td class="text-tn-sub">cd into <code class="inline-code">~/Code/&lt;arg&gt;</code> (tab-completes)</td></tr>
+                <tr><td><code class="inline-code">gm "msg"</code></td><td class="text-tn-sub">git commit -m + push (function)</td></tr>
                 <tr><td><code class="inline-code">killport &lt;port&gt;</code></td><td class="text-tn-sub">free a TCP port</td></tr>
                 <tr><td><code class="inline-code">dock / undock</code></td><td class="text-tn-sub">aerospace-sync</td></tr>
                 <tr><td><code class="inline-code">gs</code></td><td class="text-tn-sub">git status</td></tr>
                 <tr><td><code class="inline-code">g</code></td><td class="text-tn-sub">git</td></tr>
                 <tr><td><code class="inline-code">gc</code></td><td class="text-tn-sub">git clone</td></tr>
-                <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git commit -a</td></tr>
+                <tr><td><code class="inline-code">ga</code></td><td class="text-tn-sub">git add *</td></tr>
               </tbody></table>
             </div>
           </div>

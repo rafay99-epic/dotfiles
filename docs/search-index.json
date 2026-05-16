@@ -206,14 +206,28 @@
     "title": "Zsh",
     "page": "Terminal & Shell",
     "url": "/terminal#zsh",
-    "snippet": "Zsh Default shell on macOS. Starship prompt, fzf fuzzy finder, lsd/eza aliases, git shortcuts, and fastfetch on open. SetupCopy ln -sf ~/dotfiles/zsh/.zshrc ~/.zshrc What's include…",
+    "snippet": "Zsh Default shell on macOS. Starship prompt, fzf, zoxide, eza, Atuin history, and a fish-like input experience via four zsh plugins.",
+    "kind": "section"
+  },
+  {
+    "title": "Eza (modern ls) — Tokyo Night palette",
+    "page": "Terminal & Shell",
+    "url": "/terminal#zsh",
+    "snippet": "Eza shared base flags ($EZA_BASE), Tokyo Night $EZA_COLORS palette, and the full alias suite: ls, ll, l, lG, la, lt, lt3, lta, ltd, lr, lS, lg, ld. Long view with git column and relative times by default.",
+    "kind": "section"
+  },
+  {
+    "title": "Zsh plugins — fzf-tab, autosuggestions, syntax-highlighting, history-substring-search",
+    "page": "Terminal & Shell",
+    "url": "/terminal#zsh",
+    "snippet": "Fish-like input experience for zsh. fzf-tab replaces Tab with bat/eza previews. zsh-autosuggestions shows greyed inline suggestions. zsh-syntax-highlighting colours commands as you type. zsh-history-substring-search binds Ctrl+Up/Down.",
     "kind": "section"
   },
   {
     "title": "Fish",
     "page": "Terminal & Shell",
     "url": "/terminal#fish",
-    "snippet": "Fish Friendly interactive shell. Starship prompt, lsd for ls, git aliases, conda, and fastfetch — same workflow as Zsh but with fish's autocompletion out of the box. SetupCopy brew…",
+    "snippet": "Fish Friendly interactive shell. Aliases, eza palette, gm function, and project shortcuts mirror zsh one-to-one. Autosuggestions, syntax-highlighting, history-substring-search are built-in.",
     "kind": "section"
   },
   {

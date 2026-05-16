@@ -119,11 +119,16 @@
         <div class="code-block-wrap mb-8">
           <div class="code-header">
             <span class="text-tn-sub text-xs">Install everything at once</span>
-            <button class="copy-btn" data-code="brew install starship fastfetch bat eza fzf thefuck rbenv nvm fish lsd scrcpy openjdk@17
+            <button class="copy-btn" data-code="brew install starship fastfetch bat eza fzf thefuck rbenv nvm fnm fish lsd atuin zoxide git-delta jq scrcpy openjdk@17 zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
+git clone --depth=1 https://github.com/Aloxaf/fzf-tab ~/.local/share/zsh/fzf-tab
 brew install --cask lm-studio windsurf flutter
 npm install -g @anthropic-ai/claude-code">Copy</button>
           </div>
-          <pre class="code-body"><span class="text-tn-blue">brew</span> install starship fastfetch bat eza fzf thefuck rbenv nvm fish lsd scrcpy openjdk@17
+          <pre class="code-body text-xs"><span class="text-tn-blue">brew</span> install starship fastfetch bat eza fzf thefuck rbenv nvm fnm fish lsd \
+   atuin zoxide git-delta jq scrcpy openjdk@17 \
+   zsh-autosuggestions zsh-syntax-highlighting zsh-history-substring-search
+<span class="text-tn-sub"># fzf-tab has no brew formula — git-clone it</span>
+<span class="text-tn-blue">git</span> clone --depth=1 https://github.com/Aloxaf/fzf-tab ~/.local/share/zsh/fzf-tab
 <span class="text-tn-blue">brew</span> install --cask lm-studio windsurf flutter
 <span class="text-tn-sub"># Claude Code (cc alias)</span>
 <span class="text-tn-blue">npm</span> install -g @anthropic-ai/claude-code</pre>
@@ -135,14 +140,23 @@ npm install -g @anthropic-ai/claude-code">Copy</button>
             <thead><tr><th>Tool</th><th>Purpose</th><th>Install</th></tr></thead>
             <tbody>
               <tr><td class="font-mono text-tn-blue text-xs">starship</td><td class="text-tn-sub">Cross-shell prompt (Zsh and Fish)</td><td><button class="copy-btn" data-code="brew install starship">brew install starship</button></td></tr>
-              <tr><td class="font-mono text-tn-blue text-xs">fastfetch</td><td class="text-tn-sub">System info on every shell open</td><td><button class="copy-btn" data-code="brew install fastfetch">brew install fastfetch</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">fastfetch</td><td class="text-tn-sub">System info banner (run manually; not auto-loaded)</td><td><button class="copy-btn" data-code="brew install fastfetch">brew install fastfetch</button></td></tr>
               <tr><td class="font-mono text-tn-blue text-xs">bat</td><td class="text-tn-sub">Syntax-highlighted <code class="inline-code">cat</code> replacement</td><td><button class="copy-btn" data-code="brew install bat">brew install bat</button></td></tr>
-              <tr><td class="font-mono text-tn-blue text-xs">eza</td><td class="text-tn-sub">Modern <code class="inline-code">ls</code> with icons</td><td><button class="copy-btn" data-code="brew install eza">brew install eza</button></td></tr>
-              <tr><td class="font-mono text-tn-blue text-xs">lsd</td><td class="text-tn-sub">Alternative ls replacement (Fish aliases)</td><td><button class="copy-btn" data-code="brew install lsd">brew install lsd</button></td></tr>
-              <tr><td class="font-mono text-tn-blue text-xs">fzf</td><td class="text-tn-sub">Fuzzy finder — Ctrl+R history, Ctrl+T files</td><td><button class="copy-btn" data-code="brew install fzf">brew install fzf</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">eza</td><td class="text-tn-sub">Modern <code class="inline-code">ls</code> — Tokyo Night palette, git column, icons</td><td><button class="copy-btn" data-code="brew install eza">brew install eza</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">lsd</td><td class="text-tn-sub">Alternative ls (kept available; primary is eza)</td><td><button class="copy-btn" data-code="brew install lsd">brew install lsd</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">fzf</td><td class="text-tn-sub">Fuzzy finder — Ctrl+T files, Alt+C dirs (history goes through Atuin)</td><td><button class="copy-btn" data-code="brew install fzf">brew install fzf</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">atuin</td><td class="text-tn-sub">SQLite-backed history TUI (Ctrl+R), local-only</td><td><button class="copy-btn" data-code="brew install atuin">brew install atuin</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">zoxide</td><td class="text-tn-sub">Smart <code class="inline-code">cd</code> — frecency-based jumps</td><td><button class="copy-btn" data-code="brew install zoxide">brew install zoxide</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">git-delta</td><td class="text-tn-sub">Pretty git diffs (used by <code class="inline-code">.gitconfig</code>)</td><td><button class="copy-btn" data-code="brew install git-delta">brew install git-delta</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">jq</td><td class="text-tn-sub">JSON processor</td><td><button class="copy-btn" data-code="brew install jq">brew install jq</button></td></tr>
               <tr><td class="font-mono text-tn-blue text-xs">thefuck</td><td class="text-tn-sub">Corrects previous mistyped command</td><td><button class="copy-btn" data-code="brew install thefuck">brew install thefuck</button></td></tr>
               <tr><td class="font-mono text-tn-blue text-xs">scrcpy</td><td class="text-tn-sub">Android screen mirror / recording</td><td><button class="copy-btn" data-code="brew install scrcpy">brew install scrcpy</button></td></tr>
               <tr><td class="font-mono text-tn-blue text-xs">fish</td><td class="text-tn-sub">Friendly interactive shell</td><td><button class="copy-btn" data-code="brew install fish">brew install fish</button></td></tr>
+              <tr><td colspan="3" class="text-tn-sub text-xs uppercase tracking-wider font-semibold pt-3">Zsh plugins (fish-like input experience)</td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">zsh-autosuggestions</td><td class="text-tn-sub">Greyed inline suggestions — <kbd>→</kbd> or <kbd>Ctrl+F</kbd> to accept</td><td><button class="copy-btn" data-code="brew install zsh-autosuggestions">brew install zsh-autosuggestions</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">zsh-syntax-highlighting</td><td class="text-tn-sub">Valid commands green, invalid red, strings yellow</td><td><button class="copy-btn" data-code="brew install zsh-syntax-highlighting">brew install zsh-syntax-highlighting</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">zsh-history-substring-search</td><td class="text-tn-sub"><kbd>Ctrl+↑</kbd>/<kbd>Ctrl+↓</kbd> walks matching history</td><td><button class="copy-btn" data-code="brew install zsh-history-substring-search">brew install zsh-history-substring-search</button></td></tr>
+              <tr><td class="font-mono text-tn-blue text-xs">fzf-tab</td><td class="text-tn-sub"><kbd>Tab</kbd> opens fzf picker with bat/eza previews (git clone, no formula)</td><td><button class="copy-btn" data-code="git clone --depth=1 https://github.com/Aloxaf/fzf-tab ~/.local/share/zsh/fzf-tab">git clone fzf-tab</button></td></tr>
             </tbody>
           </table>
         </div>
@@ -154,9 +168,9 @@ npm install -g @anthropic-ai/claude-code">Copy</button>
             <tbody>
               <tr><td class="font-mono text-tn-purple text-xs">rbenv</td><td class="text-tn-sub">Ruby version manager</td><td><button class="copy-btn" data-code="brew install rbenv">brew install rbenv</button></td></tr>
               <tr><td class="font-mono text-tn-purple text-xs">nvm</td><td class="text-tn-sub">Node version manager (Zsh)</td><td><button class="copy-btn" data-code="brew install nvm">brew install nvm</button></td></tr>
+              <tr><td class="font-mono text-tn-purple text-xs">fnm</td><td class="text-tn-sub">Fast Node manager (Fish — fish-native)</td><td><button class="copy-btn" data-code="brew install fnm">brew install fnm</button></td></tr>
               <tr><td class="font-mono text-tn-purple text-xs">bun</td><td class="text-tn-sub">Fast JavaScript runtime and package manager</td><td><button class="copy-btn" data-code="brew install bun">brew install bun</button></td></tr>
               <tr><td class="font-mono text-tn-purple text-xs">openjdk@17</td><td class="text-tn-sub">Java 17 (required for Flutter / Android builds)</td><td><button class="copy-btn" data-code="brew install openjdk@17">brew install openjdk@17</button></td></tr>
-              <tr><td class="font-mono text-tn-purple text-xs">conda</td><td class="text-tn-sub">Python environment manager (Anaconda)</td><td><button class="copy-btn" data-code="brew install --cask anaconda">brew install --cask anaconda</button></td></tr>
             </tbody>
           </table>
         </div>
