@@ -301,6 +301,13 @@
     "kind": "section"
   },
   {
+    "title": "bin/clean-node-modules",
+    "page": "Maintenance",
+    "url": "/maintenance#maint-clean-node-modules",
+    "snippet": "bin/clean-node-modules Reclaim disk space across your repo and its git worktrees. Scans $PWD recursively, lists every top-level node_modules with its size, then deletes them after a single confirmation. Flags: -n dry-run, -y skip prompt, -h help.",
+    "kind": "section"
+  },
+  {
     "title": "Time Machine + TrueNAS — Setup Guide",
     "page": "Backup",
     "url": "/backup",

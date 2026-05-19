@@ -117,9 +117,9 @@
           <i data-lucide="refresh-cw" class="w-6 h-6 text-tn-green shrink-0"></i>
           <h2 class="section-title mb-0">Maintenance</h2>
         </div>
-        <p class="text-tn-sub mb-6">Declarative package lists, a global gitconfig with delta diffs, and a one-command updater. Keeps the system reproducible and current without thought.</p>
+        <p class="text-tn-sub mb-6">Declarative package lists, a global gitconfig with delta diffs, a one-command updater, and a worktree-friendly <code class="inline-code">node_modules</code> sweeper. Keeps the system reproducible, current, and tidy without thought.</p>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <a href="#maint-brewfile" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-cyan/50">
             <i data-lucide="box" class="w-5 h-5 text-tn-cyan shrink-0 mt-0.5"></i>
             <div><div class="font-semibold text-tn-fg text-sm">Brewfile</div><div class="text-tn-sub text-xs mt-0.5">Declarative package list</div></div>
@@ -131,6 +131,10 @@
           <a href="#maint-update" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-green/50">
             <i data-lucide="refresh-cw" class="w-5 h-5 text-tn-green shrink-0 mt-0.5"></i>
             <div><div class="font-semibold text-tn-fg text-sm">bin/update</div><div class="text-tn-sub text-xs mt-0.5">One-command updater</div></div>
+          </a>
+          <a href="#maint-clean-node-modules" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-yellow/50">
+            <i data-lucide="trash-2" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
+            <div><div class="font-semibold text-tn-fg text-sm">bin/clean-node-modules</div><div class="text-tn-sub text-xs mt-0.5">Sweep <code class="inline-code">node_modules</code></div></div>
           </a>
         </div>
 
@@ -231,6 +235,44 @@ brew bundle --file=Brewfile.aerospace   # or Brewfile.omniwm">Copy</button></div
             </table>
           </div>
           <p class="text-tn-sub text-xs mt-3"><em>Safe to re-run. Each step is gated behind <code class="inline-code">command -v</code> so missing tools are quietly skipped instead of erroring.</em></p>
+        </div>
+
+        <!-- bin/clean-node-modules -->
+        <div id="maint-clean-node-modules" class="mt-10">
+          <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="trash-2" class="w-5 h-5 text-tn-yellow"></i>bin/clean-node-modules</h3>
+          <p class="text-tn-sub text-sm mb-3">Reclaim disk space across your repo and its git worktrees. Scans <code class="inline-code">$PWD</code> recursively, lists every top-level <code class="inline-code">node_modules</code> with its size, then deletes them after a single confirmation. Nested <code class="inline-code">node_modules</code> inside another <code class="inline-code">node_modules</code> are pruned from the walk so the scan stays fast. Symlinked to <code class="inline-code">~/.local/bin/clean-node-modules</code> so it's on your <code class="inline-code">$PATH</code> in zsh and fish.</p>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Interactive — recommended</span><button class="copy-btn" data-code="clean-node-modules">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">clean-node-modules</span></pre>
+          </div>
+
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Flag</th><th>What it does</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code text-tn-cyan">-n</code> / <code class="inline-code text-tn-cyan">--dry-run</code></td><td class="text-tn-sub">List matches and total size, delete nothing</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">-y</code> / <code class="inline-code text-tn-cyan">--yes</code></td><td class="text-tn-sub">Skip the confirmation prompt</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">-h</code> / <code class="inline-code text-tn-cyan">--help</code></td><td class="text-tn-sub">Show usage</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Preview before deleting</span><button class="copy-btn" data-code="cd ~/code/some-monorepo
+clean-node-modules -n">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">cd</span> ~/code/some-monorepo
+<span class="text-tn-green">clean-node-modules</span> -n</pre>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Sweep every worktree under a parent dir</span><button class="copy-btn" data-code="cd ~/code/worktrees
+clean-node-modules -y">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">cd</span> ~/code/worktrees
+<span class="text-tn-green">clean-node-modules</span> -y</pre>
+          </div>
+
+          <p class="text-tn-sub text-xs"><em>Run from the directory you want to scan — the tool always uses <code class="inline-code">$PWD</code> as the root, never your home directory. <code class="inline-code">npm install</code> / <code class="inline-code">bun install</code> rebuilds <code class="inline-code">node_modules</code> from the existing lockfile, so deleting is safe on any committed project.</em></p>
         </div>
       </section>
 

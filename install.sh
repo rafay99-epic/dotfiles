@@ -974,8 +974,9 @@ fi
 link "$DOTFILES/bin/killport"                       "$HOME/.local/bin/killport"
 link "$DOTFILES/bin/tm-status"                      "$HOME/.local/bin/tm-status"
 link "$DOTFILES/bin/tm-backup"                      "$HOME/.local/bin/tm-backup"
+link "$DOTFILES/bin/clean-node-modules"             "$HOME/.local/bin/clean-node-modules"
 if [[ "$DRY_RUN" == false ]]; then
-  chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" 2>/dev/null || true
+  chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" "$HOME/.local/bin/clean-node-modules" 2>/dev/null || true
 fi
 
 # ── Time Machine: monthly LaunchDaemon ───────────────────────────────────────
