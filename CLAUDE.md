@@ -89,7 +89,9 @@ dotfiles/
 ├── omniwm/                     # alternative tiling WM (dwindle/BSP, GUI config)
 ├── sketchybar/                 # whole dir symlinked to ~/.config/sketchybar
 ├── starship/                   # prompt config
-├── zsh/.zshrc
+├── zsh/
+│   ├── .zshrc                  # interactive shell config
+│   └── .zprofile               # login shell — brew shellenv
 ├── Brewfile                    # core packages (always installed)
 ├── Brewfile.aerospace          # WM-specific (when WM=AeroSpace)
 ├── Brewfile.omniwm             # WM-specific (when WM=OmniWM)

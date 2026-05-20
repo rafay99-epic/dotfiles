@@ -959,6 +959,7 @@ link "$DOTFILES/fastfetch/config.jsonc"             "$HOME/.config/fastfetch/con
 link "$DOTFILES/fastfetch/eldritch.png"             "$HOME/.config/fastfetch/eldritch.png"
 link "$DOTFILES/ghostty/config"                     "$HOME/.config/ghostty/config"
 link "$DOTFILES/zsh/.zshrc"                         "$HOME/.zshrc"
+link "$DOTFILES/zsh/.zprofile"                      "$HOME/.zprofile"
 link "$DOTFILES/fish/config.fish"                   "$HOME/.config/fish/config.fish"
 link "$DOTFILES/fish/completions/bun.fish"          "$HOME/.config/fish/completions/bun.fish"
 link "$DOTFILES/git/.gitconfig"                     "$HOME/.gitconfig"
