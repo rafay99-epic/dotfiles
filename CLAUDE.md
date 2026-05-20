@@ -178,7 +178,7 @@ Any new or modified shell script, plist, or Brewfile must pass these checks **be
   ```
   Catches renamed/removed formulae before someone re-runs `install.sh` on a fresh machine and discovers it the hard way.
 - **From this point onward** — any script Claude writes for this repo must meet the bar above. Run the relevant check locally and confirm it passes before reporting the task done. Don't silence findings with `# shellcheck disable` to make CI green; either fix the code or justify the disable in the same line's comment.
-- **Release notes:** PR titles drive `release-drafter` (`.github/release-drafter.yml`). Use Conventional Commits (`feat:` / `fix:` / `chore:` / `docs:` / `refactor:`) so the autolabeler can sort the entry into the right category and bump the version correctly.
+- **Release notes:** Commit messages drive `git-cliff` (`cliff.toml`). Push a tag like `v0.2.0` and `.github/workflows/release.yml` runs git-cliff to group commits since the previous tag by Conventional Commits prefix (`feat:` → Features, `fix:` → Fixes, `chore:` → Maintenance, `docs:` → Docs, `refactor:` → Refactor, `ci:` → CI), then publishes a GitHub Release with that body, marked Latest. **No PRs required** — direct commits to `main` are picked up. Cut a release with `git tag v0.2.0 && git push --tags`.
 
 ### Docs are multi-page, not a SPA
 Static HTML + Tailwind CDN + ~700 lines of vanilla JS in `script.js`. **No React, no build step.** The cost of a framework was assessed and rejected — the site is content, not an app. See decision rationale in conversation history (or just compare bundle sizes).
