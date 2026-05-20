@@ -2,12 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
   ============================================================================
-  com.prometheus.sort-downloads — auto-sort ~/Downloads to NAS
+  com.prometheus.sort-downloads — auto-sort ~/Downloads and ~/Pictures/Screenshots to NAS
 
-  Watches ~/Downloads via launchd's WatchPaths and fires `sort-downloads`
-  whenever a file is added, removed, or modified. The script classifies new
-  files (images, PDFs, docs, screenshots, DMGs, etc.) and moves each to a
-  matching top-level folder on /Volumes/media.
+  Watches ~/Downloads and ~/Pictures/Screenshots via launchd's WatchPaths and
+  fires `sort-downloads` whenever a file is added, removed, or modified. The
+  script classifies files from Downloads by extension/name (images, PDFs,
+  docs, DMGs, etc.) and routes everything in ~/Pictures/Screenshots straight
+  to /Volumes/media/Screenshots/.
 
   This is a LaunchAgent — not a LaunchDaemon — because it touches user-mounted
   resources (the SMB share at /Volumes/media). Daemons run as root before the
@@ -44,10 +45,11 @@
         <string>__HOME__/.local/bin/sort-downloads</string>
     </array>
 
-    <!-- Fire whenever ~/Downloads changes. launchd coalesces rapid events. -->
+    <!-- Fire whenever either folder changes. launchd coalesces rapid events. -->
     <key>WatchPaths</key>
     <array>
         <string>__HOME__/Downloads</string>
+        <string>__HOME__/Pictures/Screenshots</string>
     </array>
 
     <!-- Debounce: at most one invocation every 30s. Also gives partial

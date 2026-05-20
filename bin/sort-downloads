@@ -1,11 +1,15 @@
 #!/usr/bin/env bash
-# sort-downloads — move new files from ~/Downloads into category folders on NAS.
+# sort-downloads — move files from watched folders into category folders on NAS.
 #
-# Watches the top level of ~/Downloads, classifies each file by extension (and
-# screenshot-name pattern), then moves it to /Volumes/media/<Category>/. Files
-# inside subfolders of Downloads are left alone — top level only.
+# Sweeps the top level of every entry in $SOURCES and routes each file to a
+# matching folder under /Volumes/media/. Files inside subfolders are left
+# alone — top level only.
 #
-# Categories:
+# Default sources (edit the SOURCES array below to change):
+#   ~/Downloads             classify each file by extension / screenshot name
+#   ~/Pictures/Screenshots  every file lands in Screenshots/ (no classification)
+#
+# Categories (when classifying):
 #   Screenshots   PNG matching "Screenshot *" or "Screen Shot *"
 #   Pictures      jpg jpeg png gif webp heic heif tiff tif bmp svg raw cr2 nef
 #   PDFs          pdf
@@ -38,7 +42,13 @@
 
 set -uo pipefail
 
-SOURCE="${SORT_DOWNLOADS_SRC:-$HOME/Downloads}"
+# Sources to watch. Format: "absolute-path|category-override"
+#   - Empty override (nothing after the pipe) → classify each file
+#   - Non-empty override → every file in this dir routes to /Volumes/media/<override>/
+SOURCES=(
+  "$HOME/Downloads|"
+  "$HOME/Pictures/Screenshots|Screenshots"
+)
 NAS="${SORT_DOWNLOADS_DST:-/Volumes/media}"
 LOG="$HOME/.sort-download/sort-downloads.log"
 LOCK="/tmp/sort-downloads.lock"
@@ -52,7 +62,7 @@ while [[ $# -gt 0 ]]; do
     -n|--dry-run) DRY=1 ;;
     -v|--verbose) VERBOSE=1 ;;
     -h|--help)
-      sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,43p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *)
@@ -85,12 +95,6 @@ trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT INT TERM
 # pass `[ -d ]`, so check the mount table instead.
 if ! /sbin/mount | grep -q " on ${NAS} "; then
   log "NAS not mounted at $NAS — skipping sweep"
-  exit 0
-fi
-
-# Make sure source exists (might not on a fresh install with a custom $HOME).
-if [[ ! -d "$SOURCE" ]]; then
-  log "source missing: $SOURCE"
   exit 0
 fi
 
@@ -157,50 +161,64 @@ moved=0
 skipped=0
 failed=0
 
-while IFS= read -r -d '' src; do
-  name="$(basename "$src")"
+for entry in "${SOURCES[@]}"; do
+  src_dir="${entry%%|*}"
+  override="${entry#*|}"
 
-  if [[ -d "$src" ]]; then
-    vlog "skip dir: $name"
-    skipped=$(( skipped + 1 ))
+  if [[ ! -d "$src_dir" ]]; then
+    vlog "source missing: $src_dir"
     continue
   fi
 
-  if is_partial "$name"; then
-    vlog "skip partial: $name"
-    skipped=$(( skipped + 1 ))
-    continue
-  fi
+  while IFS= read -r -d '' src; do
+    name="$(basename "$src")"
 
-  if ! is_settled "$src"; then
-    vlog "skip unsettled (<${SETTLE_SECONDS}s): $name"
-    skipped=$(( skipped + 1 ))
-    continue
-  fi
+    if [[ -d "$src" ]]; then
+      vlog "skip dir: $name (in $src_dir)"
+      skipped=$(( skipped + 1 ))
+      continue
+    fi
 
-  category="$(classify "$name")"
-  dst_dir="$NAS/$category"
+    if is_partial "$name"; then
+      vlog "skip partial: $name (in $src_dir)"
+      skipped=$(( skipped + 1 ))
+      continue
+    fi
 
-  if (( DRY )); then
-    log "[dry] $name -> $category/"
-    continue
-  fi
+    if ! is_settled "$src"; then
+      vlog "skip unsettled (<${SETTLE_SECONDS}s): $name (in $src_dir)"
+      skipped=$(( skipped + 1 ))
+      continue
+    fi
 
-  if ! mkdir -p "$dst_dir" 2>/dev/null; then
-    log "ERR mkdir failed: $dst_dir — leaving $name in Downloads"
-    failed=$(( failed + 1 ))
-    continue
-  fi
+    if [[ -n "$override" ]]; then
+      category="$override"
+    else
+      category="$(classify "$name")"
+    fi
+    dst_dir="$NAS/$category"
 
-  dst="$(resolve_dest "$dst_dir" "$name")"
-  if mv -- "$src" "$dst" 2>>"$LOG"; then
-    log "mv $name -> ${dst#$NAS/}"
-    moved=$(( moved + 1 ))
-  else
-    log "ERR mv failed: $name -> $dst"
-    failed=$(( failed + 1 ))
-  fi
-done < <(find "$SOURCE" -mindepth 1 -maxdepth 1 -print0 2>/dev/null)
+    if (( DRY )); then
+      log "[dry] $name -> $category/"
+      continue
+    fi
+
+    if ! mkdir -p "$dst_dir" 2>/dev/null; then
+      log "ERR mkdir failed: $dst_dir — leaving $name in $src_dir"
+      failed=$(( failed + 1 ))
+      continue
+    fi
+
+    dst="$(resolve_dest "$dst_dir" "$name")"
+    if mv -- "$src" "$dst" 2>>"$LOG"; then
+      log "mv $name -> ${dst#$NAS/}"
+      moved=$(( moved + 1 ))
+    else
+      log "ERR mv failed: $name -> $dst"
+      failed=$(( failed + 1 ))
+    fi
+  done < <(find "$src_dir" -mindepth 1 -maxdepth 1 -print0 2>/dev/null)
+done
 
 if (( moved > 0 || failed > 0 )); then
   log "done — moved=$moved skipped=$skipped failed=$failed"

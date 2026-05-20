@@ -342,16 +342,28 @@ bigfiles -t 500 -n 100">Copy</button></div>
         <!-- bin/sort-downloads -->
         <div id="maint-sort-downloads" class="mt-10">
           <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="folder-sync" class="w-5 h-5 text-tn-blue"></i>bin/sort-downloads</h3>
-          <p class="text-tn-sub text-sm mb-3">Background auto-sorter for <code class="inline-code">~/Downloads</code>. A <code class="inline-code">launchd</code> LaunchAgent watches the folder in real time; whenever a file lands, it's classified by extension (and screenshot-name pattern), then moved to a matching top-level folder on the TrueNAS share at <code class="inline-code">/Volumes/media/</code>. The local <code class="inline-code">Downloads</code> folder stays empty, the laptop's SSD stays free, and everything is one SMB-mount away on the NAS.</p>
+          <p class="text-tn-sub text-sm mb-3">Background auto-sorter for <code class="inline-code">~/Downloads</code> <em>and</em> <code class="inline-code">~/Pictures/Screenshots</code>. A <code class="inline-code">launchd</code> LaunchAgent watches both folders in real time; whenever a file lands, it's classified (or force-routed) and moved to a matching top-level folder on the TrueNAS share at <code class="inline-code">/Volumes/media/</code>. The local folders stay empty, the laptop's SSD stays free, and everything is one SMB-mount away on the NAS.</p>
 
           <p class="text-tn-sub text-sm mb-3">Symlinked to <code class="inline-code">~/.local/bin/sort-downloads</code>; runs whenever you want via the CLI, but the LaunchAgent at <code class="inline-code">~/Library/LaunchAgents/com.prometheus.sort-downloads.plist</code> is what makes it automatic. Both are installed by <code class="inline-code">install.sh</code>.</p>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Sources</h4>
+          <p class="text-tn-sub text-sm mb-3">Defined by the <code class="inline-code">SOURCES</code> array at the top of the script as <code class="inline-code">"path|override"</code> pairs. Empty override → classify each file by extension/name. Non-empty override → every file in that folder lands in <code class="inline-code">/Volumes/media/&lt;override&gt;/</code> with no classification.</p>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Source folder</th><th>Override</th><th>Behavior</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code text-tn-cyan">~/Downloads</code></td><td class="text-tn-sub"><em>(none)</em></td><td class="text-tn-sub">Classify each file by extension and screenshot-name pattern</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">~/Pictures/Screenshots</code></td><td class="text-tn-sub"><code class="inline-code">Screenshots</code></td><td class="text-tn-sub">Every file routes to <code class="inline-code">/Volumes/media/Screenshots/</code> — matches macOS's default screenshot location, so <kbd>⌘⇧3</kbd> / <kbd>⌘⇧4</kbd> shots auto-drain to the NAS</td></tr>
+              </tbody>
+            </table>
+          </div>
 
           <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Categories</h4>
           <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
             <table>
               <thead><tr><th>NAS folder</th><th>Matches</th></tr></thead>
               <tbody>
-                <tr><td><code class="inline-code text-tn-cyan">Screenshots/</code></td><td class="text-tn-sub">PNGs whose name starts with <code class="inline-code">Screenshot </code> or <code class="inline-code">Screen Shot </code> (matched <em>before</em> images, so they don't end up in Pictures)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">Screenshots/</code></td><td class="text-tn-sub">Anything in <code class="inline-code">~/Pictures/Screenshots</code> (force-routed), or PNGs in Downloads whose name starts with <code class="inline-code">Screenshot </code> or <code class="inline-code">Screen Shot </code> (matched <em>before</em> images, so they don't end up in Pictures)</td></tr>
                 <tr><td><code class="inline-code text-tn-cyan">Pictures/</code></td><td class="text-tn-sub">jpg, jpeg, png, gif, webp, heic, heif, tiff, tif, bmp, svg, raw, cr2, nef</td></tr>
                 <tr><td><code class="inline-code text-tn-cyan">PDFs/</code></td><td class="text-tn-sub">pdf</td></tr>
                 <tr><td><code class="inline-code text-tn-cyan">Documents/</code></td><td class="text-tn-sub">doc, docx, xls, xlsx, ppt, pptx, odt, ods, odp, txt, md, rtf, csv, epub, pages, numbers, key</td></tr>
@@ -387,9 +399,9 @@ bigfiles -t 500 -n 100">Copy</button></div>
             <li><strong class="text-tn-fg">NAS must be mounted.</strong> Refuses to run unless <code class="inline-code">/Volumes/media</code> appears in <code class="inline-code">mount</code> output — a stub folder won't fool it.</li>
             <li><strong class="text-tn-fg">No partial downloads.</strong> Skips files ending in <code class="inline-code">.crdownload</code>, <code class="inline-code">.download</code>, <code class="inline-code">.part</code>, <code class="inline-code">.tmp</code>, <code class="inline-code">.aria2</code>, <code class="inline-code">.opdownload</code>, plus all dotfiles.</li>
             <li><strong class="text-tn-fg">Settle delay.</strong> Files modified in the last <strong>30 seconds</strong> are left alone — protects against grabbing a file mid-write.</li>
-            <li><strong class="text-tn-fg">Top level only.</strong> Subfolders of <code class="inline-code">~/Downloads</code> are never touched. Directories at the root are skipped.</li>
+            <li><strong class="text-tn-fg">Top level only.</strong> Subfolders of either source are never touched. Directories at the root are skipped.</li>
             <li><strong class="text-tn-fg">No collisions.</strong> If <code class="inline-code">foo.png</code> already exists on the NAS, the new one becomes <code class="inline-code">foo (1).png</code>, then <code class="inline-code">foo (2).png</code>, etc.</li>
-            <li><strong class="text-tn-fg">Cross-volume <code class="inline-code">mv</code> is copy-then-unlink.</strong> If the SMB link drops mid-transfer, the source stays in Downloads — no data loss.</li>
+            <li><strong class="text-tn-fg">Cross-volume <code class="inline-code">mv</code> is copy-then-unlink.</strong> If the SMB link drops mid-transfer, the source stays in its original folder — no data loss.</li>
             <li><strong class="text-tn-fg">Single-instance lock.</strong> Atomic <code class="inline-code">mkdir /tmp/sort-downloads.lock</code> prevents concurrent runs when launchd fires a burst of <code class="inline-code">WatchPaths</code> events.</li>
           </ul>
 
@@ -400,9 +412,9 @@ bigfiles -t 500 -n 100">Copy</button></div>
             <table>
               <thead><tr><th>Key</th><th>Value</th></tr></thead>
               <tbody>
-                <tr><td><code class="inline-code text-tn-cyan">WatchPaths</code></td><td class="text-tn-sub"><code class="inline-code">~/Downloads</code> — fires on any change</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">WatchPaths</code></td><td class="text-tn-sub"><code class="inline-code">~/Downloads</code> + <code class="inline-code">~/Pictures/Screenshots</code> — any change to either fires the script</td></tr>
                 <tr><td><code class="inline-code text-tn-cyan">ThrottleInterval</code></td><td class="text-tn-sub">30s — debounces bursts; also gives partial downloads time to finish</td></tr>
-                <tr><td><code class="inline-code text-tn-cyan">RunAtLoad</code></td><td class="text-tn-sub"><code class="inline-code">true</code> — sweeps anything already in Downloads on login</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">RunAtLoad</code></td><td class="text-tn-sub"><code class="inline-code">true</code> — sweeps anything already in either folder on login</td></tr>
                 <tr><td><code class="inline-code text-tn-cyan">StandardOutPath</code> / <code class="inline-code text-tn-cyan">StandardErrorPath</code></td><td class="text-tn-sub"><code class="inline-code">~/.sort-download/sort-downloads.log</code></td></tr>
               </tbody>
             </table>
@@ -452,14 +464,28 @@ rm ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist">Copy</button></di
             <pre class="code-body text-xs"><span class="text-tn-sub">[2026-05-20 20:30:44]</span> mv logo.png -&gt; Pictures/logo.png
 <span class="text-tn-sub">[2026-05-20 20:30:48]</span> mv G215151.pdf -&gt; PDFs/G215151.pdf
 <span class="text-tn-sub">[2026-05-20 20:31:03]</span> mv envpilot.dev-handoff.zip -&gt; Archives/envpilot.dev-handoff.zip
-<span class="text-tn-sub">[2026-05-20 20:31:11]</span> done — moved=17 skipped=2 failed=0
+<span class="text-tn-sub">[2026-05-20 21:08:34]</span> mv SCR-20260520-rukc.jpeg -&gt; Screenshots/SCR-20260520-rukc.jpeg
+<span class="text-tn-sub">[2026-05-20 21:08:34]</span> mv SCR-20260519-bxpf.png -&gt; Screenshots/SCR-20260519-bxpf.png
+<span class="text-tn-sub">[2026-05-20 21:08:34]</span> done — moved=2 skipped=3 failed=0
 <span class="text-tn-sub">[2026-05-20 21:02:14]</span> NAS not mounted at /Volumes/media — skipping sweep</pre>
           </div>
 
           <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">What happens if the NAS is offline?</h4>
-          <p class="text-tn-sub text-sm mb-3">Nothing destructive. The script logs <code class="inline-code">NAS not mounted at /Volumes/media — skipping sweep</code> and exits 0. Files pile up in <code class="inline-code">~/Downloads</code> until the share is mounted again; the next file event re-fires the watcher and everything drains in one pass. The watcher does <em>not</em> wake on its own when the mount returns — drop one new file into Downloads to kick it, or run <code class="inline-code">launchctl start com.prometheus.sort-downloads</code>.</p>
+          <p class="text-tn-sub text-sm mb-3">Nothing destructive. The script logs <code class="inline-code">NAS not mounted at /Volumes/media — skipping sweep</code> and exits 0. Files pile up in <code class="inline-code">~/Downloads</code> and <code class="inline-code">~/Pictures/Screenshots</code> until the share is mounted again; the next file event re-fires the watcher and everything drains in one pass. The watcher does <em>not</em> wake on its own when the mount returns — drop one new file into either source folder to kick it, or run <code class="inline-code">launchctl start com.prometheus.sort-downloads</code>.</p>
 
-          <p class="text-tn-sub text-xs"><em>Want a different destination tree, a different mount, or no catch-all bucket? Both knobs live at the top of <code class="inline-code">bin/sort-downloads</code> — <code class="inline-code">SOURCE</code> and <code class="inline-code">NAS</code> respect the env vars <code class="inline-code">SORT_DOWNLOADS_SRC</code> / <code class="inline-code">SORT_DOWNLOADS_DST</code> so you can override without forking. To skip the catch-all, drop the <code class="inline-code">*) echo "Other"</code> branch from the <code class="inline-code">classify()</code> function.</em></p>
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Adding more sources</h4>
+          <p class="text-tn-sub text-sm mb-3">Edit the <code class="inline-code">SOURCES</code> array at the top of <code class="inline-code">bin/sort-downloads</code> — each entry is <code class="inline-code">"path|override"</code>. Then add the same path to the plist's <code class="inline-code">WatchPaths</code> array so launchd actually fires on changes to it.</p>
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Example — also drain ~/Desktop</span></div>
+            <pre class="code-body text-xs"><span class="text-tn-sub"># bin/sort-downloads</span>
+SOURCES=(
+  <span class="text-tn-green">"$HOME/Downloads|"</span>
+  <span class="text-tn-green">"$HOME/Pictures/Screenshots|Screenshots"</span>
+  <span class="text-tn-green">"$HOME/Desktop|"</span>             <span class="text-tn-sub"># classify each file</span>
+)</pre>
+          </div>
+
+          <p class="text-tn-sub text-xs"><em>Want a different mount or no catch-all bucket? <code class="inline-code">NAS</code> respects the env var <code class="inline-code">SORT_DOWNLOADS_DST</code> so you can override without forking. To skip the catch-all, drop the <code class="inline-code">*) echo "Other"</code> branch from the <code class="inline-code">classify()</code> function.</em></p>
         </div>
       </section>
 

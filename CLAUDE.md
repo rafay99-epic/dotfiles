@@ -140,9 +140,12 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Exclusions are applied via `tmutil addexclusion -p` — see `docs/backup.html#part-5-exclusions` for the full list (node_modules, gradle, android, xcode derived data, NAS mounts, etc.).
 - **Full step-by-step setup** for adapting this to another machine: `docs/backup.html` (`/backup`).
 
-### Downloads auto-sort → NAS
-- `bin/sort-downloads` classifies files at the top level of `~/Downloads` and moves them into matching folders on `/Volumes/media/` (Pictures, PDFs, Documents, Screenshots, Installers, Movies, Music, Archives, Other).
-- Triggered in real time by `launchd/com.prometheus.sort-downloads.plist` — a **LaunchAgent** (not Daemon, because root daemons can't see user-mounted SMB shares). `WatchPaths` on `~/Downloads`, `ThrottleInterval=30`, `RunAtLoad=true`.
+### Downloads + Screenshots auto-sort → NAS
+- `bin/sort-downloads` sweeps multiple source folders and moves files into matching folders on `/Volumes/media/` (Pictures, PDFs, Documents, Screenshots, Installers, Movies, Music, Archives, Other).
+- **Sources** are defined by the `SOURCES` array at the top of the script as `"path|override"` pairs. Empty override → classify by extension/name; non-empty override → force every file into that category. Defaults:
+  - `~/Downloads|` — classify each file
+  - `~/Pictures/Screenshots|Screenshots` — everything routes to `Screenshots/` regardless of filename
+- Triggered in real time by `launchd/com.prometheus.sort-downloads.plist` — a **LaunchAgent** (not Daemon, because root daemons can't see user-mounted SMB shares). `WatchPaths` on both source folders, `ThrottleInterval=30`, `RunAtLoad=true`. A single launchd fire processes every source in one pass.
 - The plist uses `__HOME__` as a placeholder; `install.sh` templates it with the real `$HOME` when writing to `~/Library/LaunchAgents/`, so the repo stays portable.
 - Safety guards in the script: refuses to run when `/Volumes/media` isn't actually in the `mount` table (won't silently dump to a stub folder); skips partial downloads (`.crdownload` / `.download` / `.part` / `.tmp` / `.aria2` / `.opdownload`) and any file younger than 30s; skips directories and hidden files; renames on collision (`name (1).ext`); single-instance `mkdir` lock at `/tmp/sort-downloads.lock`.
 - Logs: `~/.sort-download/sort-downloads.log` (kept in `$HOME` so they're easy to tail/clear without diving into `Library/Logs`). Manual sweep: `sort-downloads [-n|-v]`. Trigger immediately: `launchctl start com.prometheus.sort-downloads`.
