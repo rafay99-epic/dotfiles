@@ -72,9 +72,36 @@ plugins=(
 #--------------
 export LANG=en_US.UTF-8
 
+# ── nvm — lazy load ──────────────────────────────────────────────────────────
+# Sourcing nvm.sh costs ~600ms on every shell start. Defer it until the first
+# time `nvm`, `node`, `npm`, `npx`, `yarn`, or `pnpm` is actually invoked.
+#
+# Global npm tools (codex, claude-code, etc.) live in
+# $NVM_DIR/versions/node/<v>/bin — we pre-add the newest installed version to
+# $PATH so those binaries are findable immediately, without forcing nvm.sh to
+# source. nvm itself (version switching, .nvmrc auto-use) still loads on first
+# command invocation.
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+if [[ -d "$NVM_DIR/versions/node" ]]; then
+  # newest installed version, version-sorted (v22 wins over v18, etc.)
+  _nvm_latest="$(ls -1 "$NVM_DIR/versions/node" 2>/dev/null | sort -V | tail -1)"
+  if [[ -n "$_nvm_latest" && -d "$NVM_DIR/versions/node/$_nvm_latest/bin" ]]; then
+    export PATH="$NVM_DIR/versions/node/$_nvm_latest/bin:$PATH"
+  fi
+  unset _nvm_latest
+fi
+
+_nvm_lazy_init() {
+  # Drop our wrapper functions so the real commands (from nvm.sh) take over
+  unset -f nvm node npm npx yarn pnpm 2>/dev/null
+  [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+  [[ -s "$NVM_DIR/bash_completion" ]] && source "$NVM_DIR/bash_completion"
+}
+for _cmd in nvm node npm npx yarn pnpm; do
+  eval "${_cmd}() { _nvm_lazy_init; ${_cmd} \"\$@\"; }"
+done
+unset _cmd
 # The following lines have been added by Docker Desktop to enable Docker CLI completions.
 fpath=($HOME/.docker/completions $fpath)
 autoload -Uz compinit
