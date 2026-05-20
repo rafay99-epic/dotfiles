@@ -1,0 +1,53 @@
+name: Bug report
+description: Something doesn't work as documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Please check [dotfiles.rafay99.com](https://dotfiles.rafay99.com) and existing issues first — the docs cover most behaviour.
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: "e.g. 15.2 (Sequoia)"
+    validations:
+      required: true
+
+  - type: input
+    id: shell
+    attributes:
+      label: Shell
+      placeholder: "zsh 5.9 / fish 3.7 / bash 5.2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what did you get?
+      placeholder: |
+        1. Ran `./install.sh`
+        2. Expected: …
+        3. Got: …
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs / output
+      description: Paste the output of the failing command. For sort-downloads bugs, attach `~/.sort-download/sort-downloads.log`.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight
+      options:
+        - label: I've read the relevant docs page on dotfiles.rafay99.com
+          required: true
+        - label: I've searched existing issues
+          required: true

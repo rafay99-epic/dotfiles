@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest a new tool, script, config, or docs improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        These dotfiles are a personal setup, but useful additions land regularly. The lower the friction (small, focused, portable), the more likely it gets merged.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the pain point first. "I want X" is less useful than "X is annoying because Y".
+      placeholder: |
+        Currently …
+        This means …
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What would you add or modify? File names, command names, or config keys are great.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other tools / approaches you ruled out and why.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-flight
+      options:
+        - label: This change works on a fresh Mac with a different username (no hardcoded `/Users/...` paths)
+          required: true
+        - label: I've checked CLAUDE.md for prior decisions in this area
+          required: true

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://dotfiles.rafay99.com
+    about: Full reference for install, configs, keybindings, and the gallery. Check here first.
+  - name: Discussion
+    url: https://github.com/rafay99-epic/dotfiles/discussions
+    about: Ask a question, share a tweak, or float an idea before opening an issue.
