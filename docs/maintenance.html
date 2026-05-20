@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Maintenance — Prometheus Dotfiles</title>
-  <meta name="description" content="Brewfile, gitconfig with delta, and the one-command update script." />
+  <meta name="description" content="Brewfile, gitconfig with delta, one-command update script, node_modules sweeper, and a line-count ranker for refactor radar." />
   <meta property="og:title" content="Maintenance — Prometheus Dotfiles" />
-  <meta property="og:description" content="Brewfile, gitconfig with delta, and the one-command update script." />
+  <meta property="og:description" content="Brewfile, gitconfig with delta, one-command update script, node_modules sweeper, and a line-count ranker for refactor radar." />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237aa2f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M13 2L3 14h9l-1 8 10-12h-9l1-8z'/></svg>" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -117,9 +117,9 @@
           <i data-lucide="refresh-cw" class="w-6 h-6 text-tn-green shrink-0"></i>
           <h2 class="section-title mb-0">Maintenance</h2>
         </div>
-        <p class="text-tn-sub mb-6">Declarative package lists, a global gitconfig with delta diffs, a one-command updater, and a worktree-friendly <code class="inline-code">node_modules</code> sweeper. Keeps the system reproducible, current, and tidy without thought.</p>
+        <p class="text-tn-sub mb-6">Declarative package lists, a global gitconfig with delta diffs, a one-command updater, a worktree-friendly <code class="inline-code">node_modules</code> sweeper, and a line-count ranker that exposes refactor candidates. Keeps the system reproducible, current, and tidy without thought.</p>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
           <a href="#maint-brewfile" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-cyan/50">
             <i data-lucide="box" class="w-5 h-5 text-tn-cyan shrink-0 mt-0.5"></i>
             <div><div class="font-semibold text-tn-fg text-sm">Brewfile</div><div class="text-tn-sub text-xs mt-0.5">Declarative package list</div></div>
@@ -135,6 +135,10 @@
           <a href="#maint-clean-node-modules" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-yellow/50">
             <i data-lucide="trash-2" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
             <div><div class="font-semibold text-tn-fg text-sm">bin/clean-node-modules</div><div class="text-tn-sub text-xs mt-0.5">Sweep <code class="inline-code">node_modules</code></div></div>
+          </a>
+          <a href="#maint-bigfiles" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-red/50">
+            <i data-lucide="ruler" class="w-5 h-5 text-tn-red shrink-0 mt-0.5"></i>
+            <div><div class="font-semibold text-tn-fg text-sm">bin/bigfiles</div><div class="text-tn-sub text-xs mt-0.5">Largest files · refactor radar</div></div>
           </a>
         </div>
 
@@ -273,6 +277,62 @@ clean-node-modules -y">Copy</button></div>
           </div>
 
           <p class="text-tn-sub text-xs"><em>Run from the directory you want to scan — the tool always uses <code class="inline-code">$PWD</code> as the root, never your home directory. <code class="inline-code">npm install</code> / <code class="inline-code">bun install</code> rebuilds <code class="inline-code">node_modules</code> from the existing lockfile, so deleting is safe on any committed project.</em></p>
+        </div>
+
+        <!-- bin/bigfiles -->
+        <div id="maint-bigfiles" class="mt-10">
+          <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="ruler" class="w-5 h-5 text-tn-red"></i>bin/bigfiles</h3>
+          <p class="text-tn-sub text-sm mb-3">Refactor radar. Ranks every source file under <code class="inline-code">$PWD</code> by line count, skipping the noise — <code class="inline-code">node_modules</code>, <code class="inline-code">.git</code>, <code class="inline-code">build</code>, <code class="inline-code">dist</code>, <code class="inline-code">out</code>, <code class="inline-code">target</code>, <code class="inline-code">.next</code>, <code class="inline-code">.nuxt</code>, <code class="inline-code">.turbo</code>, <code class="inline-code">.expo</code>, <code class="inline-code">.yarn</code>, <code class="inline-code">.venv</code>, <code class="inline-code">__pycache__</code>, <code class="inline-code">.gradle</code>, <code class="inline-code">Pods</code>, <code class="inline-code">DerivedData</code>, <code class="inline-code">.dart_tool</code>, <code class="inline-code">vendor</code>, lock files, minified bundles, source maps — so the ranking reflects code you actually wrote. Useful when an AI-assisted codebase grows quietly and a single file drifts past four-figure line counts. Symlinked to <code class="inline-code">~/.local/bin/bigfiles</code> so it's on <code class="inline-code">$PATH</code> in zsh and bash; a thin fish wrapper at <code class="inline-code">~/.config/fish/functions/bigfiles.fish</code> exposes it as a fish function too.</p>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Top 20 files in the current project</span><button class="copy-btn" data-code="bigfiles">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">bigfiles</span></pre>
+          </div>
+
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Flag</th><th>What it does</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code text-tn-cyan">-n &lt;N&gt;</code> / <code class="inline-code text-tn-cyan">--top &lt;N&gt;</code></td><td class="text-tn-sub">Show the top <code class="inline-code">N</code> files (default 20)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">-t &lt;N&gt;</code> / <code class="inline-code text-tn-cyan">--threshold &lt;N&gt;</code></td><td class="text-tn-sub">Only files with at least <code class="inline-code">N</code> lines</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">-e &lt;csv&gt;</code> / <code class="inline-code text-tn-cyan">--ext &lt;csv&gt;</code></td><td class="text-tn-sub">Restrict to extensions, e.g. <code class="inline-code">ts,tsx,js</code></td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">-a</code> / <code class="inline-code text-tn-cyan">--all</code></td><td class="text-tn-sub">Don't filter by extension — count every file</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">--cloc</code></td><td class="text-tn-sub">Delegate to <code class="inline-code">cloc</code> with the same excludes — full code/comment/blank breakdown</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">-h</code> / <code class="inline-code text-tn-cyan">--help</code></td><td class="text-tn-sub">Show usage</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Color</th><th>Line count</th></tr></thead>
+              <tbody>
+                <tr><td class="text-tn-red">red</td><td class="text-tn-sub">≥ 2,000 — split it</td></tr>
+                <tr><td class="text-tn-yellow">yellow</td><td class="text-tn-sub">≥ 1,000 — review</td></tr>
+                <tr><td class="text-tn-cyan">cyan</td><td class="text-tn-sub">≥ 500 — keep an eye on it</td></tr>
+                <tr><td class="text-tn-green">green</td><td class="text-tn-sub">&lt; 500 — fine</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Refactor radar — every file ≥ 500 lines</span><button class="copy-btn" data-code="cd ~/code/my-app
+bigfiles -t 500 -n 100">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">cd</span> ~/code/my-app
+<span class="text-tn-green">bigfiles</span> -t 500 -n 100</pre>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">React Native / Next.js — just the TS sources</span><button class="copy-btn" data-code="bigfiles -e ts,tsx -n 30">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">bigfiles</span> -e ts,tsx -n 30</pre>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Full code/comment/blank breakdown via cloc</span><button class="copy-btn" data-code="bigfiles --cloc">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">bigfiles</span> --cloc</pre>
+          </div>
+
+          <p class="text-tn-sub text-xs"><em>Counts physical lines (<code class="inline-code">wc -l</code>) — fast and good enough for "what should I split next?" The <code class="inline-code">--cloc</code> mode hands the same exclude list to <a class="text-tn-blue hover:underline" href="https://github.com/AlDanial/cloc" target="_blank" rel="noopener noreferrer">cloc</a> for a comments-vs-code breakdown when you need the nuance (<code class="inline-code">brew install cloc</code>).</em></p>
         </div>
       </section>
 

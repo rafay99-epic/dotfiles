@@ -1,0 +1,178 @@
+#!/usr/bin/env bash
+# bigfiles — find the largest source files (by line count) under $PWD.
+#
+# Skips dependency, build, and platform folders (node_modules, .git, build,
+# dist, .next, ios/Pods, android/build, target, .venv, etc.) so the results
+# reflect human-authored code. Defaults to code-ish extensions; pass -a to
+# include every file.
+#
+# Usage:
+#   bigfiles                  # top 20 by line count
+#   bigfiles -n 50            # top 50
+#   bigfiles -t 500           # only files with >= 500 lines
+#   bigfiles -e ts,tsx,js     # restrict to specific extensions
+#   bigfiles -a               # don't filter by extension
+#   bigfiles --cloc           # full code/comment/blank breakdown via cloc
+#   bigfiles -h               # help
+
+set -uo pipefail
+
+TOP=20
+THRESHOLD=0
+EXTS=""
+ALL_FILES=0
+RUN_CLOC=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--top)       TOP="$2"; shift 2 ;;
+    -t|--threshold) THRESHOLD="$2"; shift 2 ;;
+    -e|--ext)       EXTS="$2"; shift 2 ;;
+    -a|--all)       ALL_FILES=1; shift ;;
+    --cloc)         RUN_CLOC=1; shift ;;
+    -h|--help)
+      sed -n '2,16p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0 ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      echo "Try: bigfiles -h" >&2
+      exit 2 ;;
+  esac
+done
+
+if ! [[ "$TOP" =~ ^[0-9]+$ ]] || ! [[ "$THRESHOLD" =~ ^[0-9]+$ ]]; then
+  echo "Error: -n and -t expect non-negative integers" >&2
+  exit 2
+fi
+
+ROOT="$(pwd)"
+
+# Folders that pollute results: deps, builds, platform output, caches, IDE.
+EXCLUDE_DIRS=(
+  node_modules .git .svn .hg
+  build dist out target coverage
+  .next .nuxt .turbo .cache .parcel-cache .vite .svelte-kit
+  .expo .expo-shared .yarn .pnp
+  __pycache__ .venv venv env .tox .mypy_cache .pytest_cache .ruff_cache
+  .gradle .idea .vscode
+  Pods DerivedData
+  vendor bower_components
+  .terraform .serverless
+  .dart_tool .flutter-plugins-dependencies
+)
+
+# Generated / lock files that aren't worth ranking even if they slip past dirs.
+EXCLUDE_FILES=(
+  '*.min.js' '*.min.css' '*.bundle.js' '*.map'
+  'package-lock.json' 'yarn.lock' 'pnpm-lock.yaml' 'bun.lockb'
+  'Cargo.lock' 'composer.lock' 'Podfile.lock' 'Gemfile.lock'
+)
+
+# Code-ish extensions (used unless -a or -e overrides).
+DEFAULT_EXTS="js,jsx,ts,tsx,mjs,cjs,vue,svelte,astro,py,rb,go,rs,java,kt,kts,swift,m,mm,c,cc,cpp,h,hh,hpp,cs,php,scala,clj,ex,exs,erl,lua,sh,bash,zsh,fish,pl,r,jl,dart,nim,zig,sql,html,htm,css,scss,sass,less,styl,json,yml,yaml,toml,xml,md,mdx,tex"
+
+# ── --cloc delegate ─────────────────────────────────────────────────────────
+if (( RUN_CLOC )); then
+  if ! command -v cloc >/dev/null 2>&1; then
+    echo "cloc not installed. Install with: brew install cloc" >&2
+    exit 1
+  fi
+  excl_csv="$(IFS=,; echo "${EXCLUDE_DIRS[*]}")"
+  exec cloc --exclude-dir="$excl_csv" "$ROOT"
+fi
+
+# ── Build find expression ───────────────────────────────────────────────────
+prune_args=( '(' )
+for i in "${!EXCLUDE_DIRS[@]}"; do
+  (( i > 0 )) && prune_args+=( -o )
+  prune_args+=( -name "${EXCLUDE_DIRS[$i]}" )
+done
+prune_args+=( ')' )
+
+file_exclude_args=()
+for pattern in "${EXCLUDE_FILES[@]}"; do
+  file_exclude_args+=( '!' -name "$pattern" )
+done
+
+ext_args=()
+if (( ! ALL_FILES )); then
+  effective_exts="${EXTS:-$DEFAULT_EXTS}"
+  IFS=',' read -r -a EXT_LIST <<< "$effective_exts"
+  ext_args+=( '(' )
+  for i in "${!EXT_LIST[@]}"; do
+    (( i > 0 )) && ext_args+=( -o )
+    ext_args+=( -iname "*.${EXT_LIST[$i]}" )
+  done
+  ext_args+=( ')' )
+fi
+
+# ── Count lines ─────────────────────────────────────────────────────────────
+TMP="$(mktemp)"
+trap 'rm -f "$TMP"' EXIT
+
+if (( ALL_FILES )); then
+  find "$ROOT" -type d "${prune_args[@]}" -prune \
+    -o -type f "${file_exclude_args[@]}" -print0 2>/dev/null \
+  | xargs -0 wc -l 2>/dev/null \
+  | awk '!/^[[:space:]]*[0-9]+[[:space:]]+total$/ && NF>=2' > "$TMP"
+else
+  find "$ROOT" -type d "${prune_args[@]}" -prune \
+    -o -type f "${ext_args[@]}" "${file_exclude_args[@]}" -print0 2>/dev/null \
+  | xargs -0 wc -l 2>/dev/null \
+  | awk '!/^[[:space:]]*[0-9]+[[:space:]]+total$/ && NF>=2' > "$TMP"
+fi
+
+if [[ ! -s "$TMP" ]]; then
+  echo "No matching files found under $ROOT"
+  exit 0
+fi
+
+TOTAL_FILES="$(wc -l < "$TMP" | tr -d ' ')"
+TOTAL_LINES="$(awk '{sum+=$1} END {print sum+0}' "$TMP")"
+
+# ── Render ──────────────────────────────────────────────────────────────────
+if [[ -t 1 ]]; then
+  BOLD=$'\033[1m'; DIM=$'\033[2m'; RED=$'\033[31m'; YEL=$'\033[33m'
+  CYAN=$'\033[36m'; GREEN=$'\033[32m'; RESET=$'\033[0m'
+else
+  BOLD=''; DIM=''; RED=''; YEL=''; CYAN=''; GREEN=''; RESET=''
+fi
+
+printf "\n%sLargest files under %s%s\n" "$BOLD" "$ROOT" "$RESET"
+printf "%sscanned %d files · %d total lines%s\n\n" "$DIM" "$TOTAL_FILES" "$TOTAL_LINES" "$RESET"
+
+awk -v thresh="$THRESHOLD" '$1+0 >= thresh' "$TMP" \
+  | sort -k1,1 -nr \
+  | head -n "$TOP" \
+  | awk -v root="$ROOT/" -v bold="$BOLD" -v dim="$DIM" \
+        -v red="$RED" -v yel="$YEL" -v cyan="$CYAN" -v green="$GREEN" -v rst="$RESET" '
+    {
+      lines = $1 + 0
+      # Strip leading whitespace + number, leaving the path (which may contain spaces).
+      sub(/^[[:space:]]*[0-9]+[[:space:]]+/, "")
+      path = $0
+      sub("^" root, "", path)
+      name = path
+      sub(/.*\//, "", name)
+      dir = path
+      if (dir == name) { dir = "." } else { sub(/\/[^\/]+$/, "", dir) }
+
+      if      (lines >= 2000) color = red
+      else if (lines >= 1000) color = yel
+      else if (lines >= 500)  color = cyan
+      else                    color = green
+
+      if (dir == ".") {
+        printf "  %s%6d%s  %s%s%s\n", color, lines, rst, bold, name, rst
+      } else {
+        printf "  %s%6d%s  %s%s/%s%s%s%s\n", \
+          color, lines, rst, dim, dir, rst, bold, name, rst
+      }
+    }
+  '
+
+if command -v cloc >/dev/null 2>&1; then
+  printf "\n%sTip: 'bigfiles --cloc' for a full code/comment/blank breakdown.%s\n" "$DIM" "$RESET"
+else
+  printf "\n%sTip: install cloc ('brew install cloc') for code/comment breakdowns.%s\n" "$DIM" "$RESET"
+fi

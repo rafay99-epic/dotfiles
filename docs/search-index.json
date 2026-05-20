@@ -308,6 +308,13 @@
     "kind": "section"
   },
   {
+    "title": "bin/bigfiles",
+    "page": "Maintenance",
+    "url": "/maintenance#maint-bigfiles",
+    "snippet": "bin/bigfiles Refactor radar. Ranks every source file under $PWD by line count, skipping node_modules, .git, build, dist, .next, .nuxt, .turbo, .expo, .venv, __pycache__, .gradle, Pods, DerivedData, vendor, lock files, and minified bundles. Flags: -n top N (default 20), -t threshold, -e ts,tsx,js extension filter, -a count every file, --cloc full code/comment breakdown via cloc.",
+    "kind": "section"
+  },
+  {
     "title": "Time Machine + TrueNAS — Setup Guide",
     "page": "Backup",
     "url": "/backup",

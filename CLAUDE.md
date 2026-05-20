@@ -61,7 +61,8 @@ dotfiles/
 │   ├── update                  # one-command updater (git pull + brew + bun + npm)
 │   ├── tm-status               # Time Machine status with progress bar (--watch / --json)
 │   ├── tm-backup               # manual Time Machine trigger (--watch / --stop)
-│   └── clean-node-modules      # scan $PWD for node_modules, show sizes, delete after confirm
+│   ├── clean-node-modules      # scan $PWD for node_modules, show sizes, delete after confirm
+│   └── bigfiles                # rank largest source files (by line count); skips deps/builds; --cloc passthrough
 ├── docs/                       # static Vercel-hosted site (see "Multi-page docs" above)
 │   ├── index.html              # landing
 │   ├── install.html · apps.html · symlinks.html · desktop.html · terminal.html

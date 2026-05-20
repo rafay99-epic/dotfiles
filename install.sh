@@ -975,8 +975,9 @@ link "$DOTFILES/bin/killport"                       "$HOME/.local/bin/killport"
 link "$DOTFILES/bin/tm-status"                      "$HOME/.local/bin/tm-status"
 link "$DOTFILES/bin/tm-backup"                      "$HOME/.local/bin/tm-backup"
 link "$DOTFILES/bin/clean-node-modules"             "$HOME/.local/bin/clean-node-modules"
+link "$DOTFILES/bin/bigfiles"                       "$HOME/.local/bin/bigfiles"
 if [[ "$DRY_RUN" == false ]]; then
-  chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" "$HOME/.local/bin/clean-node-modules" 2>/dev/null || true
+  chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" "$HOME/.local/bin/clean-node-modules" "$HOME/.local/bin/bigfiles" 2>/dev/null || true
 fi
 
 # ── Time Machine: monthly LaunchDaemon ───────────────────────────────────────
@@ -1003,6 +1004,7 @@ if [[ -f "$TM_PLIST_SRC" ]]; then
   fi
 fi
 link "$DOTFILES/fish/functions/killport.fish"       "$HOME/.config/fish/functions/killport.fish"
+link "$DOTFILES/fish/functions/bigfiles.fish"       "$HOME/.config/fish/functions/bigfiles.fish"
 link "$DOTFILES/fish/functions/dev.fish"            "$HOME/.config/fish/functions/dev.fish"
 link "$DOTFILES/fish/functions/gm.fish"             "$HOME/.config/fish/functions/gm.fish"
 link "$DOTFILES/fish/completions/dev.fish"          "$HOME/.config/fish/completions/dev.fish"
