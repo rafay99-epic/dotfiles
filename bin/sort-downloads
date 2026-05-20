@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+# sort-downloads — move new files from ~/Downloads into category folders on NAS.
+#
+# Watches the top level of ~/Downloads, classifies each file by extension (and
+# screenshot-name pattern), then moves it to /Volumes/media/<Category>/. Files
+# inside subfolders of Downloads are left alone — top level only.
+#
+# Categories:
+#   Screenshots   PNG matching "Screenshot *" or "Screen Shot *"
+#   Pictures      jpg jpeg png gif webp heic heif tiff tif bmp svg raw cr2 nef
+#   PDFs          pdf
+#   Documents     doc docx xls xlsx ppt pptx odt ods odp txt md rtf csv epub
+#                 pages numbers key
+#   Installers    dmg pkg iso mpkg
+#   Movies        mp4 mov mkv webm avi m4v flv wmv
+#   Music         mp3 m4a wav flac ogg aac aiff
+#   Archives      zip tar gz tgz bz2 7z rar xz zst
+#   Other         everything else
+#
+# Safety:
+#   - Skips partial downloads (.crdownload .download .part .tmp .aria2 .opdownload)
+#   - Skips hidden files (.DS_Store, etc) and directories
+#   - Only moves files older than $SETTLE_SECONDS (default 30s) — protects
+#     against grabbing a file that's still being written
+#   - Refuses to run if the NAS isn't actually mounted (checks `mount`, not
+#     just whether /Volumes/media exists)
+#   - On collision: renames to "name (1).ext", "name (2).ext", ...
+#   - Cross-volume mv copies first then unlinks — source survives if copy fails
+#   - Single-instance lock so a burst of launchd events doesn't overlap
+#
+# Usage:
+#   sort-downloads              # one sweep (this is what launchd calls)
+#   sort-downloads -n           # dry-run, just print decisions
+#   sort-downloads -v           # verbose: log skips too
+#   sort-downloads -h           # help
+#
+# Logs: ~/.sort-download/sort-downloads.log
+
+set -uo pipefail
+
+SOURCE="${SORT_DOWNLOADS_SRC:-$HOME/Downloads}"
+NAS="${SORT_DOWNLOADS_DST:-/Volumes/media}"
+LOG="$HOME/.sort-download/sort-downloads.log"
+LOCK="/tmp/sort-downloads.lock"
+SETTLE_SECONDS=30
+
+DRY=0
+VERBOSE=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--dry-run) DRY=1 ;;
+    -v|--verbose) VERBOSE=1 ;;
+    -h|--help)
+      sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      echo "Try: sort-downloads -h" >&2
+      exit 2
+      ;;
+  esac
+  shift
+done
+
+mkdir -p "$(dirname "$LOG")" 2>/dev/null || true
+
+log() {
+  printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$LOG"
+}
+vlog() {
+  (( VERBOSE )) || return 0
+  log "$@"
+}
+
+# Single-instance guard — mkdir is atomic on all POSIX filesystems.
+if ! mkdir "$LOCK" 2>/dev/null; then
+  vlog "another instance holds the lock, exiting"
+  exit 0
+fi
+trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT INT TERM
+
+# Confirm the NAS is *actually* mounted. A stub folder at /Volumes/media would
+# pass `[ -d ]`, so check the mount table instead.
+if ! /sbin/mount | grep -q " on ${NAS} "; then
+  log "NAS not mounted at $NAS — skipping sweep"
+  exit 0
+fi
+
+# Make sure source exists (might not on a fresh install with a custom $HOME).
+if [[ ! -d "$SOURCE" ]]; then
+  log "source missing: $SOURCE"
+  exit 0
+fi
+
+classify() {
+  local name="$1"
+  case "$name" in
+    "Screenshot "*|"Screen Shot "*) echo "Screenshots"; return ;;
+  esac
+
+  local lower="${name##*.}"
+  lower="$(printf '%s' "$lower" | tr '[:upper:]' '[:lower:]')"
+  # No extension at all
+  [[ "$lower" == "$name" ]] && { echo "Other"; return; }
+
+  case "$lower" in
+    jpg|jpeg|png|gif|webp|heic|heif|tiff|tif|bmp|svg|raw|cr2|nef) echo "Pictures" ;;
+    pdf)                                                          echo "PDFs" ;;
+    doc|docx|xls|xlsx|ppt|pptx|odt|ods|odp|txt|md|rtf|csv|epub|pages|numbers|key)
+                                                                  echo "Documents" ;;
+    dmg|pkg|iso|mpkg)                                             echo "Installers" ;;
+    mp4|mov|mkv|webm|avi|m4v|flv|wmv)                             echo "Movies" ;;
+    mp3|m4a|wav|flac|ogg|aac|aiff)                                echo "Music" ;;
+    zip|tar|gz|tgz|bz2|7z|rar|xz|zst)                             echo "Archives" ;;
+    *)                                                            echo "Other" ;;
+  esac
+}
+
+is_partial() {
+  case "$1" in
+    .*) return 0 ;;
+    *.crdownload|*.download|*.part|*.tmp|*.aria2|*.opdownload) return 0 ;;
+  esac
+  return 1
+}
+
+is_settled() {
+  local mtime now
+  mtime="$(stat -f %m "$1" 2>/dev/null)" || return 1
+  now="$(date +%s)"
+  (( now - mtime >= SETTLE_SECONDS ))
+}
+
+# Pick a destination path that doesn't already exist on the NAS. Finder-style
+# "(1)", "(2)", … suffix before the extension.
+resolve_dest() {
+  local dir="$1" name="$2"
+  local base ext target n=1
+  if [[ "$name" == *.* && "$name" != .* ]]; then
+    base="${name%.*}"
+    ext=".${name##*.}"
+  else
+    base="$name"
+    ext=""
+  fi
+  target="$dir/$name"
+  while [[ -e "$target" ]]; do
+    target="$dir/${base} (${n})${ext}"
+    n=$(( n + 1 ))
+  done
+  printf '%s' "$target"
+}
+
+moved=0
+skipped=0
+failed=0
+
+while IFS= read -r -d '' src; do
+  name="$(basename "$src")"
+
+  if [[ -d "$src" ]]; then
+    vlog "skip dir: $name"
+    skipped=$(( skipped + 1 ))
+    continue
+  fi
+
+  if is_partial "$name"; then
+    vlog "skip partial: $name"
+    skipped=$(( skipped + 1 ))
+    continue
+  fi
+
+  if ! is_settled "$src"; then
+    vlog "skip unsettled (<${SETTLE_SECONDS}s): $name"
+    skipped=$(( skipped + 1 ))
+    continue
+  fi
+
+  category="$(classify "$name")"
+  dst_dir="$NAS/$category"
+
+  if (( DRY )); then
+    log "[dry] $name -> $category/"
+    continue
+  fi
+
+  if ! mkdir -p "$dst_dir" 2>/dev/null; then
+    log "ERR mkdir failed: $dst_dir — leaving $name in Downloads"
+    failed=$(( failed + 1 ))
+    continue
+  fi
+
+  dst="$(resolve_dest "$dst_dir" "$name")"
+  if mv -- "$src" "$dst" 2>>"$LOG"; then
+    log "mv $name -> ${dst#$NAS/}"
+    moved=$(( moved + 1 ))
+  else
+    log "ERR mv failed: $name -> $dst"
+    failed=$(( failed + 1 ))
+  fi
+done < <(find "$SOURCE" -mindepth 1 -maxdepth 1 -print0 2>/dev/null)
+
+if (( moved > 0 || failed > 0 )); then
+  log "done — moved=$moved skipped=$skipped failed=$failed"
+elif (( VERBOSE )); then
+  log "done — nothing to move (skipped=$skipped)"
+fi

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ============================================================================
+  com.prometheus.sort-downloads — auto-sort ~/Downloads to NAS
+
+  Watches ~/Downloads via launchd's WatchPaths and fires `sort-downloads`
+  whenever a file is added, removed, or modified. The script classifies new
+  files (images, PDFs, docs, screenshots, DMGs, etc.) and moves each to a
+  matching top-level folder on /Volumes/media.
+
+  This is a LaunchAgent — not a LaunchDaemon — because it touches user-mounted
+  resources (the SMB share at /Volumes/media). Daemons run as root before the
+  user session and cannot see user mounts.
+
+  __HOME__ is a placeholder. install.sh substitutes $HOME before writing this
+  file into ~/Library/LaunchAgents/ — the source in the repo intentionally
+  does not reference any user-specific path.
+
+  Install (handled by install.sh):
+    sed "s|__HOME__|$HOME|g" com.prometheus.sort-downloads.plist \
+      > ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist
+    launchctl unload ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist 2>/dev/null
+    launchctl load   ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist
+
+  Uninstall:
+    launchctl unload ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist
+    rm               ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist
+
+  Trigger immediately for testing:
+    launchctl start com.prometheus.sort-downloads
+
+  Logs:
+    tail -f ~/.sort-download/sort-downloads.log
+  ============================================================================
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.prometheus.sort-downloads</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__HOME__/.local/bin/sort-downloads</string>
+    </array>
+
+    <!-- Fire whenever ~/Downloads changes. launchd coalesces rapid events. -->
+    <key>WatchPaths</key>
+    <array>
+        <string>__HOME__/Downloads</string>
+    </array>
+
+    <!-- Debounce: at most one invocation every 30s. Also gives partial
+         downloads time to finish; the script's own settle check filters
+         anything still in flight. -->
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+
+    <!-- Sweep on login / first install so anything already in Downloads
+         gets sorted on day one. -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__HOME__/.sort-download/sort-downloads.log</string>
+    <key>StandardErrorPath</key>
+    <string>__HOME__/.sort-download/sort-downloads.log</string>
+</dict>
+</plist>

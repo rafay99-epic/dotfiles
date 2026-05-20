@@ -976,8 +976,9 @@ link "$DOTFILES/bin/tm-status"                      "$HOME/.local/bin/tm-status"
 link "$DOTFILES/bin/tm-backup"                      "$HOME/.local/bin/tm-backup"
 link "$DOTFILES/bin/clean-node-modules"             "$HOME/.local/bin/clean-node-modules"
 link "$DOTFILES/bin/bigfiles"                       "$HOME/.local/bin/bigfiles"
+link "$DOTFILES/bin/sort-downloads"                 "$HOME/.local/bin/sort-downloads"
 if [[ "$DRY_RUN" == false ]]; then
-  chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" "$HOME/.local/bin/clean-node-modules" "$HOME/.local/bin/bigfiles" 2>/dev/null || true
+  chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" "$HOME/.local/bin/clean-node-modules" "$HOME/.local/bin/bigfiles" "$HOME/.local/bin/sort-downloads" 2>/dev/null || true
 fi
 
 # ── Time Machine: monthly LaunchDaemon ───────────────────────────────────────
@@ -1003,6 +1004,40 @@ if [[ -f "$TM_PLIST_SRC" ]]; then
     dry "install $TM_PLIST_DST + sudo tmutil disable"
   fi
 fi
+
+# ── Downloads auto-sort: LaunchAgent ─────────────────────────────────────────
+# Watches ~/Downloads and moves new files to /Volumes/media/<Category>/.
+# User-scoped LaunchAgent — no sudo needed; daemons can't see SMB mounts.
+# Plist in the repo uses __HOME__ as a placeholder; we substitute $HOME on
+# install so the dotfiles repo stays portable.
+SD_PLIST_SRC="$DOTFILES/launchd/com.prometheus.sort-downloads.plist"
+SD_PLIST_DST="$HOME/Library/LaunchAgents/com.prometheus.sort-downloads.plist"
+if [[ -f "$SD_PLIST_SRC" ]]; then
+  if [[ "$DRY_RUN" == false ]]; then
+    mkdir -p "$HOME/Library/LaunchAgents"
+    SD_RENDERED="$(mktemp -t sort-downloads-plist.XXXXXX)"
+    sed "s|__HOME__|$HOME|g" "$SD_PLIST_SRC" > "$SD_RENDERED"
+    if [[ -f "$SD_PLIST_DST" ]] && cmp -s "$SD_RENDERED" "$SD_PLIST_DST"; then
+      success "Already installed: Downloads auto-sort LaunchAgent"
+      SKIPPED+=("sort-downloads LaunchAgent")
+      rm -f "$SD_RENDERED"
+    else
+      info "Installing Downloads auto-sort LaunchAgent..."
+      launchctl unload "$SD_PLIST_DST" 2>/dev/null || true
+      mv "$SD_RENDERED" "$SD_PLIST_DST"
+      chmod 644 "$SD_PLIST_DST"
+      if launchctl load "$SD_PLIST_DST"; then
+        success "Downloads auto-sort LaunchAgent loaded (watches ~/Downloads)"
+        INSTALLED+=("sort-downloads LaunchAgent")
+      else
+        error "Failed to load $SD_PLIST_DST"
+      fi
+    fi
+  else
+    dry "install $SD_PLIST_DST (templated) + launchctl load"
+  fi
+fi
+
 link "$DOTFILES/fish/functions/killport.fish"       "$HOME/.config/fish/functions/killport.fish"
 link "$DOTFILES/fish/functions/bigfiles.fish"       "$HOME/.config/fish/functions/bigfiles.fish"
 link "$DOTFILES/fish/functions/dev.fish"            "$HOME/.config/fish/functions/dev.fish"

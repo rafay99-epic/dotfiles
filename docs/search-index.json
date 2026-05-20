@@ -315,6 +315,13 @@
     "kind": "section"
   },
   {
+    "title": "bin/sort-downloads",
+    "page": "Maintenance",
+    "url": "/maintenance#maint-sort-downloads",
+    "snippet": "bin/sort-downloads Background LaunchAgent that watches ~/Downloads in real time and moves new files to the TrueNAS share at /Volumes/media. Categories: Screenshots, Pictures, PDFs, Documents, Installers, Movies, Music, Archives, Other. Safety: skips partial downloads (.crdownload .download .part .tmp), files younger than 30s, hidden files, and directories. Refuses to run if the NAS isn't really mounted (checks `mount`, not just the folder). Renames on collision. Logs to ~/.sort-download/sort-downloads.log. launchd plist: com.prometheus.sort-downloads (LaunchAgent, WatchPaths, ThrottleInterval 30s, RunAtLoad true). Flags: -n dry-run, -v verbose, -h help. Auto-organize Downloads NAS SMB.",
+    "kind": "section"
+  },
+  {
     "title": "Time Machine + TrueNAS — Setup Guide",
     "page": "Backup",
     "url": "/backup",

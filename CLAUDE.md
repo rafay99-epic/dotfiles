@@ -62,7 +62,8 @@ dotfiles/
 │   ├── tm-status               # Time Machine status with progress bar (--watch / --json)
 │   ├── tm-backup               # manual Time Machine trigger (--watch / --stop)
 │   ├── clean-node-modules      # scan $PWD for node_modules, show sizes, delete after confirm
-│   └── bigfiles                # rank largest source files (by line count); skips deps/builds; --cloc passthrough
+│   ├── bigfiles                # rank largest source files (by line count); skips deps/builds; --cloc passthrough
+│   └── sort-downloads          # classify ~/Downloads files and move to /Volumes/media/<Category>/; -n dry-run
 ├── docs/                       # static Vercel-hosted site (see "Multi-page docs" above)
 │   ├── index.html              # landing
 │   ├── install.html · apps.html · symlinks.html · desktop.html · terminal.html
@@ -80,7 +81,8 @@ dotfiles/
 ├── ghostty/                    # GPU terminal config
 ├── git/.gitconfig              # delta diffs · sensible defaults · aliases
 ├── launchd/
-│   └── com.prometheus.tm-monthly.plist  # monthly Time Machine LaunchDaemon
+│   ├── com.prometheus.tm-monthly.plist       # monthly Time Machine LaunchDaemon
+│   └── com.prometheus.sort-downloads.plist   # ~/Downloads → NAS auto-sort LaunchAgent
 ├── lsd/                        # better-ls config
 ├── nas/
 │   └── truenas-media.inetloc   # login-item that auto-mounts the TrueNAS share
@@ -137,6 +139,14 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Helper commands: `tm-status` (pretty live progress), `tm-backup` (manual trigger / stop). Both in `bin/` and on `$PATH`.
 - Exclusions are applied via `tmutil addexclusion -p` — see `docs/backup.html#part-5-exclusions` for the full list (node_modules, gradle, android, xcode derived data, NAS mounts, etc.).
 - **Full step-by-step setup** for adapting this to another machine: `docs/backup.html` (`/backup`).
+
+### Downloads auto-sort → NAS
+- `bin/sort-downloads` classifies files at the top level of `~/Downloads` and moves them into matching folders on `/Volumes/media/` (Pictures, PDFs, Documents, Screenshots, Installers, Movies, Music, Archives, Other).
+- Triggered in real time by `launchd/com.prometheus.sort-downloads.plist` — a **LaunchAgent** (not Daemon, because root daemons can't see user-mounted SMB shares). `WatchPaths` on `~/Downloads`, `ThrottleInterval=30`, `RunAtLoad=true`.
+- The plist uses `__HOME__` as a placeholder; `install.sh` templates it with the real `$HOME` when writing to `~/Library/LaunchAgents/`, so the repo stays portable.
+- Safety guards in the script: refuses to run when `/Volumes/media` isn't actually in the `mount` table (won't silently dump to a stub folder); skips partial downloads (`.crdownload` / `.download` / `.part` / `.tmp` / `.aria2` / `.opdownload`) and any file younger than 30s; skips directories and hidden files; renames on collision (`name (1).ext`); single-instance `mkdir` lock at `/tmp/sort-downloads.lock`.
+- Logs: `~/.sort-download/sort-downloads.log` (kept in `$HOME` so they're easy to tail/clear without diving into `Library/Logs`). Manual sweep: `sort-downloads [-n|-v]`. Trigger immediately: `launchctl start com.prometheus.sort-downloads`.
+- Screenshot detection runs **before** image classification — files named `Screenshot *` or `Screen Shot *` land in `Screenshots/`, not `Pictures/`.
 
 ### Docs are multi-page, not a SPA
 Static HTML + Tailwind CDN + ~700 lines of vanilla JS in `script.js`. **No React, no build step.** The cost of a framework was assessed and rejected — the site is content, not an app. See decision rationale in conversation history (or just compare bundle sizes).

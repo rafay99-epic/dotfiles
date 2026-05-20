@@ -117,9 +117,9 @@
           <i data-lucide="refresh-cw" class="w-6 h-6 text-tn-green shrink-0"></i>
           <h2 class="section-title mb-0">Maintenance</h2>
         </div>
-        <p class="text-tn-sub mb-6">Declarative package lists, a global gitconfig with delta diffs, a one-command updater, a worktree-friendly <code class="inline-code">node_modules</code> sweeper, and a line-count ranker that exposes refactor candidates. Keeps the system reproducible, current, and tidy without thought.</p>
+        <p class="text-tn-sub mb-6">Declarative package lists, a global gitconfig with delta diffs, a one-command updater, a worktree-friendly <code class="inline-code">node_modules</code> sweeper, a line-count ranker that exposes refactor candidates, and a background LaunchAgent that quietly sweeps <code class="inline-code">~/Downloads</code> onto the NAS. Keeps the system reproducible, current, and tidy without thought.</p>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           <a href="#maint-brewfile" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-cyan/50">
             <i data-lucide="box" class="w-5 h-5 text-tn-cyan shrink-0 mt-0.5"></i>
             <div><div class="font-semibold text-tn-fg text-sm">Brewfile</div><div class="text-tn-sub text-xs mt-0.5">Declarative package list</div></div>
@@ -139,6 +139,10 @@
           <a href="#maint-bigfiles" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-red/50">
             <i data-lucide="ruler" class="w-5 h-5 text-tn-red shrink-0 mt-0.5"></i>
             <div><div class="font-semibold text-tn-fg text-sm">bin/bigfiles</div><div class="text-tn-sub text-xs mt-0.5">Largest files · refactor radar</div></div>
+          </a>
+          <a href="#maint-sort-downloads" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-blue/50">
+            <i data-lucide="folder-sync" class="w-5 h-5 text-tn-blue shrink-0 mt-0.5"></i>
+            <div><div class="font-semibold text-tn-fg text-sm">bin/sort-downloads</div><div class="text-tn-sub text-xs mt-0.5">Auto-sort Downloads → NAS</div></div>
           </a>
         </div>
 
@@ -333,6 +337,129 @@ bigfiles -t 500 -n 100">Copy</button></div>
           </div>
 
           <p class="text-tn-sub text-xs"><em>Counts physical lines (<code class="inline-code">wc -l</code>) — fast and good enough for "what should I split next?" The <code class="inline-code">--cloc</code> mode hands the same exclude list to <a class="text-tn-blue hover:underline" href="https://github.com/AlDanial/cloc" target="_blank" rel="noopener noreferrer">cloc</a> for a comments-vs-code breakdown when you need the nuance (<code class="inline-code">brew install cloc</code>).</em></p>
+        </div>
+
+        <!-- bin/sort-downloads -->
+        <div id="maint-sort-downloads" class="mt-10">
+          <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="folder-sync" class="w-5 h-5 text-tn-blue"></i>bin/sort-downloads</h3>
+          <p class="text-tn-sub text-sm mb-3">Background auto-sorter for <code class="inline-code">~/Downloads</code>. A <code class="inline-code">launchd</code> LaunchAgent watches the folder in real time; whenever a file lands, it's classified by extension (and screenshot-name pattern), then moved to a matching top-level folder on the TrueNAS share at <code class="inline-code">/Volumes/media/</code>. The local <code class="inline-code">Downloads</code> folder stays empty, the laptop's SSD stays free, and everything is one SMB-mount away on the NAS.</p>
+
+          <p class="text-tn-sub text-sm mb-3">Symlinked to <code class="inline-code">~/.local/bin/sort-downloads</code>; runs whenever you want via the CLI, but the LaunchAgent at <code class="inline-code">~/Library/LaunchAgents/com.prometheus.sort-downloads.plist</code> is what makes it automatic. Both are installed by <code class="inline-code">install.sh</code>.</p>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Categories</h4>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>NAS folder</th><th>Matches</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code text-tn-cyan">Screenshots/</code></td><td class="text-tn-sub">PNGs whose name starts with <code class="inline-code">Screenshot </code> or <code class="inline-code">Screen Shot </code> (matched <em>before</em> images, so they don't end up in Pictures)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">Pictures/</code></td><td class="text-tn-sub">jpg, jpeg, png, gif, webp, heic, heif, tiff, tif, bmp, svg, raw, cr2, nef</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">PDFs/</code></td><td class="text-tn-sub">pdf</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">Documents/</code></td><td class="text-tn-sub">doc, docx, xls, xlsx, ppt, pptx, odt, ods, odp, txt, md, rtf, csv, epub, pages, numbers, key</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">Installers/</code></td><td class="text-tn-sub">dmg, pkg, iso, mpkg</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">Movies/</code></td><td class="text-tn-sub">mp4, mov, mkv, webm, avi, m4v, flv, wmv</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">Music/</code></td><td class="text-tn-sub">mp3, m4a, wav, flac, ogg, aac, aiff</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">Archives/</code></td><td class="text-tn-sub">zip, tar, gz, tgz, bz2, 7z, rar, xz, zst</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">Other/</code></td><td class="text-tn-sub">Everything else — catch-all so Downloads stays empty</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">CLI usage</h4>
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">One-off sweep</span><button class="copy-btn" data-code="sort-downloads">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">sort-downloads</span></pre>
+          </div>
+
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Flag</th><th>What it does</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code text-tn-cyan">-n</code> / <code class="inline-code text-tn-cyan">--dry-run</code></td><td class="text-tn-sub">Log what <em>would</em> move, change nothing</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">-v</code> / <code class="inline-code text-tn-cyan">--verbose</code></td><td class="text-tn-sub">Also log skip reasons (hidden files, partial downloads, files younger than 30s)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">-h</code> / <code class="inline-code text-tn-cyan">--help</code></td><td class="text-tn-sub">Show usage</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Safety guards</h4>
+          <p class="text-tn-sub text-sm mb-3">The script is paranoid because <code class="inline-code">mv</code> on the wrong file is hard to undo:</p>
+          <ul class="text-tn-sub text-sm space-y-1 list-disc list-inside mb-3">
+            <li><strong class="text-tn-fg">NAS must be mounted.</strong> Refuses to run unless <code class="inline-code">/Volumes/media</code> appears in <code class="inline-code">mount</code> output — a stub folder won't fool it.</li>
+            <li><strong class="text-tn-fg">No partial downloads.</strong> Skips files ending in <code class="inline-code">.crdownload</code>, <code class="inline-code">.download</code>, <code class="inline-code">.part</code>, <code class="inline-code">.tmp</code>, <code class="inline-code">.aria2</code>, <code class="inline-code">.opdownload</code>, plus all dotfiles.</li>
+            <li><strong class="text-tn-fg">Settle delay.</strong> Files modified in the last <strong>30 seconds</strong> are left alone — protects against grabbing a file mid-write.</li>
+            <li><strong class="text-tn-fg">Top level only.</strong> Subfolders of <code class="inline-code">~/Downloads</code> are never touched. Directories at the root are skipped.</li>
+            <li><strong class="text-tn-fg">No collisions.</strong> If <code class="inline-code">foo.png</code> already exists on the NAS, the new one becomes <code class="inline-code">foo (1).png</code>, then <code class="inline-code">foo (2).png</code>, etc.</li>
+            <li><strong class="text-tn-fg">Cross-volume <code class="inline-code">mv</code> is copy-then-unlink.</strong> If the SMB link drops mid-transfer, the source stays in Downloads — no data loss.</li>
+            <li><strong class="text-tn-fg">Single-instance lock.</strong> Atomic <code class="inline-code">mkdir /tmp/sort-downloads.lock</code> prevents concurrent runs when launchd fires a burst of <code class="inline-code">WatchPaths</code> events.</li>
+          </ul>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">The LaunchAgent</h4>
+          <p class="text-tn-sub text-sm mb-3">Lives at <code class="inline-code">dotfiles/launchd/com.prometheus.sort-downloads.plist</code>. It's an <em>Agent</em>, not a <em>Daemon</em>, on purpose — root daemons can't see user-mounted SMB shares, so the worker must run as the user. The plist uses <code class="inline-code">__HOME__</code> as a placeholder; <code class="inline-code">install.sh</code> substitutes <code class="inline-code">$HOME</code> at install time so the repo stays portable.</p>
+
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Key</th><th>Value</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code text-tn-cyan">WatchPaths</code></td><td class="text-tn-sub"><code class="inline-code">~/Downloads</code> — fires on any change</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">ThrottleInterval</code></td><td class="text-tn-sub">30s — debounces bursts; also gives partial downloads time to finish</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">RunAtLoad</code></td><td class="text-tn-sub"><code class="inline-code">true</code> — sweeps anything already in Downloads on login</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">StandardOutPath</code> / <code class="inline-code text-tn-cyan">StandardErrorPath</code></td><td class="text-tn-sub"><code class="inline-code">~/.sort-download/sort-downloads.log</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Manual install (install.sh does this for you)</span><button class="copy-btn" data-code="mkdir -p ~/Library/LaunchAgents
+sed &quot;s|__HOME__|$HOME|g&quot; ~/dotfiles/launchd/com.prometheus.sort-downloads.plist \
+  &gt; ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist
+launchctl load ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">mkdir</span> -p ~/Library/LaunchAgents
+<span class="text-tn-blue">sed</span> <span class="text-tn-green">"s|__HOME__|$HOME|g"</span> ~/dotfiles/launchd/com.prometheus.sort-downloads.plist \
+  &gt; ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist
+<span class="text-tn-blue">launchctl</span> load ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist</pre>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Check it's loaded</span><button class="copy-btn" data-code="launchctl list | grep sort-downloads">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">launchctl</span> list | <span class="text-tn-blue">grep</span> sort-downloads</pre>
+          </div>
+
+          <p class="text-tn-sub text-sm mb-3">A line like <code class="inline-code">-	0	com.prometheus.sort-downloads</code> means loaded and waiting. The middle column is the exit code of the last run.</p>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Force a sweep right now</span><button class="copy-btn" data-code="launchctl start com.prometheus.sort-downloads">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">launchctl</span> start com.prometheus.sort-downloads</pre>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Uninstall</span><button class="copy-btn" data-code="launchctl unload ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist
+rm ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">launchctl</span> unload ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist
+<span class="text-tn-blue">rm</span> ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist</pre>
+          </div>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Logs</h4>
+          <p class="text-tn-sub text-sm mb-3">All activity goes to <code class="inline-code">~/.sort-download/sort-downloads.log</code> — kept in <code class="inline-code">$HOME</code> on purpose, so it's a single <code class="inline-code">tail</code> away without diving into <code class="inline-code">Library/Logs</code>.</p>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Live tail</span><button class="copy-btn" data-code="tail -f ~/.sort-download/sort-downloads.log">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">tail</span> -f ~/.sort-download/sort-downloads.log</pre>
+          </div>
+
+          <p class="text-tn-sub text-sm mb-3">Sample lines:</p>
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">~/.sort-download/sort-downloads.log</span></div>
+            <pre class="code-body text-xs"><span class="text-tn-sub">[2026-05-20 20:30:44]</span> mv logo.png -&gt; Pictures/logo.png
+<span class="text-tn-sub">[2026-05-20 20:30:48]</span> mv G215151.pdf -&gt; PDFs/G215151.pdf
+<span class="text-tn-sub">[2026-05-20 20:31:03]</span> mv envpilot.dev-handoff.zip -&gt; Archives/envpilot.dev-handoff.zip
+<span class="text-tn-sub">[2026-05-20 20:31:11]</span> done — moved=17 skipped=2 failed=0
+<span class="text-tn-sub">[2026-05-20 21:02:14]</span> NAS not mounted at /Volumes/media — skipping sweep</pre>
+          </div>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">What happens if the NAS is offline?</h4>
+          <p class="text-tn-sub text-sm mb-3">Nothing destructive. The script logs <code class="inline-code">NAS not mounted at /Volumes/media — skipping sweep</code> and exits 0. Files pile up in <code class="inline-code">~/Downloads</code> until the share is mounted again; the next file event re-fires the watcher and everything drains in one pass. The watcher does <em>not</em> wake on its own when the mount returns — drop one new file into Downloads to kick it, or run <code class="inline-code">launchctl start com.prometheus.sort-downloads</code>.</p>
+
+          <p class="text-tn-sub text-xs"><em>Want a different destination tree, a different mount, or no catch-all bucket? Both knobs live at the top of <code class="inline-code">bin/sort-downloads</code> — <code class="inline-code">SOURCE</code> and <code class="inline-code">NAS</code> respect the env vars <code class="inline-code">SORT_DOWNLOADS_SRC</code> / <code class="inline-code">SORT_DOWNLOADS_DST</code> so you can override without forking. To skip the catch-all, drop the <code class="inline-code">*) echo "Other"</code> branch from the <code class="inline-code">classify()</code> function.</em></p>
         </div>
       </section>
 
