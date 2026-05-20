@@ -24,7 +24,7 @@ Examples of unacceptable behavior:
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainer at **backend@tudotechlab.com**. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainer at **99marafay@gmail.com**. All complaints will be reviewed and investigated promptly and fairly.
 
 Maintainers are responsible for clarifying the standards of acceptable behavior and will take appropriate corrective action in response to any behavior they deem inappropriate, threatening, offensive, or harmful.
 

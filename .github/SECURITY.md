@@ -8,7 +8,7 @@ This is a personal dotfiles repository — the only supported version is the lat
 
 If you find a security issue — credentials accidentally committed, a script that's exploitable by a local attacker, a supply-chain risk in a Brewfile pin, an XSS hole in the docs site — **please do not open a public issue.**
 
-Email **backend@tudotechlab.com** with:
+Email **99marafay@gmail.com** with:
 
 - A description of the issue and where it lives (file + line)
 - Steps to reproduce
