@@ -7,10 +7,18 @@
 #
 # Default sources (edit the SOURCES array below to change):
 #   ~/Downloads             classify each file by extension / screenshot name
-#   ~/Pictures/Screenshots  every file lands in Screenshots/ (no classification)
+#   ~/Pictures/Screenshots  every file lands in screenshots/ (no classification)
+#
+# Case-insensitive folder resolution:
+#   Both source and destination folder names are matched case-insensitively.
+#   If ~/Pictures/Screenshots is actually ~/Pictures/screenshots on a given
+#   machine, it's still picked up. On the NAS, if /Volumes/media/screenshots
+#   exists, files land there; if /Volumes/media/Screenshots exists, they
+#   land there instead. If neither exists, the override's exact case is used
+#   when mkdir creates the folder.
 #
 # Categories (when classifying):
-#   Screenshots   PNG matching "Screenshot *" or "Screen Shot *"
+#   screenshots   PNG matching "Screenshot *" or "Screen Shot *"
 #   Pictures      jpg jpeg png gif webp heic heif tiff tif bmp svg raw cr2 nef
 #   PDFs          pdf
 #   Documents     doc docx xls xlsx ppt pptx odt ods odp txt md rtf csv epub
@@ -47,7 +55,7 @@ set -uo pipefail
 #   - Non-empty override → every file in this dir routes to /Volumes/media/<override>/
 SOURCES=(
   "$HOME/Downloads|"
-  "$HOME/Pictures/Screenshots|Screenshots"
+  "$HOME/Pictures/Screenshots|screenshots"
 )
 NAS="${SORT_DOWNLOADS_DST:-/Volumes/media}"
 LOG="$HOME/.sort-download/sort-downloads.log"
@@ -101,7 +109,7 @@ fi
 classify() {
   local name="$1"
   case "$name" in
-    "Screenshot "*|"Screen Shot "*) echo "Screenshots"; return ;;
+    "Screenshot "*|"Screen Shot "*) echo "screenshots"; return ;;
   esac
 
   local lower="${name##*.}"
@@ -137,6 +145,24 @@ is_settled() {
   (( now - mtime >= SETTLE_SECONDS ))
 }
 
+# Find a directory case-insensitively. If <target> exists as-is, return its
+# path verbatim. Otherwise, look inside its parent for a sibling whose name
+# matches <basename> regardless of case, and return that. Returns empty when
+# no variant exists (caller decides whether to mkdir).
+find_dir_ci() {
+  local target="$1"
+  if [[ -d "$target" ]]; then
+    printf '%s' "$target"
+    return
+  fi
+  local parent base hit
+  parent="$(dirname "$target")"
+  base="$(basename "$target")"
+  [[ -d "$parent" ]] || { printf '%s' ""; return; }
+  hit="$(find "$parent" -mindepth 1 -maxdepth 1 -type d -iname "$base" 2>/dev/null | head -1)"
+  printf '%s' "$hit"
+}
+
 # Pick a destination path that doesn't already exist on the NAS. Finder-style
 # "(1)", "(2)", … suffix before the extension.
 resolve_dest() {
@@ -162,13 +188,15 @@ skipped=0
 failed=0
 
 for entry in "${SOURCES[@]}"; do
-  src_dir="${entry%%|*}"
+  src_dir_raw="${entry%%|*}"
   override="${entry#*|}"
 
-  if [[ ! -d "$src_dir" ]]; then
-    vlog "source missing: $src_dir"
+  src_dir="$(find_dir_ci "$src_dir_raw")"
+  if [[ -z "$src_dir" ]]; then
+    vlog "source missing: $src_dir_raw"
     continue
   fi
+  [[ "$src_dir" != "$src_dir_raw" ]] && vlog "source case-resolved: $src_dir_raw -> $src_dir"
 
   while IFS= read -r -d '' src; do
     name="$(basename "$src")"
@@ -196,10 +224,14 @@ for entry in "${SOURCES[@]}"; do
     else
       category="$(classify "$name")"
     fi
-    dst_dir="$NAS/$category"
+
+    # Use the actual case found on the NAS if the folder already exists.
+    # If neither case exists, mkdir creates it with the override's casing.
+    dst_dir="$(find_dir_ci "$NAS/$category")"
+    [[ -z "$dst_dir" ]] && dst_dir="$NAS/$category"
 
     if (( DRY )); then
-      log "[dry] $name -> $category/"
+      log "[dry] $name -> $(basename "$dst_dir")/"
       continue
     fi
 

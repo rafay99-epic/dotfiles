@@ -353,7 +353,7 @@ bigfiles -t 500 -n 100">Copy</button></div>
               <thead><tr><th>Source folder</th><th>Override</th><th>Behavior</th></tr></thead>
               <tbody>
                 <tr><td><code class="inline-code text-tn-cyan">~/Downloads</code></td><td class="text-tn-sub"><em>(none)</em></td><td class="text-tn-sub">Classify each file by extension and screenshot-name pattern</td></tr>
-                <tr><td><code class="inline-code text-tn-cyan">~/Pictures/Screenshots</code></td><td class="text-tn-sub"><code class="inline-code">Screenshots</code></td><td class="text-tn-sub">Every file routes to <code class="inline-code">/Volumes/media/Screenshots/</code> — matches macOS's default screenshot location, so <kbd>⌘⇧3</kbd> / <kbd>⌘⇧4</kbd> shots auto-drain to the NAS</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">~/Pictures/Screenshots</code></td><td class="text-tn-sub"><code class="inline-code">screenshots</code></td><td class="text-tn-sub">Every file routes to <code class="inline-code">/Volumes/media/screenshots/</code> (lowercase intentionally — corresponds to <code class="inline-code">/volume1/media/screenshots</code> on the TrueNAS side). Matches macOS's default screenshot location, so <kbd>⌘⇧3</kbd> / <kbd>⌘⇧4</kbd> shots auto-drain to the NAS</td></tr>
               </tbody>
             </table>
           </div>
@@ -363,7 +363,7 @@ bigfiles -t 500 -n 100">Copy</button></div>
             <table>
               <thead><tr><th>NAS folder</th><th>Matches</th></tr></thead>
               <tbody>
-                <tr><td><code class="inline-code text-tn-cyan">Screenshots/</code></td><td class="text-tn-sub">Anything in <code class="inline-code">~/Pictures/Screenshots</code> (force-routed), or PNGs in Downloads whose name starts with <code class="inline-code">Screenshot </code> or <code class="inline-code">Screen Shot </code> (matched <em>before</em> images, so they don't end up in Pictures)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">screenshots/</code></td><td class="text-tn-sub">Anything in <code class="inline-code">~/Pictures/Screenshots</code> (force-routed), or PNGs in Downloads whose name starts with <code class="inline-code">Screenshot </code> or <code class="inline-code">Screen Shot </code> (matched <em>before</em> images, so they don't end up in Pictures). Lowercase to match the existing folder on the NAS.</td></tr>
                 <tr><td><code class="inline-code text-tn-cyan">Pictures/</code></td><td class="text-tn-sub">jpg, jpeg, png, gif, webp, heic, heif, tiff, tif, bmp, svg, raw, cr2, nef</td></tr>
                 <tr><td><code class="inline-code text-tn-cyan">PDFs/</code></td><td class="text-tn-sub">pdf</td></tr>
                 <tr><td><code class="inline-code text-tn-cyan">Documents/</code></td><td class="text-tn-sub">doc, docx, xls, xlsx, ppt, pptx, odt, ods, odp, txt, md, rtf, csv, epub, pages, numbers, key</td></tr>
@@ -392,6 +392,14 @@ bigfiles -t 500 -n 100">Copy</button></div>
               </tbody>
             </table>
           </div>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Case-insensitive folder resolution</h4>
+          <p class="text-tn-sub text-sm mb-3">Every source and destination directory is resolved case-insensitively before use, via a <code class="inline-code">find_dir_ci</code> helper that does an exact lookup first and falls back to <code class="inline-code">find -iname</code>. The script adapts to whatever casing exists on each side:</p>
+          <ul class="text-tn-sub text-sm space-y-1 list-disc list-inside mb-3">
+            <li>If <code class="inline-code">~/Pictures/Screenshots</code> is actually <code class="inline-code">~/Pictures/screenshots</code> on a given Mac, it's still picked up — and a verbose-mode <code class="inline-code">source case-resolved: …</code> line is logged so you can see what happened.</li>
+            <li>If the NAS has <code class="inline-code">/Volumes/media/Screenshots/</code> (capital) the files land there; if it has <code class="inline-code">/Volumes/media/screenshots/</code> (lowercase) they land there. No duplicate folders, no manual reconciliation.</li>
+            <li>The override's <em>exact casing</em> is only used when neither variant exists yet — that's the case <code class="inline-code">mkdir -p</code> uses to create the folder for the first time. Default override is <code class="inline-code">screenshots</code> (lowercase) to match the TrueNAS side, but this is the only situation where it matters.</li>
+          </ul>
 
           <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Safety guards</h4>
           <p class="text-tn-sub text-sm mb-3">The script is paranoid because <code class="inline-code">mv</code> on the wrong file is hard to undo:</p>
@@ -464,8 +472,8 @@ rm ~/Library/LaunchAgents/com.prometheus.sort-downloads.plist">Copy</button></di
             <pre class="code-body text-xs"><span class="text-tn-sub">[2026-05-20 20:30:44]</span> mv logo.png -&gt; Pictures/logo.png
 <span class="text-tn-sub">[2026-05-20 20:30:48]</span> mv G215151.pdf -&gt; PDFs/G215151.pdf
 <span class="text-tn-sub">[2026-05-20 20:31:03]</span> mv envpilot.dev-handoff.zip -&gt; Archives/envpilot.dev-handoff.zip
-<span class="text-tn-sub">[2026-05-20 21:08:34]</span> mv SCR-20260520-rukc.jpeg -&gt; Screenshots/SCR-20260520-rukc.jpeg
-<span class="text-tn-sub">[2026-05-20 21:08:34]</span> mv SCR-20260519-bxpf.png -&gt; Screenshots/SCR-20260519-bxpf.png
+<span class="text-tn-sub">[2026-05-20 21:08:34]</span> mv SCR-20260520-rukc.jpeg -&gt; screenshots/SCR-20260520-rukc.jpeg
+<span class="text-tn-sub">[2026-05-20 21:08:34]</span> mv SCR-20260519-bxpf.png -&gt; screenshots/SCR-20260519-bxpf.png
 <span class="text-tn-sub">[2026-05-20 21:08:34]</span> done — moved=2 skipped=3 failed=0
 <span class="text-tn-sub">[2026-05-20 21:02:14]</span> NAS not mounted at /Volumes/media — skipping sweep</pre>
           </div>
