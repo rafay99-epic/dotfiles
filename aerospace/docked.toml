@@ -120,7 +120,7 @@ alt-tab       = 'workspace-back-and-forth'
 alt-shift-tab = 'move-workspace-to-monitor --wrap-around next'
 
 # ── Profile sync ──────────────────────────────────────────────────────────────
-alt-d = 'exec-and-forget /Users/prometheus/.local/bin/aerospace-sync'
+alt-d = 'exec-and-forget $HOME/.local/bin/aerospace-sync'
 
 # ── Modes ─────────────────────────────────────────────────────────────────────
 alt-shift-semicolon = 'mode service'

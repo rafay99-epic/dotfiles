@@ -7,7 +7,7 @@
 #  Cleanup:  brew bundle cleanup --file=Brewfile --force   (DANGEROUS)
 #
 #  WM-specific packages live in Brewfile.omniwm / Brewfile.aerospace.
-#  Optional GUI apps (Ghostty, Cursor, Claude, Spotify, LM Studio) are
+#  Optional GUI apps (Ghostty, Cursor, Claude, Spotify) are
 #  prompted individually by install.sh — they're not in this Brewfile so
 #  someone running `brew bundle` directly doesn't get every app forced on.
 #

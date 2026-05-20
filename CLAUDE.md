@@ -110,7 +110,7 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 
 ### Profile Switching
 - Terminal: `dock` or `undock` (both auto-detect, same script)
-- AeroSpace keybinding: `Alt+D` (uses full path — `exec-and-forget` does not source shell)
+- AeroSpace keybinding: `Alt+D` (uses `$HOME/.local/bin/aerospace-sync` — `exec-and-forget` runs commands through `/bin/bash -c`, so env vars expand even though it doesn't source your interactive `.zshrc`)
 - Script location: `~/.local/bin/aerospace-sync` → symlink to `dotfiles/bin/aerospace-sync`
 
 ### SketchyBar
@@ -147,6 +147,14 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Safety guards in the script: refuses to run when `/Volumes/media` isn't actually in the `mount` table (won't silently dump to a stub folder); skips partial downloads (`.crdownload` / `.download` / `.part` / `.tmp` / `.aria2` / `.opdownload`) and any file younger than 30s; skips directories and hidden files; renames on collision (`name (1).ext`); single-instance `mkdir` lock at `/tmp/sort-downloads.lock`.
 - Logs: `~/.sort-download/sort-downloads.log` (kept in `$HOME` so they're easy to tail/clear without diving into `Library/Logs`). Manual sweep: `sort-downloads [-n|-v]`. Trigger immediately: `launchctl start com.prometheus.sort-downloads`.
 - Screenshot detection runs **before** image classification — files named `Screenshot *` or `Screen Shot *` land in `Screenshots/`, not `Pictures/`.
+
+### Cross-machine portability — no hardcoded usernames
+- **Rule:** no config file in this repo may contain `/Users/<username>/` or any other absolute path that bakes in the author's environment. Use `$HOME` / `~` / `fish_add_path $HOME/...` instead.
+- **Why:** the repo is cloned across multiple Macs with different usernames. A hardcoded `/Users/prometheus/...` PATH entry silently resolves to nothing on a fresh machine — the failure is invisible (the binary just isn't on `$PATH`) and painful to track down.
+- **Coverage:** the rule applies to `zsh/.zshrc`, `fish/config.fish`, `aerospace/*.toml`, and any other file that gets symlinked or read at runtime. Plist `Label` strings (`com.prometheus.*`) are a personal namespace, not paths — they stay.
+- **AeroSpace TOMLs:** `exec-and-forget` runs commands through `/bin/bash -c`, so `$HOME` expands correctly inside the value string. No `sed`-templating needed for these (unlike launchd plists, which use the `__HOME__` placeholder + install-time substitution).
+- **`install.sh`:** uses `$HOME` and `$DOTFILES` throughout. Never assumes the repo lives at `~/dotfiles` — it resolves its own path via `${BASH_SOURCE[0]}`.
+- **The one exception:** `docs/backup.html` quotes the *reference* TrueNAS username (`prometheus`) and IP (`192.168.100.215`) because the Time Machine setup guide is concrete by design — those values are explicitly called out in the Customization section as things you'd change for your own NAS.
 
 ### Docs are multi-page, not a SPA
 Static HTML + Tailwind CDN + ~700 lines of vanilla JS in `script.js`. **No React, no build step.** The cost of a framework was assessed and rejected — the site is content, not an app. See decision rationale in conversation history (or just compare bundle sizes).

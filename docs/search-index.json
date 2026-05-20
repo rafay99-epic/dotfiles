@@ -14,6 +14,13 @@
     "kind": "page"
   },
   {
+    "title": "Use on any Mac, any username",
+    "page": "Quick Install",
+    "url": "/install#portability",
+    "snippet": "Multi-machine portability. No /Users/<username>/ baked anywhere — every shell config, AeroSpace keybind, and launchd plist resolves the right path at runtime via $HOME. Covers zsh/.zshrc, fish/config.fish, aerospace/*.toml (exec-and-forget runs via bash -c so env vars expand), launchd/*.plist (sed __HOME__ substitution at install time), install.sh (BASH_SOURCE path resolution). Cross-machine cross-username cross-account portable.",
+    "kind": "section"
+  },
+  {
     "title": "Applications",
     "page": "Applications",
     "url": "/apps",

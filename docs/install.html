@@ -162,6 +162,33 @@ chmod +x install.sh
 
       </section>
 
+      <!-- ── Multi-machine portability ─────────────────────────────────────── -->
+      <section id="portability" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="laptop-minimal-check" class="w-6 h-6 text-tn-blue shrink-0"></i>
+          <h2 class="section-title mb-0">Use on any Mac, any username</h2>
+        </div>
+        <p class="text-tn-sub mb-4">No <code class="inline-code">/Users/&lt;your-name&gt;/</code> baked anywhere. Clone, install, done — whether your home folder is <code class="inline-code">/Users/alice</code>, <code class="inline-code">/Users/work-laptop</code>, or anything else. Every shell config, keybinding, and launchd plist resolves the right path at runtime.</p>
+
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-4">
+          <table>
+            <thead><tr><th>File</th><th>How portability is achieved</th></tr></thead>
+            <tbody>
+              <tr><td><code class="inline-code">zsh/.zshrc</code></td><td class="text-tn-sub"><code class="inline-code">$HOME</code> in every <code class="inline-code">export PATH=...</code>, <code class="inline-code">fpath=...</code>, and <code class="inline-code">source ...</code></td></tr>
+              <tr><td><code class="inline-code">fish/config.fish</code></td><td class="text-tn-sub"><code class="inline-code">$HOME</code> in every <code class="inline-code">fish_add_path</code> and <code class="inline-code">set -gx</code></td></tr>
+              <tr><td><code class="inline-code">aerospace/*.toml</code></td><td class="text-tn-sub"><code class="inline-code">exec-and-forget $HOME/.local/bin/aerospace-sync</code> — AeroSpace runs the value through <code class="inline-code">bash -c</code>, so the env var expands at fire time</td></tr>
+              <tr><td><code class="inline-code">launchd/*.plist</code></td><td class="text-tn-sub"><code class="inline-code">__HOME__</code> placeholder. <code class="inline-code">install.sh</code> runs <code class="inline-code">sed "s|__HOME__|$HOME|g"</code> when writing into <code class="inline-code">~/Library/LaunchAgents/</code> (plists don't expand env vars natively)</td></tr>
+              <tr><td><code class="inline-code">install.sh</code></td><td class="text-tn-sub">Resolves its own location via <code class="inline-code">${BASH_SOURCE[0]}</code>; uses <code class="inline-code">$HOME</code> and <code class="inline-code">$DOTFILES</code> for every destination</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="bg-tn-bg2 border border-tn-yellow/30 rounded-xl p-4 flex gap-3">
+          <i data-lucide="info" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">The launchd <code class="inline-code">Label</code> namespace is <code class="inline-code">com.prometheus.*</code> — that's a personal reverse-DNS prefix, not a path, so it works on any account. It only affects how processes appear in <code class="inline-code">launchctl list</code>. The reference TrueNAS username and IP in the <a class="text-tn-blue hover:underline" href="/backup#customize">Backup → Customization</a> table <em>are</em> machine-specific and called out as values you'd change for your own NAS.</div>
+        </div>
+      </section>
+
       <footer class="border-t border-tn-border pt-8 pb-4 text-center text-tn-sub text-xs">
         <p>Built by <a href="https://github.com/rafay99-epic" target="_blank" rel="noopener noreferrer" class="text-tn-blue hover:underline">rafay99-epic</a> · MIT License</p>
         <p class="mt-1">Tokyo Night · macOS · SketchyBar · AeroSpace · Ghostty · Zsh · Fish</p>

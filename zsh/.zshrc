@@ -76,7 +76,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 # The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=(/Users/prometheus/.docker/completions $fpath)
+fpath=($HOME/.docker/completions $fpath)
 autoload -Uz compinit
 compinit
 # End of Docker CLI completions
@@ -229,37 +229,8 @@ export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
 export PATH="$HOME/.rbenv/bin:$PATH"
 eval "$(rbenv init -)"
 
-# opencode
-export PATH=/Users/prometheus/.opencode/bin:$PATH
-
-# Added by LM Studio CLI (lms)
-export PATH="$PATH:/Users/prometheus/.lmstudio/bin"
-# End of LM Studio CLI section
-
-
-# Added by Windsurf
-export PATH="/Users/prometheus/.codeium/windsurf/bin:$PATH"
-
 # bun completions
-[ -s "/Users/prometheus/.bun/_bun" ] && source "/Users/prometheus/.bun/_bun"
-
-# Added by Antigravity
-export PATH="/Users/prometheus/.antigravity/antigravity/bin:$PATH"
-# zerobrew
-export ZEROBREW_DIR=/Users/prometheus/.zerobrew
-export ZEROBREW_BIN=/Users/prometheus/.local/bin
-export ZEROBREW_ROOT=/opt/zerobrew
-export ZEROBREW_PREFIX=/opt/zerobrew/prefix
-export PKG_CONFIG_PATH="/opt/zerobrew/prefix/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-_zb_path_append() {
-    local argpath="$1"
-    case ":${PATH}:" in
-        *:"$argpath":*) ;;
-        *) export PATH="$argpath:$PATH" ;;
-    esac;
-}
-_zb_path_append $ZEROBREW_BIN
-_zb_path_append $ZEROBREW_PREFIX/bin
+[ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
 
 # AeroSpace profile sync
 aerospace-sync() {
@@ -274,9 +245,6 @@ alias undock='aerospace-sync'
 # bun
 export BUN_INSTALL="$HOME/.bun"
 export PATH="$BUN_INSTALL/bin:$PATH"
-
-# Added by Antigravity
-export PATH="/Users/prometheus/.antigravity/antigravity/bin:$PATH"
 
 [[ ":$PATH:" != *":$HOME/.config/kaku/zsh/bin:"* ]] && export PATH="$HOME/.config/kaku/zsh/bin:$PATH" # Kaku PATH Integration
 [[ -f "$HOME/.config/kaku/zsh/kaku.zsh" ]] && source "$HOME/.config/kaku/zsh/kaku.zsh" # Kaku Shell Integration
@@ -299,10 +267,6 @@ compdef _dev dev
 alias lumo="cd $HOME/Code/Lumo/"
 alias envpilot.dev="cd $HOME/Code/ENV_Connect/"
 alias tudo_tech_lab="cd $HOME/Code/TudoNumTechLab/"
-
-# omnara
-path=("/Users/prometheus/.omnara/bin" $path)
-
 
 # Android SDK
 export ANDROID_HOME=$HOME/Library/Android/sdk

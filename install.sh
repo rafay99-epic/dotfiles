@@ -694,14 +694,6 @@ if prompt "Install OpenAI Codex CLI (terminal AI agent)?"; then
   npm_install "codex" "command -v codex" "@openai/codex"
 fi
 
-if prompt "Install LM Studio (local LLMs)?"; then
-  if [[ "$HAS_BREW" == true ]]; then
-    brew_install lm-studio --cask
-  else
-    warn "Homebrew not found — skipping LM Studio. Install Homebrew first."
-  fi
-fi
-
 # ── Media ────────────────────────────────────────────────────────────────
 if prompt "Install Spotify?"; then
   if [[ "$HAS_BREW" == true ]]; then

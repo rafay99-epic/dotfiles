@@ -32,21 +32,6 @@ fish_add_path /opt/homebrew/opt/openjdk@17/bin
 # Local user bin
 fish_add_path $HOME/.local/bin
 
-# opencode
-fish_add_path /Users/prometheus/.opencode/bin
-
-# Windsurf (Codeium IDE)
-fish_add_path /Users/prometheus/.codeium/windsurf/bin
-
-# Antigravity
-fish_add_path /Users/prometheus/.antigravity/antigravity/bin
-
-# LM Studio CLI
-fish_add_path /Users/prometheus/.lmstudio/bin
-
-# omnara
-fish_add_path /Users/prometheus/.omnara/bin
-
 # Maestro
 fish_add_path $HOME/.maestro/bin
 
@@ -54,15 +39,6 @@ fish_add_path $HOME/.maestro/bin
 set -gx ANDROID_HOME $HOME/Library/Android/sdk
 fish_add_path $ANDROID_HOME/emulator
 fish_add_path $ANDROID_HOME/platform-tools
-
-# zerobrew
-set -gx ZEROBREW_DIR /Users/prometheus/.zerobrew
-set -gx ZEROBREW_BIN /Users/prometheus/.local/bin
-set -gx ZEROBREW_ROOT /opt/zerobrew
-set -gx ZEROBREW_PREFIX /opt/zerobrew/prefix
-set -gx PKG_CONFIG_PATH /opt/zerobrew/prefix/lib/pkgconfig $PKG_CONFIG_PATH
-fish_add_path $ZEROBREW_BIN
-fish_add_path $ZEROBREW_PREFIX/bin
 
 # =============================================================================
 # Runtime managers
