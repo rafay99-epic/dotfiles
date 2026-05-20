@@ -159,6 +159,27 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - **`install.sh`:** uses `$HOME` and `$DOTFILES` throughout. Never assumes the repo lives at `~/dotfiles` — it resolves its own path via `${BASH_SOURCE[0]}`.
 - **The one exception:** `docs/backup.html` quotes the *reference* TrueNAS username (`prometheus`) and IP (`192.168.100.215`) because the Time Machine setup guide is concrete by design — those values are explicitly called out in the Customization section as things you'd change for your own NAS.
 
+### Script & config quality standards (CI-enforced)
+Any new or modified shell script, plist, or Brewfile must pass these checks **before commit**. The same checks run on every push/PR via `.github/workflows/{shellcheck,plist-validator,brewfile-check}.yml`, and a red CI on `main` is treated as a release blocker.
+
+- **Shell scripts** (`install.sh`, anything in `bin/`):
+  ```bash
+  shellcheck -x -S style install.sh bin/*
+  ```
+  Must exit 0. `-S style` means warnings and info-level findings also fail — not just errors. Use inline `# shellcheck disable=SCxxxx` **only** with a short comment justifying *why* the lint is wrong (e.g. tilde-as-display-label in `install.sh:930`).
+- **Plists** (`launchd/*.plist`, `nas/*.inetloc`):
+  ```bash
+  for f in launchd/*.plist nas/*.inetloc; do plutil -lint "$f"; done
+  ```
+  Every file must print `OK`. `__HOME__` placeholders are fine — `plutil` only validates XML structure.
+- **Brewfiles** (`Brewfile`, `Brewfile.aerospace`, `Brewfile.omniwm`):
+  ```bash
+  for bf in Brewfile Brewfile.aerospace Brewfile.omniwm; do brew bundle check --file="$bf" --verbose; done
+  ```
+  Catches renamed/removed formulae before someone re-runs `install.sh` on a fresh machine and discovers it the hard way.
+- **From this point onward** — any script Claude writes for this repo must meet the bar above. Run the relevant check locally and confirm it passes before reporting the task done. Don't silence findings with `# shellcheck disable` to make CI green; either fix the code or justify the disable in the same line's comment.
+- **Release notes:** PR titles drive `release-drafter` (`.github/release-drafter.yml`). Use Conventional Commits (`feat:` / `fix:` / `chore:` / `docs:` / `refactor:`) so the autolabeler can sort the entry into the right category and bump the version correctly.
+
 ### Docs are multi-page, not a SPA
 Static HTML + Tailwind CDN + ~700 lines of vanilla JS in `script.js`. **No React, no build step.** The cost of a framework was assessed and rejected — the site is content, not an app. See decision rationale in conversation history (or just compare bundle sizes).
 

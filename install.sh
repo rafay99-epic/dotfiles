@@ -188,7 +188,8 @@ link() {
   fi
 
   if [[ -e "$dst" ]]; then
-    local backup="${dst}.bak.$(date +%Y%m%d_%H%M%S)"
+    local backup
+    backup="${dst}.bak.$(date +%Y%m%d_%H%M%S)"
     warn "Backing up ${label} → ${backup/#$HOME/\~}"
     if [[ "$DRY_RUN" == false ]]; then
       mv "$dst" "$backup"
@@ -927,6 +928,7 @@ if [[ "$WM_CHOICE" != "none" ]]; then
     current="$(readlink "$HOME/.config/sketchybar")"
     if [[ "$current" == "$DOTFILES/sketchybar" ]]; then
       success "Already linked: ~/.config/sketchybar"
+      # shellcheck disable=SC2088 # display label only, tilde is intentional
       SKIPPED+=("~/.config/sketchybar")
     else
       error "Conflict: ~/.config/sketchybar → $current"
@@ -941,6 +943,7 @@ if [[ "$WM_CHOICE" != "none" ]]; then
       mkdir -p "$HOME/.config"
       ln -sf "$DOTFILES/sketchybar" "$HOME/.config/sketchybar"
       success "Linked: ~/.config/sketchybar"
+      # shellcheck disable=SC2088 # display label only, tilde is intentional
       LINKED+=("~/.config/sketchybar")
     else
       dry "ln -sf $DOTFILES/sketchybar ~/.config/sketchybar"

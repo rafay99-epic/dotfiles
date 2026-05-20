@@ -1,0 +1,34 @@
+name: plist-validator
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'launchd/**'
+      - '.github/workflows/plist-validator.yml'
+  pull_request:
+    paths:
+      - 'launchd/**'
+      - '.github/workflows/plist-validator.yml'
+
+jobs:
+  plutil-lint:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: plutil -lint every plist
+        run: |
+          set -e
+          shopt -s nullglob
+          plists=(launchd/*.plist nas/*.inetloc)
+          if [[ ${#plists[@]} -eq 0 ]]; then
+            echo "No plist files found."
+            exit 0
+          fi
+          # __HOME__ is a templating placeholder in sort-downloads.plist; plutil
+          # only validates XML structure so the placeholder is harmless.
+          for f in "${plists[@]}"; do
+            echo "==> $f"
+            plutil -lint "$f"
+          done

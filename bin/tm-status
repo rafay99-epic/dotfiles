@@ -29,9 +29,9 @@ done
 
 if [[ -t 1 ]]; then
   BOLD=$'\033[1m'; DIM=$'\033[2m'; CYAN=$'\033[0;36m'; GREEN=$'\033[0;32m'
-  YELLOW=$'\033[0;33m'; RED=$'\033[0;31m'; BLUE=$'\033[0;34m'; RESET=$'\033[0m'
+  YELLOW=$'\033[0;33m'; RED=$'\033[0;31m'; RESET=$'\033[0m'
 else
-  BOLD=''; DIM=''; CYAN=''; GREEN=''; YELLOW=''; RED=''; BLUE=''; RESET=''
+  BOLD=''; DIM=''; CYAN=''; GREEN=''; YELLOW=''; RED=''; RESET=''
 fi
 
 bytes_to_human() {
@@ -53,7 +53,7 @@ secs_to_human() {
 }
 
 print_status() {
-  local status phase running pct copied total files total_files start_epoch
+  local status phase running pct copied total files total_files
   status="$(tmutil status 2>/dev/null)" || { echo "${RED}Time Machine not configured${RESET}"; return 1; }
 
   running=$(printf '%s\n' "$status" | awk -F'= *' '/Running/{gsub(";",""); print $2; exit}')

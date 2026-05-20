@@ -1,0 +1,66 @@
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+
+categories:
+  - title: 'Features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+    # Also pick up Conventional Commits via title regex (see autolabeler).
+  - title: 'Fixes'
+    labels:
+      - 'bug'
+      - 'fix'
+  - title: 'Maintenance'
+    labels:
+      - 'chore'
+      - 'refactor'
+      - 'dependencies'
+  - title: 'Docs'
+    labels:
+      - 'docs'
+      - 'documentation'
+
+change-template: '- $TITLE (#$NUMBER) @$AUTHOR'
+change-title-escapes: '\<*_&'
+
+version-resolver:
+  major:
+    labels:
+      - 'major'
+      - 'breaking'
+  minor:
+    labels:
+      - 'feature'
+      - 'enhancement'
+      - 'minor'
+  patch:
+    labels:
+      - 'fix'
+      - 'bug'
+      - 'chore'
+      - 'docs'
+      - 'patch'
+  default: patch
+
+autolabeler:
+  - label: 'feature'
+    title:
+      - '/^feat(\(.+\))?:/i'
+  - label: 'fix'
+    title:
+      - '/^fix(\(.+\))?:/i'
+  - label: 'chore'
+    title:
+      - '/^chore(\(.+\))?:/i'
+      - '/^refactor(\(.+\))?:/i'
+  - label: 'docs'
+    title:
+      - '/^docs(\(.+\))?:/i'
+
+template: |
+  ## What's changed
+
+  $CHANGES
+
+  **Full diff**: https://github.com/$OWNER/$REPOSITORY/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION

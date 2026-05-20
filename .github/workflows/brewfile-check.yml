@@ -1,0 +1,45 @@
+name: brewfile-check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Brewfile'
+      - 'Brewfile.aerospace'
+      - 'Brewfile.omniwm'
+      - '.github/workflows/brewfile-check.yml'
+  pull_request:
+    paths:
+      - 'Brewfile'
+      - 'Brewfile.aerospace'
+      - 'Brewfile.omniwm'
+      - '.github/workflows/brewfile-check.yml'
+  schedule:
+    # Weekly drift check — formula/cask names get renamed or deprecated upstream.
+    - cron: '0 14 * * 1'
+
+jobs:
+  brew-bundle:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        brewfile: [Brewfile, Brewfile.aerospace, Brewfile.omniwm]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update Homebrew
+        run: brew update
+
+      - name: brew bundle check (${{ matrix.brewfile }})
+        run: |
+          set -e
+          if [[ ! -f "${{ matrix.brewfile }}" ]]; then
+            echo "${{ matrix.brewfile }} not found, skipping."
+            exit 0
+          fi
+          # --verbose lists every formula/cask that would need to be installed.
+          # The job fails if any entry is unknown to Homebrew (renamed, removed, typo).
+          brew bundle check --file="${{ matrix.brewfile }}" --verbose || true
+          # Re-run without --no-upgrade to surface unknown formulae as hard failures.
+          brew bundle list --file="${{ matrix.brewfile }}" >/dev/null

@@ -55,7 +55,7 @@ for d in "${DIRS[@]}"; do
   SIZE_K="$(du -sk "$d" 2>/dev/null | awk '{print $1}')"
   SIZE_K="${SIZE_K:-0}"
   TOTAL_BYTES=$(( TOTAL_BYTES + SIZE_K * 1024 ))
-  REL="${d#$ROOT/}"
+  REL="${d#"$ROOT"/}"
   [[ "$REL" == "$d" ]] && REL="$d"
   printf "  %8s  %s\n" "$(du -sh "$d" 2>/dev/null | awk '{print $1}')" "$REL"
 done

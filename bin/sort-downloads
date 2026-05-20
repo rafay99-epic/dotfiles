@@ -211,7 +211,7 @@ for entry in "${SOURCES[@]}"; do
 
     dst="$(resolve_dest "$dst_dir" "$name")"
     if mv -- "$src" "$dst" 2>>"$LOG"; then
-      log "mv $name -> ${dst#$NAS/}"
+      log "mv $name -> ${dst#"$NAS"/}"
       moved=$(( moved + 1 ))
     else
       log "ERR mv failed: $name -> $dst"
