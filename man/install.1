@@ -1,0 +1,329 @@
+.\" install.1 — Prometheus Dotfiles installer man page
+.\" Render:   man -l man/install.1
+.\" Or via:   ./install.sh --man
+.TH INSTALL 1 "May 2026" "Prometheus Dotfiles" "User Commands"
+.\"
+.\" ─── Logo ─────────────────────────────────────────────────────────────────
+.\" Don't wrap the box in \fB\fR — groff implements bold via character
+.\" overstrike, which doubles the box-drawing chars in the rendered output.
+.\" The Unicode glyphs are distinctive enough on their own.
+.nf
+.sp
+
+    ╭──────────────────────────────────────────────────────╮
+    │                                                      │
+    │     ██████╗ ██████╗  ██████╗ ███╗   ███╗             │
+    │     ██╔══██╗██╔══██╗██╔═══██╗████╗ ████║             │
+    │     ██████╔╝██████╔╝██║   ██║██╔████╔██║             │
+    │     ██╔═══╝ ██╔══██╗██║   ██║██║╚██╔╝██║             │
+    │     ██║     ██║  ██║╚██████╔╝██║ ╚═╝ ██║             │
+    │     ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝             │
+    │                                                      │
+    │        P  R  O  M  E  T  H  E  U  S                  │
+    │              D  O  T  F  I  L  E  S                  │
+    │                                                      │
+    │        github.com/rafay99-epic                       │
+    │        dotfiles.rafay99.com                          │
+    │                                                      │
+    ╰──────────────────────────────────────────────────────╯
+
+.sp
+.fi
+.\"
+.\" ─── Sections ────────────────────────────────────────────────────────────
+.SH NAME
+install.sh \- modular installer for Prometheus Dotfiles
+
+.SH SYNOPSIS
+.B install.sh
+[\fB\-\-dry\-run\fR]
+[\fB\-\-yes\fR]
+[\fB\-\-only=\fIMODULES\fR]
+[\fB\-\-skip=\fIMODULES\fR]
+[\fB\-\-modules\fR]
+[\fB\-\-man\fR]
+[\fB\-\-help\fR]
+.PP
+.B INSTALL_MODULES=\fIMODULES\fR install.sh
+
+.SH DESCRIPTION
+.B install.sh
+is a modular dotfiles installer for macOS. Each major step (Homebrew,
+window manager, symlinks, LaunchAgents, macOS tweaks, etc.) lives in its
+own file under
+.IR install.d/ .
+The orchestrator parses flags, presents an interactive arrow-key picker
+to select which modules to run, then sources and calls each selected
+module's
+.B module_<name>()
+function in dependency order.
+.PP
+The interactive picker is pure bash \(em no
+.B whiptail
+or
+.B dialog
+dependency \(em so it works on a fresh macOS install where nothing extra
+has been brewed yet. Arrow keys move the cursor, Space toggles the
+highlighted module, Enter confirms and runs.
+.PP
+The script is idempotent: re-running it after a successful install
+detects what's already in place and skips it.
+
+.SH OPTIONS
+.TP
+.B \-\-dry\-run
+Preview every action the script would take without making any changes.
+Symlinks are not created, Homebrew is not invoked, no
+.B defaults write
+runs. Useful for auditing a fresh install or seeing what's left to do
+on a configured machine. Combines with any other flag.
+.TP
+.BR \-\-yes ", " \-y
+Run all modules with auto-Yes for every sub-prompt. Skips the interactive
+picker entirely. Equivalent to selecting everything in the picker.
+.TP
+\fB\-\-only=\fIMODULES\fR
+Comma-separated list of modules to run (skips the picker). Mutually
+exclusive with
+.BR \-\-skip .
+Example:
+.BR "\-\-only=symlinks,macos" .
+.TP
+\fB\-\-skip=\fIMODULES\fR
+Comma-separated list of modules to skip. All others run. Mutually
+exclusive with
+.BR \-\-only .
+.TP
+.B \-\-modules
+Print the available module list and exit.
+.TP
+.B \-\-man
+Open this man page in your pager.
+.TP
+.BR \-\-help ", " \-h
+Print a short usage summary and exit.
+
+.SH MODULES
+The following modules are available. Order below is the run order, not
+the menu order. Modules can be combined freely.
+.TP
+.B symlinks
+Dotfile symlinks
+.RB ( ~/.zshrc ", " ~/.zprofile ", " ~/.config/* ", " ~/.local/bin/* ,
+fish functions, AeroSpace config when applicable). Pre-checked in the
+picker by default \(em this is the core of dotfiles management.
+.TP
+.B homebrew
+Homebrew install + Brewfile bundle (core CLI tools, fonts), Node.js LTS
+via nvm, Bun via its own installer, WM-specific Brewfile when a WM is
+chosen, SketchyBar app font.
+.TP
+.B wm
+Window manager picker \(em OmniWM, AeroSpace, or none. Sets
+.B WM_CHOICE
+which gates downstream WM-specific behavior in the other modules.
+.TP
+.B apps
+Optional GUI apps (per-app Y/N prompts): Ghostty terminal, Cursor editor,
+Claude Code CLI, Claude Desktop, OpenAI Codex CLI, Spotify, plus a
+Starship statusline configurer for Claude Code.
+.TP
+.B macos
+macOS preferences via
+.BR defaults (1):
+Dock auto-hide delay, Finder tweaks, tap-to-click, screenshot location,
+Mission Control space order, Microsoft Office telemetry off, battery
+percentage, and other quality-of-life adjustments.
+.TP
+.B launchd
+Background agents \(em monthly Time Machine LaunchDaemon (replaces
+Apple's hourly schedule) and the sort-downloads LaunchAgent (auto-sorts
+.B ~/Downloads
+and
+.B ~/Pictures/Screenshots
+to the TrueNAS share at
+.BR /Volumes/media/ ).
+.TP
+.B shells
+Shell plugins that don't ship via Homebrew \(em currently
+.B fzf-tab
+(git-cloned to
+.IR ~/.local/share/zsh/ ).
+.TP
+.B sketchybar
+Restart the SketchyBar service to pick up new config. Auto-skips when
+no WM is selected.
+
+.SH INTERACTIVE PICKER
+When no selection flag is given, the script opens a numbered picker:
+.PP
+.RS 4
+.EX
+[x] symlinks    \- Dotfile symlinks
+[ ] homebrew    \- Homebrew + Brewfile + Node + Bun
+[ ] wm          \- Window manager (OmniWM / AeroSpace / none)
+[ ] apps        \- Optional GUI apps
+[ ] macos       \- macOS preferences
+[ ] launchd     \- LaunchAgents
+[ ] shells      \- Shell plugins (fzf-tab)
+[ ] sketchybar  \- SketchyBar restart
+.EE
+.RE
+.PP
+Keys:
+.PP
+.RS 4
+.nf
+\fB\(ua\fR / \fBk\fR     Move cursor up
+\fB\(da\fR / \fBj\fR     Move cursor down
+\fBSpace\fR     Toggle the highlighted module
+\fBa\fR         Select all
+\fBn\fR         Clear all
+\fBr\fR         Reset to defaults (symlinks only)
+\fBEnter\fR     Confirm and run
+\fBq\fR / \fBEsc\fR   Quit (clears selection, bails out)
+.fi
+.RE
+
+.SH EXAMPLES
+.PP
+Default \(em open the interactive picker:
+.PP
+.RS 4
+.EX
+\fB./install.sh\fR
+.EE
+.RE
+.PP
+Preview every action without making changes:
+.PP
+.RS 4
+.EX
+\fB./install.sh \-\-dry\-run\fR
+.EE
+.RE
+.PP
+Run only the symlink and macOS modules:
+.PP
+.RS 4
+.EX
+\fB./install.sh \-\-only=symlinks,macos\fR
+.EE
+.RE
+.PP
+Run everything except the window manager and Homebrew install:
+.PP
+.RS 4
+.EX
+\fB./install.sh \-\-skip=wm,homebrew\fR
+.EE
+.RE
+.PP
+CI-friendly run \(em all modules, auto-Yes to every prompt:
+.PP
+.RS 4
+.EX
+\fB./install.sh \-\-yes\fR
+.EE
+.RE
+.PP
+Equivalent of
+.B \-\-only
+via environment variable (useful when piping the script through
+.BR bash (1)):
+.PP
+.RS 4
+.EX
+\fBINSTALL_MODULES=symlinks,macos ./install.sh\fR
+.EE
+.RE
+.PP
+Remote one-liner \(em clones the repo, then runs the installer:
+.PP
+.RS 4
+.EX
+\fBcurl \-fsSL https://dotfiles.rafay99.com/install.sh | bash\fR
+.EE
+.RE
+
+.SH ENVIRONMENT
+.TP
+.B INSTALL_MODULES
+Comma-separated list of modules to run, equivalent to
+.BR \-\-only .
+Honored only when no selection flag is given on the command line.
+Useful for scripted invocations and the curl bootstrap.
+
+.SH FILES
+.TP
+.B install.sh
+The orchestrator. Parses flags, presents the picker, runs modules.
+.TP
+.B install.d/
+Module directory.
+.TP
+.B install.d/00-lib.sh
+Shared helpers: colors, logging,
+.BR prompt ,
+.BR link ,
+.BR brew_install ,
+.BR npm_install ,
+.BR curl_install ,
+.BR configure_claude_statusline .
+.TP
+.B install.d/01-menu.sh
+Module catalog, selection state, interactive picker, flag parsing.
+.TP
+.BR install.d/10-prereqs.sh "  through  " install.d/90-sketchybar.sh
+The actual module implementations. Each defines exactly one function:
+.BR module_<name>() .
+.TP
+.B Brewfile
+Core Homebrew formula list. Always applied when the
+.B homebrew
+module runs.
+.TP
+.B Brewfile.omniwm
+Additional formulae for OmniWM (only applied when WM = omniwm).
+.TP
+.B Brewfile.aerospace
+Additional formulae for AeroSpace (only applied when WM = aerospace).
+.TP
+.B install.sh.backup
+A frozen pre-modularization copy of
+.BR install.sh ,
+kept temporarily as a safety net. Delete once the modular installer
+has been validated.
+
+.SH EXIT STATUS
+.TP
+.B 0
+Success \(em all selected modules completed without errors.
+.TP
+.B 1
+One or more errors were recorded. See the summary at the end of the run
+for the
+.B Errors
+section listing what failed.
+.TP
+.B 130
+Interrupted by the user (Ctrl-C or Esc from the picker).
+
+.SH SEE ALSO
+.BR brew (1),
+.BR launchctl (1),
+.BR tmutil (8),
+.BR defaults (1),
+.BR bash (1)
+.PP
+Live documentation:
+.BR https://dotfiles.rafay99.com
+.PP
+Source:
+.BR https://github.com/rafay99-epic/dotfiles
+
+.SH AUTHOR
+Written by
+.B rafay99-epic
+\(em
+.BR https://github.com/rafay99-epic .

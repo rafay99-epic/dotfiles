@@ -329,6 +329,13 @@
     "kind": "section"
   },
   {
+    "title": "install.sh — modular installer",
+    "page": "Maintenance",
+    "url": "/maintenance#maint-install-modules",
+    "snippet": "install.sh modular installer with arrow-key picker. The root install.sh is a thin orchestrator (~200 lines). Each part lives in install.d/<NN-name>.sh defining module_<name>(). Modules: 00-lib (helpers, colors, link, brew_install, prompt), 01-menu (catalog + pure-bash arrow-key picker + flag parsing), 10-prereqs (always runs — macOS check, Xcode CLT, banner), 20-homebrew (Brewfile + Node nvm + Bun + WM Brewfile + sketchybar font + fish in /etc/shells), 30-wm (Window manager picker — omniwm/aerospace/none), 40-shells (fzf-tab), 50-apps (Ghostty, Cursor, Claude, Codex, Spotify), 60-symlinks (link calls), 70-launchd (Time Machine + sort-downloads LaunchAgents), 80-macos (defaults write tweaks), 90-sketchybar (restart). Flags: --dry-run, --yes/-y, --only=csv, --skip=csv, --modules, --man (open man page), --help. Env var INSTALL_MODULES=csv equivalent to --only. Pure-bash arrow-key picker — no whiptail/dialog dependency. Picker keys: arrows ↑/↓ (or k/j vim style) to move, Space to toggle, a all, n none, r reset, Enter run, q/Esc quit. Footer shows Selected: X/8 counter. Flicker-free redraw — entire frame built as one string, printed atomically with single printf call, each line ends with \\033[K to clear leftover chars. ANSI-C quoted color vars work with both echo -e and printf %s. bash 3.2 compatible (parallel indexed arrays, no declare -A). --only and --skip mutually exclusive. Atomic curl bootstrap — all files land in one commit. man page at man/install.1 with framed ASCII logo, full reference, examples, exit codes. Picker, picker menu, module selection, customizable installer, interactive, TUI.",
+    "kind": "section"
+  },
+  {
     "title": "Time Machine + TrueNAS — Setup Guide",
     "page": "Backup",
     "url": "/backup",

@@ -95,7 +95,22 @@ dotfiles/
 ├── Brewfile                    # core packages (always installed)
 ├── Brewfile.aerospace          # WM-specific (when WM=AeroSpace)
 ├── Brewfile.omniwm             # WM-specific (when WM=OmniWM)
-├── install.sh                  # symlinks + optional Homebrew + optional GUI apps
+├── install.sh                  # orchestrator — parses flags, picks modules, runs them in order
+├── install.d/                  # installer modules — each defines module_<name>()
+│   ├── 00-lib.sh               # shared helpers: colors, logging, link, brew_*, npm_install
+│   ├── 01-menu.sh              # module catalog + arrow-key picker + flag parsing
+│   ├── 10-prereqs.sh           # always-on: macOS check, Xcode CLT, banner
+│   ├── 20-homebrew.sh          # Homebrew + Brewfile + Node (nvm) + Bun + WM Brewfile
+│   ├── 30-wm.sh                # Window manager picker (OmniWM/AeroSpace/none)
+│   ├── 40-shells.sh            # fzf-tab and other shell plugins
+│   ├── 50-apps.sh              # Optional GUI apps (Ghostty, Cursor, Claude, …)
+│   ├── 60-symlinks.sh          # All `link` calls — the heart of dotfiles management
+│   ├── 70-launchd.sh           # Time Machine + sort-downloads LaunchAgents
+│   ├── 80-macos.sh             # defaults write tweaks (Dock, Finder, …)
+│   └── 90-sketchybar.sh        # SketchyBar restart/stop
+├── install.sh.backup           # frozen pre-modularization copy — delete once validated
+├── man/
+│   └── install.1               # real groff man page with framed ASCII logo (--man flag)
 ├── middleware.js               # Vercel edge middleware (security headers)
 ├── vercel.json                 # outputDirectory=docs, cleanUrls=true
 └── CLAUDE.md                   # this file
@@ -187,11 +202,37 @@ Any new or modified shell script, plist, or Brewfile must pass these checks **be
 Static HTML + Tailwind CDN + ~700 lines of vanilla JS in `script.js`. **No React, no build step.** The cost of a framework was assessed and rejected — the site is content, not an app. See decision rationale in conversation history (or just compare bundle sizes).
 
 ## Install
+
 ```bash
-./install.sh             # interactive
-./install.sh --dry-run   # preview only
+./install.sh                          # interactive arrow-key picker
+./install.sh --dry-run                # preview every action, no changes
+./install.sh --yes                    # run all modules, auto-Y every prompt
+./install.sh --only=symlinks,macos    # run only these modules (skip picker)
+./install.sh --skip=wm,homebrew       # run everything EXCEPT these
+./install.sh --modules                # print available module list
+./install.sh --man                    # open the man page
+./install.sh --help
+
+# CI-friendly env-var equivalent of --only:
+INSTALL_MODULES=symlinks,macos ./install.sh
 ```
+
 Symlinks all dotfiles. Optionally installs Homebrew + all packages. Idempotent — safe to re-run.
+
+### Modular installer
+`install.sh` is a thin orchestrator (~190 lines). Each major step lives in its own `install.d/<NN-name>.sh` file that defines one function: `module_<name>()`. The orchestrator parses flags, builds a selection set, then calls each module's function in order — gated by `should_run <name>`.
+
+- **Selection precedence** (highest first): `--only=` → `--skip=` → `--yes` → `$INSTALL_MODULES` → interactive picker (default).
+- **`--only` and `--skip` are mutually exclusive** — the orchestrator errors out if both are given.
+- **Interactive picker is pure bash** — no `whiptail` / `dialog` dependency, so it works on a bare macOS install. **Arrow keys** (or `j`/`k`) move the cursor, **Space** toggles the highlighted module, **a** selects all, **n** clears, **r** resets to defaults, **Enter** confirms and runs, **q** / **Esc** quits. Footer shows a live `Selected: X/8` counter.
+- **Flicker-free redraw**: the entire frame is built as one bash string and emitted in a single `printf` call. Each line ends with `\033[K` (clear-to-end-of-line) so leftover characters from the previous frame are wiped without a screen-clear flash. The color variables in `00-lib.sh` use ANSI-C quoting (`$'\e[...m'`) so both `echo -e` and `printf '%s'` render correctly.
+- **bash 3.2 compatible** — uses parallel indexed arrays instead of `declare -A`, so the picker works on macOS's stock `/bin/bash` on a fresh machine before Homebrew has installed anything else.
+- **`prereqs` is not in the picker** — it's the macOS / Xcode CLT / banner step that has to run before anything else can.
+- `INSTALL_APPS` is **derived** from whether the `homebrew` module is in the selected set; it's not a separate top-level prompt anymore.
+- New modules: drop `install.d/NN-name.sh` defining `module_name()`, append `name|<description>` to the catalog in `01-menu.sh`, and add a `should_run name && source … && module_name` block in `install.sh`. Three edits, one new file.
+
+### Man page
+`man/install.1` is a real groff man page with a framed ASCII logo at the top. Sections cover NAME, SYNOPSIS, DESCRIPTION, OPTIONS, MODULES, INTERACTIVE PICKER, EXAMPLES, ENVIRONMENT, FILES, EXIT STATUS, SEE ALSO, AUTHOR. Open it via `./install.sh --man` (uses `man <path>` on macOS BSD man with a `mandoc` fallback).
 
 ## Shells
 Both zsh (`zsh/.zshrc`) and fish (`fish/config.fish`) are kept in sync.

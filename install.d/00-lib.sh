@@ -22,9 +22,13 @@
 # =============================================================================
 
 # ── Colors ────────────────────────────────────────────────────────────────────
+# ANSI-C ($'...') quoting so each variable holds the actual ESC byte.
+# This way both `echo -e "$BOLD"` and `printf '%s' "$BOLD"` render correctly.
+# (With plain single quotes, the variables would contain a literal "\033"
+# 5-character string that only `echo -e` / `printf %b` interpret.)
 if [[ -t 1 ]]; then
-  RED='\033[0;31m'; YELLOW='\033[0;33m'; GREEN='\033[0;32m'
-  BLUE='\033[0;34m'; CYAN='\033[0;36m'; BOLD='\033[1m'; RESET='\033[0m'
+  RED=$'\e[0;31m'; YELLOW=$'\e[0;33m'; GREEN=$'\e[0;32m'
+  BLUE=$'\e[0;34m'; CYAN=$'\e[0;36m'; BOLD=$'\e[1m'; RESET=$'\e[0m'
 else
   RED=''; YELLOW=''; GREEN=''; BLUE=''; CYAN=''; BOLD=''; RESET=''
 fi
@@ -39,12 +43,20 @@ dry()     { echo -e "  ${YELLOW}(dry)${RESET} $*"; }
 
 # ── Prompt helper ─────────────────────────────────────────────────────────────
 # prompt "Question?" → returns 0 for Y, 1 for N
+#   - In dry-run: prints the question, auto-answers Yes
+#   - When $YES_ALL is true (--yes flag): prints + auto-Yes (real run)
+#   - Otherwise: reads y/n from /dev/tty (default Y on bare Enter)
 prompt() {
   local question="$1"
   local answer
 
   if [[ "$DRY_RUN" == true ]]; then
     echo -e "  ${YELLOW}(dry)${RESET} Would ask: ${BOLD}$question${RESET} → assuming Yes"
+    return 0
+  fi
+
+  if [[ "${YES_ALL:-false}" == true ]]; then
+    echo -e "\n  ${BOLD}${BLUE}?${RESET}  ${BOLD}$question${RESET} [Y/n] ${GREEN}y${RESET}  ${CYAN}(--yes)${RESET}"
     return 0
   fi
 

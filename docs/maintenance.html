@@ -144,6 +144,10 @@
             <i data-lucide="folder-sync" class="w-5 h-5 text-tn-blue shrink-0 mt-0.5"></i>
             <div><div class="font-semibold text-tn-fg text-sm">bin/sort-downloads</div><div class="text-tn-sub text-xs mt-0.5">Auto-sort Downloads → NAS</div></div>
           </a>
+          <a href="#maint-install-modules" class="tool-card bg-tn-bg2 border border-tn-border rounded-xl p-4 flex gap-3 items-start no-underline transition-all duration-200 hover:border-tn-orange/50">
+            <i data-lucide="package-check" class="w-5 h-5 text-tn-orange shrink-0 mt-0.5"></i>
+            <div><div class="font-semibold text-tn-fg text-sm">install.sh modules</div><div class="text-tn-sub text-xs mt-0.5">Modular installer · pick what to install</div></div>
+          </a>
         </div>
 
         <!-- Brewfile -->
@@ -494,6 +498,119 @@ SOURCES=(
           </div>
 
           <p class="text-tn-sub text-xs"><em>Want a different mount or no catch-all bucket? <code class="inline-code">NAS</code> respects the env var <code class="inline-code">SORT_DOWNLOADS_DST</code> so you can override without forking. To skip the catch-all, drop the <code class="inline-code">*) echo "Other"</code> branch from the <code class="inline-code">classify()</code> function.</em></p>
+        </div>
+
+        <!-- install.sh modular installer -->
+        <div id="maint-install-modules" class="mt-10">
+          <h3 class="text-tn-fg font-semibold text-lg mb-2 flex items-center gap-2"><i data-lucide="package-check" class="w-5 h-5 text-tn-orange"></i>install.sh — modular installer</h3>
+          <p class="text-tn-sub text-sm mb-3"><code class="inline-code">install.sh</code> at the repo root is a thin orchestrator (~190 lines). Each part of the install lives in its own file under <code class="inline-code">install.d/</code>, exposing one function: <code class="inline-code">module_&lt;name&gt;()</code>. The orchestrator parses flags, decides which modules to run, then sources and calls them in order. Different machines pick different combos — no more "all or nothing".</p>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">The modules</h4>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Module</th><th>Role</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code text-tn-cyan">00-lib.sh</code></td><td class="text-tn-sub">Shared helpers — colors, logging, <code class="inline-code">link</code>, <code class="inline-code">brew_install</code>, <code class="inline-code">npm_install</code>, <code class="inline-code">curl_install</code>, <code class="inline-code">prompt</code>. Sourced by every module.</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">01-menu.sh</code></td><td class="text-tn-sub">Module catalog + pure-bash interactive picker + <code class="inline-code">--only</code>/<code class="inline-code">--skip</code>/<code class="inline-code">--yes</code> flag parsing. Defines <code class="inline-code">should_run &lt;name&gt;</code>.</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">10-prereqs</code></td><td class="text-tn-sub"><strong class="text-tn-fg">Always runs.</strong> macOS check, Xcode CLT install, banner. Not in the picker — it's a hard requirement.</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">20-homebrew</code></td><td class="text-tn-sub">Homebrew install + <code class="inline-code">brew bundle</code> of <code class="inline-code">Brewfile</code> + Node LTS (nvm) + Bun + WM-specific Brewfile + sketchybar font + fish in <code class="inline-code">/etc/shells</code></td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">30-wm</code></td><td class="text-tn-sub">Window manager picker — OmniWM / AeroSpace / none. Sets <code class="inline-code">$WM_CHOICE</code> which other modules read.</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">40-shells</code></td><td class="text-tn-sub"><code class="inline-code">fzf-tab</code> git clone (no brew formula for it)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">50-apps</code></td><td class="text-tn-sub">Optional GUI apps — per-app Y/N prompts (Ghostty, Cursor, Claude, Codex CLI, Spotify, …)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">60-symlinks</code></td><td class="text-tn-sub">Every <code class="inline-code">link &lt;src&gt; &lt;dst&gt;</code> call — the actual dotfiles linking</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">70-launchd</code></td><td class="text-tn-sub">Time Machine monthly LaunchDaemon + Downloads-sort LaunchAgent (sed-templated for <code class="inline-code">$HOME</code>)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">80-macos</code></td><td class="text-tn-sub">macOS preferences — Dock, Finder, screenshots, Office telemetry, etc.</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">90-sketchybar</code></td><td class="text-tn-sub">Restart SketchyBar after packages + symlinks are in place</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Picking what to install</h4>
+          <p class="text-tn-sub text-sm mb-3">Four ways to choose, in priority order:</p>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Interactive — the default</span><button class="copy-btn" data-code="./install.sh">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">./install.sh</span>
+<span class="text-tn-sub"># Shows a numbered menu. Type "1 3 5" to toggle items, 'a' for all,</span>
+<span class="text-tn-sub"># 'n' for none, Enter to confirm. Symlinks is pre-checked.</span></pre>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Exact set via --only</span><button class="copy-btn" data-code="./install.sh --only=symlinks,macos">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">./install.sh</span> --only=symlinks,macos
+<span class="text-tn-sub"># Skips the menu entirely. Useful for scripted runs and CI.</span></pre>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Inverse selection via --skip</span><button class="copy-btn" data-code="./install.sh --skip=wm,homebrew">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">./install.sh</span> --skip=wm,homebrew
+<span class="text-tn-sub"># Runs everything except these. Useful on machines that</span>
+<span class="text-tn-sub"># already have Homebrew and don't want a WM.</span></pre>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Everything, auto-Yes</span><button class="copy-btn" data-code="./install.sh --yes">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">./install.sh</span> --yes
+<span class="text-tn-sub"># Runs all modules. Inside each module, Y/N prompts auto-answer Y.</span></pre>
+          </div>
+
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Env var (CI-friendly equivalent of --only)</span><button class="copy-btn" data-code="INSTALL_MODULES=symlinks,macos ./install.sh">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-blue">INSTALL_MODULES</span>=symlinks,macos <span class="text-tn-green">./install.sh</span></pre>
+          </div>
+
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Flag</th><th>What it does</th></tr></thead>
+              <tbody>
+                <tr><td><code class="inline-code text-tn-cyan">--dry-run</code></td><td class="text-tn-sub">Print every action without making changes (combines with any other flag)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">--yes</code> / <code class="inline-code text-tn-cyan">-y</code></td><td class="text-tn-sub">Run all modules; inside each, auto-answer Y to sub-prompts</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">--only=&lt;csv&gt;</code></td><td class="text-tn-sub">Run only the listed modules, skip the picker</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">--skip=&lt;csv&gt;</code></td><td class="text-tn-sub">Run everything except the listed modules</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">--modules</code></td><td class="text-tn-sub">Print the module list and exit</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">--man</code></td><td class="text-tn-sub">Open the full man page (with a framed ASCII logo)</td></tr>
+                <tr><td><code class="inline-code text-tn-cyan">--help</code> / <code class="inline-code text-tn-cyan">-h</code></td><td class="text-tn-sub">Show short usage summary</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Interactive picker keys</h4>
+          <p class="text-tn-sub text-sm mb-3">When no selection flag is given, the picker opens. Single-keystroke, no Enter needed for each key. The frame redraws atomically (one <code class="inline-code">printf</code> call building the whole frame as a string) so movement is smooth with no flicker.</p>
+          <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
+            <table>
+              <thead><tr><th>Key</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td><kbd>↑</kbd> / <kbd>k</kbd></td><td class="text-tn-sub">Move cursor up</td></tr>
+                <tr><td><kbd>↓</kbd> / <kbd>j</kbd></td><td class="text-tn-sub">Move cursor down</td></tr>
+                <tr><td><kbd>Space</kbd></td><td class="text-tn-sub">Toggle the highlighted module</td></tr>
+                <tr><td><kbd>a</kbd></td><td class="text-tn-sub">Select all</td></tr>
+                <tr><td><kbd>n</kbd></td><td class="text-tn-sub">Clear all</td></tr>
+                <tr><td><kbd>r</kbd></td><td class="text-tn-sub">Reset to defaults (symlinks only)</td></tr>
+                <tr><td><kbd>Enter</kbd></td><td class="text-tn-sub">Confirm and run</td></tr>
+                <tr><td><kbd>q</kbd> / <kbd>Esc</kbd></td><td class="text-tn-sub">Quit (clears selection, bails)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-tn-sub text-sm mb-3">Footer shows a live <code class="inline-code">Selected: X/8</code> counter so you can see what you've picked at a glance.</p>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Man page</h4>
+          <p class="text-tn-sub text-sm mb-3">A real groff man page lives at <code class="inline-code">man/install.1</code> — opens in your pager via <code class="inline-code">./install.sh --man</code>. Includes a framed ASCII logo and full reference for every flag, every module, every interactive key, environment variables, exit codes, and example invocations.</p>
+          <div class="code-block-wrap mb-3">
+            <div class="code-header"><span class="text-tn-sub text-xs">Open the man page</span><button class="copy-btn" data-code="./install.sh --man">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">./install.sh</span> --man</pre>
+          </div>
+
+          <h4 class="text-tn-fg font-semibold text-sm mt-6 mb-2">Design notes</h4>
+          <ul class="text-tn-sub text-sm space-y-1 list-disc list-inside mb-3">
+            <li><strong class="text-tn-fg">Pure-bash picker.</strong> No <code class="inline-code">whiptail</code> / <code class="inline-code">dialog</code> dependency — the menu works on a bare macOS install where nothing extra has been brewed.</li>
+            <li><strong class="text-tn-fg">Flicker-free redraw.</strong> The whole frame is built as a single bash string and emitted with one <code class="inline-code">printf</code> call. Each line ends with <code class="inline-code">\033[K</code> (clear-to-end-of-line) so leftover characters from the previous frame are wiped without a screen-clear flash. Color variables use ANSI-C quoting (<code class="inline-code">$'\e[…m'</code>) so both <code class="inline-code">echo -e</code> and <code class="inline-code">printf '%s'</code> render correctly.</li>
+            <li><strong class="text-tn-fg">bash 3.2 compatible.</strong> Uses parallel indexed arrays instead of <code class="inline-code">declare -A</code>, so the script runs on macOS's stock <code class="inline-code">/bin/bash</code> on a fresh machine before Homebrew has installed anything.</li>
+            <li><strong class="text-tn-fg">Mutually exclusive flags.</strong> <code class="inline-code">--only</code> and <code class="inline-code">--skip</code> can't be combined — the orchestrator errors out cleanly if both are given.</li>
+            <li><strong class="text-tn-fg">Atomic curl bootstrap.</strong> All <code class="inline-code">install.d/</code> files land in a single commit so <code class="inline-code">curl … | bash</code> users never see a half-modular state mid-clone.</li>
+            <li><strong class="text-tn-fg">Adding a new module.</strong> Drop <code class="inline-code">install.d/NN-name.sh</code> defining <code class="inline-code">module_name()</code>, append <code class="inline-code">name|description</code> to the catalog in <code class="inline-code">01-menu.sh</code>, and add a <code class="inline-code">should_run name && … &amp;&amp; module_name</code> block in <code class="inline-code">install.sh</code>. Three edits, one new file.</li>
+          </ul>
+
+          <p class="text-tn-sub text-xs"><em>The public bootstrap at <code class="inline-code">docs/install.sh</code> (served from <code class="inline-code">dotfiles.rafay99.com/install.sh</code>) is unchanged — it still git-clones the repo and runs <code class="inline-code">bash $TARGET/install.sh</code>. The orchestrator handles everything from there.</em></p>
         </div>
       </section>
 

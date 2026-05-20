@@ -3,19 +3,28 @@
 # Prometheus Dotfiles — install.sh (orchestrator)
 # =============================================================================
 #
-#  Clone the repo, run this script, answer the prompts. That's it.
+#  Clone the repo, run this script, pick which modules to install.
 #
 #  Usage:
-#    ./install.sh            — interactive install
-#    ./install.sh --dry-run  — preview everything without making changes
-#    ./install.sh --help     — show this message
+#    ./install.sh                         — interactive module picker
+#    ./install.sh --dry-run               — preview everything, no changes
+#    ./install.sh --yes                   — run ALL modules, auto-Y every prompt
+#    ./install.sh --only=symlinks,macos   — run only these modules
+#    ./install.sh --skip=wm,homebrew      — run everything EXCEPT these
+#    ./install.sh --modules               — print module list and exit
+#    ./install.sh --man                   — open the full man page
+#    ./install.sh --help                  — show this message
+#
+#  Env var (CI-friendly equivalent of --only):
+#    INSTALL_MODULES=symlinks,macos ./install.sh
 #
 #  Remote one-liner (bootstraps clone + runs this script):
 #    curl -fsSL https://dotfiles.rafay99.com/install.sh | bash
 #
 #  Layout:
-#    install.sh              — this orchestrator (~120 lines)
+#    install.sh              — this orchestrator
 #    install.d/00-lib.sh     — shared helpers (colors, logging, link, brew_*…)
+#    install.d/01-menu.sh    — module catalog + interactive picker
 #    install.d/10-prereqs.sh — macOS check, Xcode CLT, banner
 #    install.d/20-homebrew.sh — Homebrew + Brewfile + Node + Bun
 #    install.d/30-wm.sh      — Window manager choice (omniwm/aerospace/none)
@@ -28,7 +37,7 @@
 #
 #  Each install.d/<NN-name>.sh defines a single function `module_<name>()`
 #  that does the work. This orchestrator sources them in order and calls
-#  each module sequentially.
+#  each module IFF it's in the selected set (see `should_run` in 01-menu.sh).
 #
 # =============================================================================
 
@@ -38,6 +47,7 @@ IFS=$'\n\t'
 # ── Global state ──────────────────────────────────────────────────────────────
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRY_RUN=false
+YES_ALL=false
 INSTALL_APPS=false
 WM_CHOICE="none"          # none | omniwm | aerospace
 ERRORS=()
@@ -45,86 +55,151 @@ SKIPPED=()
 LINKED=()
 INSTALLED=()
 
-# ── Shared library (colors, logging, prompt, link, brew_*, npm_install, …) ───
-# Defined in install.d/00-lib.sh so modules can use the same helpers.
-# Must be sourced AFTER the globals above are set (they're referenced inside).
+# Selection mode: how the module list was chosen.
+#   "menu"  — interactive picker (default when no flags given)
+#   "only"  — --only=… or $INSTALL_MODULES
+#   "skip"  — --skip=…
+#   "yes"   — --yes (= run all)
+SELECTION_MODE="menu"
+
+# ── Shared library + module catalog ──────────────────────────────────────────
 # shellcheck source=install.d/00-lib.sh
 source "$DOTFILES/install.d/00-lib.sh"
+# shellcheck source=install.d/01-menu.sh
+source "$DOTFILES/install.d/01-menu.sh"
 
 # ── Argument parsing ──────────────────────────────────────────────────────────
+print_help() {
+  sed -n '3,20p' "$0" | sed 's/^# \{0,1\}//'
+  print_module_list
+  echo ""
+}
+
+ONLY_CSV=""
+SKIP_CSV=""
+
 for arg in "$@"; do
   case "$arg" in
-    --dry-run) DRY_RUN=true ;;
-    --help|-h)
-      echo ""
-      echo "Usage: ./install.sh [--dry-run] [--help]"
-      echo ""
-      echo "  --dry-run   Preview all changes without making them"
-      echo "  --help      Show this message"
-      echo ""
-      exit 0
+    --dry-run)        DRY_RUN=true ;;
+    --yes|-y)         YES_ALL=true; SELECTION_MODE="yes" ;;
+    --modules)        print_module_list; exit 0 ;;
+    --only=*)         ONLY_CSV="${arg#--only=}"; SELECTION_MODE="only" ;;
+    --skip=*)         SKIP_CSV="${arg#--skip=}"; SELECTION_MODE="skip" ;;
+    --man)
+      if [[ ! -r "$DOTFILES/man/install.1" ]]; then
+        error "Man page not found at $DOTFILES/man/install.1"
+        exit 1
+      fi
+      # macOS's BSD `man` accepts an absolute path directly — no `-l` flag
+      # needed (and not supported). On Linux, `man` also accepts a path
+      # argument as of recent versions, so this form is portable. Fall back
+      # to `mandoc` (always on macOS) if `man` rejects the file for any reason.
+      if ! exec man "$DOTFILES/man/install.1" 2>/dev/null; then
+        exec mandoc "$DOTFILES/man/install.1" | ${PAGER:-less -R}
+      fi
       ;;
-    *) error "Unknown argument: $arg"; exit 1 ;;
+    --help|-h)        print_help; exit 0 ;;
+    *) error "Unknown argument: $arg"; echo "Try: ./install.sh --help" >&2; exit 1 ;;
   esac
 done
 
-# =============================================================================
-# Run modules in order
-# =============================================================================
-# 10-prereqs runs first — it does the macOS / Xcode / git checks AND prints
-# the banner. After that, ask the top-level "install core packages?" question
-# which gates the homebrew module. Everything else runs unconditionally for
-# now (Phase 3 of the refactor will add the module-selection menu).
+# Env-var equivalent of --only — only honored when no other selection flag set.
+if [[ -n "${INSTALL_MODULES:-}" && "$SELECTION_MODE" == "menu" ]]; then
+  ONLY_CSV="$INSTALL_MODULES"
+  SELECTION_MODE="only"
+fi
+
+# --only and --skip are mutually exclusive
+if [[ -n "$ONLY_CSV" && -n "$SKIP_CSV" ]]; then
+  error "--only and --skip are mutually exclusive"
+  exit 1
+fi
+
+# ── Prereqs (always run, never optional) ──────────────────────────────────────
 # shellcheck source=install.d/10-prereqs.sh
 source "$DOTFILES/install.d/10-prereqs.sh"
 module_prereqs
 
-# Top-level: do you want core packages installed?
-if prompt "Install Homebrew and core packages?"; then
+# ── Resolve module selection ─────────────────────────────────────────────────
+case "$SELECTION_MODE" in
+  only)
+    set_selection_from_csv "$ONLY_CSV"
+    info "Selected (--only): $(selected_summary)"
+    ;;
+  skip)
+    apply_skip_csv "$SKIP_CSV"
+    info "Selected (--skip): $(selected_summary)"
+    ;;
+  yes)
+    select_all
+    info "Selected (--yes): $(selected_summary)"
+    ;;
+  menu|*)
+    interactive_module_menu
+    ;;
+esac
+
+# INSTALL_APPS is derived from whether the homebrew module was picked.
+# 50-apps and 90-sketchybar both read it.
+if should_run homebrew; then
   INSTALL_APPS=true
-else
-  info "Skipping package installation — will only set up symlinks."
 fi
 
-# WM choice (always asked — sets WM_CHOICE which other modules read)
-# shellcheck source=install.d/30-wm.sh
-source "$DOTFILES/install.d/30-wm.sh"
-module_wm
+# =============================================================================
+# Run modules in display order — each gated on should_run
+# =============================================================================
+# Module order is the same as the catalog in 01-menu.sh, EXCEPT for two
+# real-world dependencies that pin a different ordering:
+#   - wm runs before homebrew (so WM_CHOICE is set when Brewfile.<wm> needs it)
+#   - sketchybar runs last (needs both packages and symlinks in place)
 
-# Homebrew + core packages (self-gates on INSTALL_APPS)
-# shellcheck source=install.d/20-homebrew.sh
-source "$DOTFILES/install.d/20-homebrew.sh"
-module_homebrew
+if should_run wm; then
+  # shellcheck source=install.d/30-wm.sh
+  source "$DOTFILES/install.d/30-wm.sh"
+  module_wm
+fi
 
-# Optional apps (per-app Y/N prompts)
-# shellcheck source=install.d/50-apps.sh
-source "$DOTFILES/install.d/50-apps.sh"
-module_apps
+if should_run homebrew; then
+  # shellcheck source=install.d/20-homebrew.sh
+  source "$DOTFILES/install.d/20-homebrew.sh"
+  module_homebrew
+fi
 
-# macOS preferences (defaults write)
-# shellcheck source=install.d/80-macos.sh
-source "$DOTFILES/install.d/80-macos.sh"
-module_macos
+if should_run apps; then
+  # shellcheck source=install.d/50-apps.sh
+  source "$DOTFILES/install.d/50-apps.sh"
+  module_apps
+fi
 
-# Symlinks (the core of dotfiles management)
-# shellcheck source=install.d/60-symlinks.sh
-source "$DOTFILES/install.d/60-symlinks.sh"
-module_symlinks
+if should_run macos; then
+  # shellcheck source=install.d/80-macos.sh
+  source "$DOTFILES/install.d/80-macos.sh"
+  module_macos
+fi
 
-# LaunchAgents (TM monthly + sort-downloads)
-# shellcheck source=install.d/70-launchd.sh
-source "$DOTFILES/install.d/70-launchd.sh"
-module_launchd
+if should_run symlinks; then
+  # shellcheck source=install.d/60-symlinks.sh
+  source "$DOTFILES/install.d/60-symlinks.sh"
+  module_symlinks
+fi
 
-# Shell plugins (fzf-tab)
-# shellcheck source=install.d/40-shells.sh
-source "$DOTFILES/install.d/40-shells.sh"
-module_shells
+if should_run launchd; then
+  # shellcheck source=install.d/70-launchd.sh
+  source "$DOTFILES/install.d/70-launchd.sh"
+  module_launchd
+fi
 
-# SketchyBar restart (last — needs both packages and symlinks in place)
-# shellcheck source=install.d/90-sketchybar.sh
-source "$DOTFILES/install.d/90-sketchybar.sh"
-module_sketchybar
+if should_run shells; then
+  # shellcheck source=install.d/40-shells.sh
+  source "$DOTFILES/install.d/40-shells.sh"
+  module_shells
+fi
+
+if should_run sketchybar; then
+  # shellcheck source=install.d/90-sketchybar.sh
+  source "$DOTFILES/install.d/90-sketchybar.sh"
+  module_sketchybar
+fi
 
 # =============================================================================
 # Summary
