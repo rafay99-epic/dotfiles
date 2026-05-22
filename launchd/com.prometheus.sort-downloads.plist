@@ -78,6 +78,20 @@
     <key>StartOnMount</key>
     <true/>
 
+    <!-- Safety net: sweep every 5 minutes no matter what. We learned the
+         hard way that WatchPaths subscriptions go silently dead on macOS
+         (verified empirically: agent loaded, watching=1 in launchctl print,
+         directory mtime visibly changing on new downloads — and yet the
+         agent never fires). Could be Sequoia's Background Activity
+         throttling unsigned LaunchAgents, could be fsevents starvation,
+         could be a launchd state-machine bug. Doesn't matter — the
+         pragmatic fix is to poll. 300 s gives a worst-case 5 min lag,
+         the script's no-op path is ~10 ms when Downloads is empty
+         (just stats files, hits the lock, exits), and ThrottleInterval=30
+         keeps WatchPaths bursts from compounding with this. -->
+    <key>StartInterval</key>
+    <integer>300</integer>
+
     <key>StandardOutPath</key>
     <string>__HOME__/.sort-download/sort-downloads.log</string>
     <key>StandardErrorPath</key>
