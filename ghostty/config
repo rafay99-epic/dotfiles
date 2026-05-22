@@ -9,8 +9,8 @@ theme = TokyoNight
 
 # Slightly transparent background so the Tokyo Night wallpaper
 # bleeds through. blur-radius requires macOS 14+.
-background-opacity = 0.95
-background-blur = 20
+background-opacity = 0.60
+background-blur = 30
 background-opacity-cells = true
 
 # Keep the window chrome dark to match the bar
