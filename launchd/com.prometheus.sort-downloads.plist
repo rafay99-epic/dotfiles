@@ -67,6 +67,17 @@
     <key>RunAtLoad</key>
     <true/>
 
+    <!-- Also fire whenever ANY volume mounts. The script already bails
+         cleanly when /Volumes/media isn't mounted, so unrelated volumes
+         (Time Machine drive, a USB stick, etc.) are no-ops. The case that
+         matters: NAS reconnect after a network drop or fresh login —
+         launchd's WatchPaths only re-fires on a fresh ~/Downloads change,
+         so without this, files that arrived while the NAS was offline
+         would sit there until the next download moved the directory's
+         mtime. StartOnMount closes that gap. -->
+    <key>StartOnMount</key>
+    <true/>
+
     <key>StandardOutPath</key>
     <string>__HOME__/.sort-download/sort-downloads.log</string>
     <key>StandardErrorPath</key>

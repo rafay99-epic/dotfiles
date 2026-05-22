@@ -93,4 +93,39 @@ module_launchd() {
     info "sort-downloads installed but LaunchAgent skipped (SORT_DOWNLOADS_BACKGROUND=false)."
     info "  Run it manually: sort-downloads"
   fi
+
+  # ── NAS auto-mount retry: LaunchAgent ─────────────────────────────────────
+  # The .inetloc Login Item (installed by 60-symlinks.sh) fires at login but
+  # often loses the race with Wi-Fi association on a fresh boot. This agent
+  # runs `nas-mount` which retries with backoff until the share comes up.
+  # Idempotent — if the .inetloc already succeeded, nas-mount exits in ~1 ms.
+  if is_truthy "${HAS_NAS:-false}"; then
+    NM_PLIST_SRC="$DOTFILES/launchd/com.prometheus.nas-mount.plist"
+    NM_PLIST_DST="$HOME/Library/LaunchAgents/com.prometheus.nas-mount.plist"
+    if [[ -f "$NM_PLIST_SRC" ]]; then
+      if [[ "$DRY_RUN" == false ]]; then
+        mkdir -p "$HOME/Library/LaunchAgents"
+        NM_RENDERED="$(mktemp -t nas-mount-plist.XXXXXX)"
+        sed "s|__HOME__|$HOME|g" "$NM_PLIST_SRC" > "$NM_RENDERED"
+        if [[ -f "$NM_PLIST_DST" ]] && cmp -s "$NM_RENDERED" "$NM_PLIST_DST"; then
+          success "Already installed: NAS auto-mount retry LaunchAgent"
+          SKIPPED+=("nas-mount LaunchAgent")
+          rm -f "$NM_RENDERED"
+        else
+          info "Installing NAS auto-mount retry LaunchAgent..."
+          launchctl unload "$NM_PLIST_DST" 2>/dev/null || true
+          mv "$NM_RENDERED" "$NM_PLIST_DST"
+          chmod 644 "$NM_PLIST_DST"
+          if launchctl load "$NM_PLIST_DST"; then
+            success "NAS auto-mount retry LaunchAgent loaded"
+            INSTALLED+=("nas-mount LaunchAgent")
+          else
+            error "Failed to load $NM_PLIST_DST"
+          fi
+        fi
+      else
+        dry "install $NM_PLIST_DST (templated) + launchctl load"
+      fi
+    fi
+  fi
 }

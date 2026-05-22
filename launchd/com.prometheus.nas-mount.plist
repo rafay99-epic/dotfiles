@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ============================================================================
+  com.prometheus.nas-mount — retry layer for the NAS auto-mount
+
+  The Finder Login Item (.inetloc registered by install.d/60-symlinks.sh)
+  fires the moment the user logs in. On a fresh boot the Wi-Fi association
+  often hasn't completed yet, so Finder can't resolve the SMB host and the
+  mount silently fails. The login item never retries.
+
+  This LaunchAgent is the retry layer. It runs `nas-mount` at login (after
+  a short delay so it doesn't race the .inetloc) and lets it loop with
+  ~15 s backoff until either the share comes up or the budget is exhausted.
+  Idempotent: if the .inetloc succeeded, nas-mount exits immediately.
+
+  Must be a LaunchAgent (LimitLoadToSessionType=Aqua) — running outside the
+  GUI session would lose access to Finder and the Keychain credentials that
+  make the SMB authentication work.
+
+  __HOME__ is a placeholder substituted by install.d/70-launchd.sh.
+
+  Install (handled by install.sh):
+    sed "s|__HOME__|$HOME|g" com.prometheus.nas-mount.plist \
+      > ~/Library/LaunchAgents/com.prometheus.nas-mount.plist
+    launchctl unload ~/Library/LaunchAgents/com.prometheus.nas-mount.plist 2>/dev/null
+    launchctl load   ~/Library/LaunchAgents/com.prometheus.nas-mount.plist
+
+  Trigger immediately for testing:
+    launchctl start com.prometheus.nas-mount
+
+  Logs:
+    tail -f ~/.nas-mount/nas-mount.log
+  ============================================================================
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.prometheus.nas-mount</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__HOME__/.local/bin/nas-mount</string>
+    </array>
+
+    <!-- Fire at every login. The script handles the "already mounted"
+         case in ~1 ms so this is cheap to run unconditionally. -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Aqua session only — Finder + Keychain access requires it. -->
+    <key>LimitLoadToSessionType</key>
+    <string>Aqua</string>
+
+    <!-- Run-once-per-load: launchd won't relaunch on its own if the
+         script exits non-zero. We want that: the script's internal
+         retry loop already has a bounded budget; relying on launchd
+         to re-spawn after a failure would flood the log. -->
+    <key>KeepAlive</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>__HOME__/.nas-mount/nas-mount.log</string>
+    <key>StandardErrorPath</key>
+    <string>__HOME__/.nas-mount/nas-mount.log</string>
+</dict>
+</plist>

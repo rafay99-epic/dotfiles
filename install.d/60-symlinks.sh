@@ -107,6 +107,17 @@ module_symlinks() {
     fi
   fi
 
+  # ── NAS auto-mount: retry helper ──────────────────────────────────────────
+  # The .inetloc Login Item below tries to mount at login but doesn't retry
+  # when the network isn't ready yet. `nas-mount` is the retry layer — see
+  # bin/nas-mount and install.d/70-launchd.sh for the matching LaunchAgent.
+  if is_truthy "${HAS_NAS:-false}"; then
+    link "$DOTFILES/bin/nas-mount"                    "$HOME/.local/bin/nas-mount"
+    if [[ "$DRY_RUN" == false ]]; then
+      chmod +x "$HOME/.local/bin/nas-mount" 2>/dev/null || true
+    fi
+  fi
+
   # ── NAS auto-mount: .inetloc Login Item ───────────────────────────────────
   # The Finder Login Item that mounts the SMB share at every login. Rendered
   # from nas/truenas-media.inetloc.template by sed-substituting the user's

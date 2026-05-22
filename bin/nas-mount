@@ -1,0 +1,191 @@
+#!/usr/bin/env bash
+# nas-mount — mount the configured NAS media share via Finder + Keychain.
+#
+# Why this exists alongside the .inetloc Finder Login Item:
+#   The .inetloc fires the moment you log in, often before the Wi-Fi
+#   association completes or DHCP hands out a lease. When that happens
+#   Finder errors out and never retries — you're left looking at
+#   ~/Downloads piling up and the share never coming up until you click
+#   "media" in the Finder sidebar manually.
+#
+#   This script is the retry layer. It's idempotent: if /Volumes/media
+#   is already mounted (the .inetloc succeeded on its own), this exits
+#   immediately. Otherwise it asks Finder — same as clicking the
+#   .inetloc — to mount the share, which routes through the user's
+#   Keychain credentials. Retries with backoff so it survives the
+#   network-not-ready-at-login race.
+#
+# Why osascript ... mount volume (not mount_smbfs):
+#   mount_smbfs from a script can't read the Keychain (Authentication
+#   error 77). Asking Finder via Apple Events stays in the same
+#   GUI-session privilege bubble the .inetloc uses, so the saved
+#   credential just works.
+#
+# Usage:
+#   nas-mount            # try to mount, with retries (~90s window)
+#   nas-mount -1         # one attempt, no retry loop
+#   nas-mount -v         # verbose: log attempts to stdout too
+#   nas-mount -h         # help
+#
+# Exit codes:
+#   0  share is mounted (already, or we just mounted it)
+#   1  NAS not configured (HAS_NAS=false or NAS_HOST/NAS_USER empty)
+#   2  all retries exhausted without a successful mount
+#
+# Logs: ~/.nas-mount/nas-mount.log
+
+set -uo pipefail
+
+# Resolve symlinks so we can find lib/dotfiles-config.sh whether this
+# script is run from the repo or via ~/.local/bin/nas-mount.
+_self="${BASH_SOURCE[0]}"
+while [[ -L "$_self" ]]; do
+  _link="$(readlink "$_self")"
+  [[ "$_link" == /* ]] && _self="$_link" || _self="$(dirname "$_self")/$_link"
+done
+_self_dir="$(cd -P "$(dirname "$_self")" && pwd)"
+# shellcheck disable=SC1091
+. "$_self_dir/lib/dotfiles-config.sh"
+
+LOG_DIR="$HOME/.nas-mount"
+LOG="$LOG_DIR/nas-mount.log"
+
+# Retry budget. Defaults give ~90s of patience after login, which
+# comfortably covers Wi-Fi association + DHCP + mDNS resolution on
+# every machine I've tested.
+MAX_ATTEMPTS=6
+SLEEP_BETWEEN=15
+VERBOSE=0
+ONESHOT=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -1|--once)    ONESHOT=1 ;;
+    -v|--verbose) VERBOSE=1 ;;
+    -h|--help)
+      sed -n '2,36p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    *)
+      printf 'nas-mount: unknown option: %s\n' "$1" >&2
+      exit 64
+      ;;
+  esac
+  shift
+done
+
+mkdir -p "$LOG_DIR"
+
+log() {
+  local line
+  line="[$(date '+%Y-%m-%d %H:%M:%S')] $*"
+  printf '%s\n' "$line" >> "$LOG"
+  if [[ "$VERBOSE" == 1 ]]; then
+    printf '%s\n' "$line"
+  fi
+}
+
+is_mounted() {
+  # Match the mountpoint exactly. `mount` prints lines like
+  #   //user@host/share on /Volumes/media (smbfs, ...)
+  # so a substring search on " on $NAS_MOUNT_MEDIA " is unambiguous.
+  mount | grep -Fq " on ${NAS_MOUNT_MEDIA} "
+}
+
+# Trigger downstream jobs that need the NAS up. We exec each script
+# directly rather than going through `launchctl start <Label>`. Two
+# reasons learned the hard way:
+#
+#   1. StartOnMount=true on sort-downloads doesn't reliably fire for
+#      SMB shares mounted via Finder+osascript. The disk-arbitration
+#      event launchd watches just isn't always emitted.
+#   2. `launchctl start` silently no-ops when the target agent is
+#      within its ThrottleInterval. At boot the timing is exactly
+#      wrong: sort-downloads' RunAtLoad fires at T=0 (and bails
+#      because the NAS isn't up yet), nas-mount succeeds ~30 s later
+#      and kicks sort-downloads — but launchd throttles the kick and
+#      returns exit 0 anyway, so the backlog never clears.
+#
+# Direct exec bypasses both problems. nas-mount itself runs in the
+# Aqua session with the same privileges as the LaunchAgent would,
+# so the downstream script gets the same execution context.
+#
+# Each call is best-effort: if the user disabled a feature in local.env
+# (e.g. ENABLE_SORT_DOWNLOADS=false) the script won't be symlinked and
+# we silently skip it.
+kick_dependent_jobs() {
+  local sd="$HOME/.local/bin/sort-downloads"
+  if [[ -x "$sd" ]]; then
+    log "running sort-downloads to clear any backlog"
+    # Run in the background so this script returns promptly even if
+    # the sweep takes a while on a large Downloads folder. Output
+    # still lands in sort-downloads' own log via its internal redirect.
+    "$sd" >/dev/null 2>&1 &
+    disown
+  fi
+}
+
+# Bail early if the user hasn't opted into NAS. Returning 1 (not 0)
+# lets the LaunchAgent surface a meaningful exit status; if someone
+# disables HAS_NAS but the LaunchAgent is still loaded, the log will
+# show the reason on every invocation rather than failing silently.
+if ! is_truthy "$HAS_NAS"; then
+  log "NAS not enabled (HAS_NAS=false) — nothing to do"
+  exit 1
+fi
+
+if [[ -z "$NAS_HOST" || -z "$NAS_USER" ]]; then
+  log "NAS not configured (NAS_HOST or NAS_USER empty) — run ./install.sh --reconfigure"
+  exit 1
+fi
+
+SMB_URL="$(dotfiles_smb_url "$NAS_SHARE_MEDIA")"
+
+# Fast path: already mounted. We still kick dependent jobs because the
+# .inetloc Login Item may have won the race to mount the share *before*
+# this script ran, in which case sort-downloads' RunAtLoad fired against
+# a pre-mount filesystem (NAS not yet there) and bailed. By kicking it
+# here we close that timing hole — the launchctl start is idempotent
+# and the script's own settle/empty-source checks make a second sweep
+# cheap if everything was already moved.
+if is_mounted; then
+  log "already mounted at $NAS_MOUNT_MEDIA — kicking dependent jobs"
+  kick_dependent_jobs
+  exit 0
+fi
+
+attempt=1
+while :; do
+  log "attempt $attempt/$MAX_ATTEMPTS: asking Finder to mount $SMB_URL"
+
+  # osascript output goes to the log so authentication / network
+  # failures show up there verbatim (e.g. "connection failed",
+  # "host is down", "authentication error").
+  if osascript -e "tell application \"Finder\" to mount volume \"$SMB_URL\"" >>"$LOG" 2>&1; then
+    # Finder may return success before /Volumes shows the mountpoint
+    # (especially on slower SMB handshakes). Give it a moment, then
+    # confirm via `mount`.
+    sleep 2
+    if is_mounted; then
+      log "mounted $NAS_MOUNT_MEDIA via Finder"
+      kick_dependent_jobs
+      exit 0
+    fi
+    log "Finder returned success but $NAS_MOUNT_MEDIA not in mount table — retrying"
+  else
+    log "Finder mount call failed (network or auth) — will retry"
+  fi
+
+  if [[ "$ONESHOT" == 1 ]]; then
+    log "oneshot mode — giving up after one attempt"
+    exit 2
+  fi
+
+  if (( attempt >= MAX_ATTEMPTS )); then
+    log "exhausted $MAX_ATTEMPTS attempts — giving up. Open Finder and click 'media' to mount + re-auth."
+    exit 2
+  fi
+
+  sleep "$SLEEP_BETWEEN"
+  attempt=$(( attempt + 1 ))
+done

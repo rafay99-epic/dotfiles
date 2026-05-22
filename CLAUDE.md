@@ -2,44 +2,22 @@
 
 ## Documentation
 
-Full documentation lives in two places — always consult these before making changes:
+The docs site has been **extracted into a separate repository**: `~/Code/prometheus-docs/` (Astro + Tailwind, deployed to [dotfiles.rafay99.com](https://dotfiles.rafay99.com)). This repo no longer ships the docs — there is no `docs/` directory, no `vercel.json`, no `middleware.js`.
 
-- **Live site**: [dotfiles.rafay99.com](https://dotfiles.rafay99.com) — complete reference with install guide, config explanations, keybindings, and gallery
-- **Source**: `docs/` — static Tokyo-Night themed site served by Vercel
+- **Live site**: [dotfiles.rafay99.com](https://dotfiles.rafay99.com)
+- **Source repo**: `~/Code/prometheus-docs/`
+- **Content lives in**: `~/Code/prometheus-docs/src/content/docs/` (MDX files organised under `configuration/`, `installation/`, `installing/`, `questions/`, `reference/`)
+- **Key pages**:
+  - `configuration/nas.mdx` — the full NAS workflow (mount story, `nas-mount` retry layer, `sort-downloads`, `archive-project`, screenshot direct-save)
+  - `configuration/backup.mdx` — Time Machine to TrueNAS deep-dive
+  - `configuration/maintenance.mdx` — Brewfile, gitconfig, `bin/update`, installer modules
+  - `configuration/customize.mdx` — `local.env` keys and per-machine config
+  - `installation/*` — install flow + portability notes
+  - `questions/*` — first-run wizard reference
 
-When a user asks about any config, tool, or behaviour in this repo, **read the relevant `docs/<page>.html` first** (or visit the live site) for the authoritative explanation before touching any files.
+**When a user asks about any config, tool, or behaviour in this repo**, the authoritative explanation lives in the prometheus-docs repo. Read the relevant `.mdx` file there before changing code here — and remember to update both this repo's code/`CLAUDE.md` *and* the matching `.mdx` page in prometheus-docs when you make a change that needs to be visible to readers.
 
-### Multi-page docs architecture
-
-`docs/` is a flat-file static site (no build step, no framework). Each route is one HTML file; the shared sidebar + theme + search are rendered by `script.js` from a single source of truth.
-
-| Route | File | Purpose |
-|---|---|---|
-| `/` | `index.html` | Slim landing — hero, one-line install, 10-card nav grid |
-| `/install` | `install.html` | Quick Install walkthrough |
-| `/apps` | `apps.html` | Every app and CLI tool installed |
-| `/symlinks` | `symlinks.html` | How configs land in `~/.config` |
-| `/desktop` | `desktop.html` | SketchyBar · OmniWM · AeroSpace · Multi-Config (4 sections) |
-| `/terminal` | `terminal.html` | Ghostty · Starship · Shell · Zsh · Fish (5 sections) |
-| `/customize` | `customize.html` | Customization + Commands (2 sections) |
-| `/maintenance` | `maintenance.html` | Brewfile · gitconfig · `bin/update` |
-| `/nas` | `nas.html` | The full NAS workflow: mount story · `sort-downloads` · `archive-project` · screenshot direct-save |
-| `/backup` | `backup.html` | Full Time Machine + TrueNAS setup guide (deep doc) |
-| `/macos` | `macos.html` | macOS Tweaks via `defaults write` |
-| `/gallery` | `gallery.html` | Screenshots + wallpaper downloads |
-
-Routing relies on **`vercel.json` → `cleanUrls: true`** which strips `.html` from URLs. **Live Server (VS Code) does NOT honour this** — use `npx serve -c <(echo '{"cleanUrls":true}')` from `docs/` or `vercel dev` for accurate local previews.
-
-### Shared shell
-
-Every page includes the same head, mobile header, mobile nav drawer, desktop sidebar, footer, and `<script src="script.js">`. The sidebar/mobile-nav nodes are **empty containers** (`<nav id="sidebar-nav">`, `<div id="mobile-nav-links">`); `script.js` renders the nav from a single `navItems[]` array. To add a page: append to `navItems` in `script.js`, create one HTML file with the shared shell, regenerate the search index.
-
-### Search palette (Cmd+K)
-
-- Trigger: **⌘K** / **Ctrl+K** / **/** on any page
-- Source: `docs/search-index.json` — lazy-fetched on first open, cached for the session
-- Index covers all 11 pages + every `id`-anchored sub-section (~56 entries)
-- Regenerate after editing content: `python3 /tmp/build_search_index.py` (or move into `bin/` if you want it permanent)
+The docs repo has its own `CLAUDE.md` for site-specific architecture (Astro, Tailwind 4, Pagefind search, OG image generation, etc.). For deployment, build, and content-style conventions of the site itself, consult that file.
 
 ## Project Overview
 Dotfiles for a 14" MacBook with two external 1080p monitors (27" + 24").
@@ -65,16 +43,8 @@ dotfiles/
 │   ├── clean-node-modules      # scan $PWD for node_modules, show sizes, delete after confirm
 │   ├── bigfiles                # rank largest source files (by line count); skips deps/builds; --cloc passthrough
 │   ├── sort-downloads          # classify ~/Downloads files and move to /Volumes/media/<Category>/; -n dry-run
-│   └── archive-project         # recursively scan ~/Code/, archive stale clean repos to /Volumes/media/code/archived/
-├── docs/                       # static Vercel-hosted site (see "Multi-page docs" above)
-│   ├── index.html              # landing
-│   ├── install.html · apps.html · symlinks.html · desktop.html · terminal.html
-│   ├── customize.html · maintenance.html · backup.html · macos.html · gallery.html
-│   ├── script.js               # nav rendering + theme + lightbox + search palette
-│   ├── styles.css              # Tokyo Night theme + palette + all per-component CSS
-│   ├── search-index.json       # generated by /tmp/build_search_index.py
-│   ├── install.sh              # served at /install.sh (the curl one-liner target)
-│   └── images/                 # wallpapers + screenshots
+│   ├── archive-project         # recursively scan ~/Code/, archive stale clean repos to /Volumes/media/code/archived/
+│   └── nas-mount               # retry NAS mount via Finder+Keychain; loops with backoff for the login-time race
 ├── fastfetch/                  # system info banner config
 ├── fish/
 │   ├── config.fish
@@ -84,7 +54,8 @@ dotfiles/
 ├── git/.gitconfig              # delta diffs · sensible defaults · aliases
 ├── launchd/
 │   ├── com.prometheus.tm-monthly.plist       # monthly Time Machine LaunchDaemon
-│   └── com.prometheus.sort-downloads.plist   # ~/Downloads → NAS auto-sort LaunchAgent
+│   ├── com.prometheus.sort-downloads.plist   # ~/Downloads → NAS auto-sort LaunchAgent
+│   └── com.prometheus.nas-mount.plist        # NAS auto-mount retry LaunchAgent (fires nas-mount at login)
 ├── local.env.example                # template reference for ~/.config/dotfiles/local.env
 ├── bin/lib/dotfiles-config.sh        # shared loader; defines all config vars + defaults
 ├── lsd/                        # better-ls config
@@ -117,8 +88,6 @@ dotfiles/
 ├── man/
 │   ├── install.1               # real groff man page with framed ASCII logo (--man flag)
 │   └── archive-project.1       # man page for archive-project — same framed-logo style
-├── middleware.js               # Vercel edge middleware (security headers)
-├── vercel.json                 # outputDirectory=docs, cleanUrls=true
 └── CLAUDE.md                   # this file
 ```
 
@@ -168,11 +137,19 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Mount happens at every login. Credentials come from the macOS Keychain (saved on first Finder mount).
 - Only runs when `HAS_NAS=true` in `local.env`. If `HAS_NAS=false` the inetloc isn't rendered, no Login Item is registered, no SMB share is mounted at boot.
 
-**Why a launchd-based auto-mount isn't viable** (we tried — explicitly):
+**Why `mount_smbfs` from a launchd script isn't viable:**
 - `/Volumes` is `drwxr-xr-x root:wheel`, so a user-context process can't `mkdir` the mountpoint. Only Finder's `autodiskmount` helper (which escalates) can.
 - `mount_smbfs` doesn't read from the Keychain; called from a script it fails with `Authentication error 77` unless a password is explicitly provided.
 - The Finder login item works because it routes through Finder, which has Keychain + privileged-helper access.
-- Bottom line: the `.inetloc` login item is the only mount mechanism that just works without manual credential handling. If it fails (rare), open Finder → click `media` in the sidebar to re-auth.
+
+**Retry layer — `bin/nas-mount` + `com.prometheus.nas-mount` LaunchAgent.** The `.inetloc` Login Item fires the instant you log in, often before Wi-Fi has associated, so the mount silently fails and never retries. The retry layer fixes that without resurrecting the `mount_smbfs` approach:
+- `bin/nas-mount` checks if `/Volumes/media` is already mounted (~1 ms early-out). Otherwise it calls `osascript -e 'tell application "Finder" to mount volume "smb://USER@HOST/SHARE"'` — same path the `.inetloc` uses, so the saved Keychain credential just works and we stay clear of the Auth-77 trap.
+- On a successful mount (and on the "already mounted" fast-path, in case the `.inetloc` won the race), `nas-mount` *directly execs* `~/.local/bin/sort-downloads` in the background to clear any backlog. We bypass `launchctl start com.prometheus.sort-downloads` deliberately — it silently no-ops within `ThrottleInterval`, which at boot is exactly when sort-downloads has just run-and-bailed. Direct exec inherits the Aqua-session privileges and works under throttle.
+- Loops up to 6 attempts × 15 s = ~90 s total budget, comfortably covering Wi-Fi + DHCP + mDNS at login. Flags: `-1` (oneshot, no retries), `-v` (echo to stdout in addition to logfile).
+- Logs: `~/.nas-mount/nas-mount.log`. Exit 0 = mounted, 1 = `HAS_NAS` off / not configured, 2 = retries exhausted.
+- `launchd/com.prometheus.nas-mount.plist` is a LaunchAgent with `RunAtLoad=true`, `LimitLoadToSessionType=Aqua` (Finder + Keychain require it), `KeepAlive=false` (the script's internal retry loop is the budget — we don't want launchd respawning on exit-2 and flooding the log).
+- Installer wiring: `60-symlinks.sh` links `bin/nas-mount` → `~/.local/bin/nas-mount` (gated on `HAS_NAS`); `70-launchd.sh` renders the plist with `__HOME__` substitution and `launchctl load`s it (also gated on `HAS_NAS`).
+- Both the `.inetloc` and the LaunchAgent run at login; whichever wins the race, the other no-ops. If the `.inetloc` is removed for some reason, the LaunchAgent alone is enough. If `osascript mount volume` exhausts its budget too, the user falls back to clicking `media` in the Finder sidebar — same recipe as before, just less often.
 
 ### Time Machine — monthly schedule, not hourly
 - Destination is a SEPARATE SMB share on the NAS (`smb://<NAS_USER>@<NAS_HOST>/<NAS_SHARE_TM>`, configured per-machine in `~/.config/dotfiles/local.env`).
@@ -180,14 +157,15 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Replaced with `launchd/com.prometheus.tm-monthly.plist`, installed as a **LaunchDaemon** at `/Library/LaunchDaemons/`, firing on the **1st of each month at 03:00** local time.
 - `install.sh` installs the daemon idempotently (checks file hash) and runs `tmutil disable` on a fresh machine. Gated on `HAS_TIMEMACHINE_NAS=true && TM_SCHEDULE_MONTHLY=true` — otherwise neither file is touched.
 - Helper commands: `tm-status` (pretty live progress), `tm-backup` (manual trigger / stop). Both in `bin/` and on `$PATH`.
-- Exclusions are applied via `tmutil addexclusion -p` — see `docs/backup.html#part-5-exclusions` for the full list (node_modules, gradle, android, xcode derived data, NAS mounts, etc.).
-- **Full step-by-step setup** for adapting this to another machine: `docs/backup.html` (`/backup`).
+- Exclusions are applied via `tmutil addexclusion -p` — see `~/Code/prometheus-docs/src/content/docs/configuration/backup.mdx` (`#exclusions`) for the full list (node_modules, gradle, android, xcode derived data, NAS mounts, etc.).
+- **Full step-by-step setup** for adapting this to another machine: `~/Code/prometheus-docs/src/content/docs/configuration/backup.mdx` (`/configuration/backup`).
 
 ### Downloads auto-sort → NAS
 - `bin/sort-downloads` sweeps `~/Downloads` and moves files into matching folders on `/Volumes/media/` (Pictures, PDFs, Documents, Installers, Movies, Music, Archives, Other; plus `screenshots/` for any file named `Screenshot *` / `Screen Shot *` that slips into Downloads).
 - **Sources** are defined by the `SOURCES` array at the top of the script as `"path|override"` pairs. Empty override → classify by extension/name; non-empty override → force every file into that category. Default is just `~/Downloads|`. To add a folder back, append a new entry — but read the screenshot caveat below first.
 - **Case-insensitive folder resolution** (`find_dir_ci` helper): destination paths are resolved with `find -iname` before use, so if the NAS has the folder as `Screenshots` (capital) files land there instead of creating a duplicate. Casing is only invented when `mkdir` has to create the folder fresh.
-- Triggered in real time by `launchd/com.prometheus.sort-downloads.plist` — a **LaunchAgent** (not Daemon, because root daemons can't see user-mounted SMB shares). `WatchPaths` on `~/Downloads`, `ThrottleInterval=30`, `RunAtLoad=true`.
+- Triggered in real time by `launchd/com.prometheus.sort-downloads.plist` — a **LaunchAgent** (not Daemon, because root daemons can't see user-mounted SMB shares). `WatchPaths` on `~/Downloads`, `ThrottleInterval=30`, `RunAtLoad=true`, `StartOnMount=true`.
+- **NAS-reconnect handling** does NOT rely on `StartOnMount`. We tried it (the key is still on the plist as belt-and-suspenders) but verified empirically that `StartOnMount` does not reliably fire for SMB shares mounted via Finder+osascript — the disk-arbitration event launchd watches just isn't always emitted for these mounts. Instead, `bin/nas-mount` *directly execs* `~/.local/bin/sort-downloads` after a successful mount (and even on the "already mounted" early-exit path, in case the `.inetloc` won the race). Direct exec bypasses two launchd traps: (a) the missing `StartOnMount` event, and (b) `launchctl start <Label>` silently no-op'ing when the target agent is within its `ThrottleInterval` (which is exactly the boot-time window — sort-downloads' RunAtLoad fires at T=0, bails, then nas-mount completes ~30 s later and would be throttled if it went through launchctl). The boot chain is now: `nas-mount` retries → succeeds → execs `sort-downloads` → backlog clears.
 - The plist uses `__HOME__` as a placeholder; `install.sh` templates it with the real `$HOME` when writing to `~/Library/LaunchAgents/`, so the repo stays portable.
 - Safety guards: silently ignores macOS metadata files (`.DS_Store`, `.localized`, `._*`, `Icon\r`, etc. — never logged, never counted via `is_macos_junk`); skips partial downloads (`.crdownload` / `.download` / `.part` / `.tmp` / `.aria2` / `.opdownload`) and any file younger than 30 s; skips directories and hidden files; renames on collision (`name (1).ext`); single-instance `mkdir` lock at `/tmp/sort-downloads.lock`; bails cleanly if `/Volumes/media` isn't mounted (we can't remount from a launchd context — see "TrueNAS auto-mount" above).
 - **Cross-volume copy pattern** (`cp -Xp` → `.partial-$$` → same-volume `mv` → `rm`, *not* `mv` cross-volume): macOS `mv` falls back to `copyfile()` cross-volume which tries to preserve every extended attribute on the source. SMB sometimes rejects protected xattrs (`com.apple.provenance`, `com.apple.quarantine`) with EPERM, aborting the whole copy. `cp -Xp` writes without those, same-volume `mv` renames atomically, then `rm` unlinks the source. If any step fails the source survives for the next launchd tick.
@@ -216,7 +194,7 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - **Coverage:** the rule applies to `zsh/.zshrc`, `fish/config.fish`, `aerospace/*.toml`, and any other file that gets symlinked or read at runtime. Plist `Label` strings (`com.prometheus.*`) are a personal namespace, not paths — they stay.
 - **AeroSpace TOMLs:** `exec-and-forget` runs commands through `/bin/bash -c`, so `$HOME` expands correctly inside the value string. No `sed`-templating needed for these (unlike launchd plists, which use the `__HOME__` placeholder + install-time substitution).
 - **`install.sh`:** uses `$HOME` and `$DOTFILES` throughout. Never assumes the repo lives at `~/dotfiles` — it resolves its own path via `${BASH_SOURCE[0]}`.
-- **NAS values: same rule, different mechanism.** `NAS_HOST`, `NAS_USER`, `NAS_SHARE_*`, `GIT_USER_*` were previously hardcoded in committed files. They now live ONLY in `~/.config/dotfiles/local.env` (per-machine, gitignored). `nas/truenas-media.inetloc.template` uses `__NAS_USER__` / `__NAS_HOST__` / `__NAS_SHARE_MEDIA__` placeholders, rendered by `install.d/60-symlinks.sh` at install time. Docs (`docs/backup.html`, `docs/nas.html`) use `<USER>` / `<NAS-IP>` text placeholders so the public site never quotes a real address.
+- **NAS values: same rule, different mechanism.** `NAS_HOST`, `NAS_USER`, `NAS_SHARE_*`, `GIT_USER_*` were previously hardcoded in committed files. They now live ONLY in `~/.config/dotfiles/local.env` (per-machine, gitignored). `nas/truenas-media.inetloc.template` uses `__NAS_USER__` / `__NAS_HOST__` / `__NAS_SHARE_MEDIA__` placeholders, rendered by `install.d/60-symlinks.sh` at install time. The docs repo (`~/Code/prometheus-docs/src/content/docs/configuration/{backup,nas}.mdx`) uses `<USER>` / `<NAS-IP>` text placeholders so the public site never quotes a real address.
 - **Maintainer metadata (`.github/SECURITY.md`, `.github/CODE_OF_CONDUCT.md`)** still references the repo owner's contact email. That's intentional — these are GitHub "report-an-issue" files and DO need a real contact. Forks should edit them to point at the fork's maintainer.
 
 ### Script & config quality standards (CI-enforced)
@@ -281,7 +259,4 @@ Both zsh (`zsh/.zshrc`) and fish (`fish/config.fish`) are kept in sync.
 Fish functions live in `fish/functions/` and are symlinked to `~/.config/fish/functions/`.
 
 ## Deployment
-- Hosted on Vercel — push to `main` auto-deploys.
-- `vercel.json` sets `outputDirectory: "docs"` and `cleanUrls: true`. No build command (`buildCommand: null`).
-- Security headers come from `middleware.js` (Vercel Edge): HSTS, Referrer-Policy, X-Frame-Options, etc.
-- Local preview must use `vercel dev` or `npx serve -c <(echo '{"cleanUrls":true}')` — **VS Code's Live Server returns 404 for `/backup` etc.** because it doesn't understand cleanUrls.
+This repo is not deployed anywhere — it's pure dotfiles. The documentation site that used to live in `docs/` was moved to `~/Code/prometheus-docs/` (see the **Documentation** section at the top) and is deployed from that repo. Nothing in this repo needs CI/CD beyond the lint workflows already in `.github/workflows/`.
