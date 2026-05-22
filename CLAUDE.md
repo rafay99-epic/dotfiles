@@ -148,6 +148,12 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Registered as a **hidden Login Item** via `osascript ... make login item`, so the share mounts at `/Volumes/media` automatically every login. Credentials come from the macOS Keychain (saved on first Finder mount).
 - If the address changes for another user, edit the `<URL>` value inside the `.inetloc` and the SMB host elsewhere (see `docs/backup.html` Customization section).
 
+**Why a launchd-based auto-mount isn't viable** (we tried — explicitly):
+- `/Volumes` is `drwxr-xr-x root:wheel`, so a user-context process can't `mkdir` the mountpoint. Only Finder's `autodiskmount` helper (which escalates) can.
+- `mount_smbfs` doesn't read from the Keychain; called from a script it fails with `Authentication error 77` unless a password is explicitly provided.
+- The Finder login item works because it routes through Finder, which has Keychain + privileged-helper access.
+- Bottom line: the `.inetloc` login item is the only mount mechanism that just works without manual credential handling. If it fails (rare), open Finder → click `media` in the sidebar to re-auth.
+
 ### Time Machine — monthly schedule, not hourly
 - Destination is an SMB share on the same TrueNAS (`smb://prometheus@192.168.100.215/timemachine`).
 - Apple's default hourly schedule is **disabled** via `sudo tmutil disable`.
@@ -157,17 +163,18 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Exclusions are applied via `tmutil addexclusion -p` — see `docs/backup.html#part-5-exclusions` for the full list (node_modules, gradle, android, xcode derived data, NAS mounts, etc.).
 - **Full step-by-step setup** for adapting this to another machine: `docs/backup.html` (`/backup`).
 
-### Downloads + Screenshots auto-sort → NAS
-- `bin/sort-downloads` sweeps multiple source folders and moves files into matching folders on `/Volumes/media/` (Pictures, PDFs, Documents, Screenshots, Installers, Movies, Music, Archives, Other).
-- **Sources** are defined by the `SOURCES` array at the top of the script as `"path|override"` pairs. Empty override → classify by extension/name; non-empty override → force every file into that category. Defaults:
-  - `~/Downloads|` — classify each file
-  - `~/Pictures/Screenshots|screenshots` — everything routes to `screenshots/` on the NAS (lowercase, matches `/volume1/media/screenshots` on the TrueNAS side) regardless of filename
-- **Case-insensitive folder resolution** (`find_dir_ci` helper): every source and destination path is resolved with `find -iname` before use. So if `~/Pictures/Screenshots` is actually `~/Pictures/screenshots` on some machine, it still gets picked up; if the NAS has the folder as `Screenshots` (capital), files land there instead of creating a duplicate. The override's exact casing is only used when *neither* case exists yet and `mkdir` has to create the folder fresh. This is the "auto-detect on both sides" guarantee.
-- Triggered in real time by `launchd/com.prometheus.sort-downloads.plist` — a **LaunchAgent** (not Daemon, because root daemons can't see user-mounted SMB shares). `WatchPaths` on both source folders, `ThrottleInterval=30`, `RunAtLoad=true`. A single launchd fire processes every source in one pass.
+### Downloads auto-sort → NAS
+- `bin/sort-downloads` sweeps `~/Downloads` and moves files into matching folders on `/Volumes/media/` (Pictures, PDFs, Documents, Installers, Movies, Music, Archives, Other; plus `screenshots/` for any file named `Screenshot *` / `Screen Shot *` that slips into Downloads).
+- **Sources** are defined by the `SOURCES` array at the top of the script as `"path|override"` pairs. Empty override → classify by extension/name; non-empty override → force every file into that category. Default is just `~/Downloads|`. To add a folder back, append a new entry — but read the screenshot caveat below first.
+- **Case-insensitive folder resolution** (`find_dir_ci` helper): destination paths are resolved with `find -iname` before use, so if the NAS has the folder as `Screenshots` (capital) files land there instead of creating a duplicate. Casing is only invented when `mkdir` has to create the folder fresh.
+- Triggered in real time by `launchd/com.prometheus.sort-downloads.plist` — a **LaunchAgent** (not Daemon, because root daemons can't see user-mounted SMB shares). `WatchPaths` on `~/Downloads`, `ThrottleInterval=30`, `RunAtLoad=true`.
 - The plist uses `__HOME__` as a placeholder; `install.sh` templates it with the real `$HOME` when writing to `~/Library/LaunchAgents/`, so the repo stays portable.
-- Safety guards in the script: refuses to run when `/Volumes/media` isn't actually in the `mount` table (won't silently dump to a stub folder); skips partial downloads (`.crdownload` / `.download` / `.part` / `.tmp` / `.aria2` / `.opdownload`) and any file younger than 30s; skips directories and hidden files; renames on collision (`name (1).ext`); single-instance `mkdir` lock at `/tmp/sort-downloads.lock`.
+- Safety guards: silently ignores macOS metadata files (`.DS_Store`, `.localized`, `._*`, `Icon\r`, etc. — never logged, never counted via `is_macos_junk`); skips partial downloads (`.crdownload` / `.download` / `.part` / `.tmp` / `.aria2` / `.opdownload`) and any file younger than 30 s; skips directories and hidden files; renames on collision (`name (1).ext`); single-instance `mkdir` lock at `/tmp/sort-downloads.lock`; bails cleanly if `/Volumes/media` isn't mounted (we can't remount from a launchd context — see "TrueNAS auto-mount" above).
+- **Cross-volume copy pattern** (`cp -Xp` → `.partial-$$` → same-volume `mv` → `rm`, *not* `mv` cross-volume): macOS `mv` falls back to `copyfile()` cross-volume which tries to preserve every extended attribute on the source. SMB sometimes rejects protected xattrs (`com.apple.provenance`, `com.apple.quarantine`) with EPERM, aborting the whole copy. `cp -Xp` writes without those, same-volume `mv` renames atomically, then `rm` unlinks the source. If any step fails the source survives for the next launchd tick.
 - Logs: `~/.sort-download/sort-downloads.log` (kept in `$HOME` so they're easy to tail/clear without diving into `Library/Logs`). Manual sweep: `sort-downloads [-n|-v]`. Trigger immediately: `launchctl start com.prometheus.sort-downloads`.
-- Screenshot detection runs **before** image classification — files named `Screenshot *` or `Screen Shot *` land in `screenshots/`, not `Pictures/`.
+- Screenshot detection runs **before** image classification — anything that does land in `~/Downloads` with a `Screenshot *` / `Screen Shot *` name routes to `screenshots/`, not `Pictures/`.
+
+**Why screenshots aren't watched here, even though it'd be nice** — this is load-bearing context, *do not re-add `~/Pictures/Screenshots` (or any other source) without re-validating.* macOS scopes SMB write permissions to the Aqua GUI session that performed the mount. Launchd-spawned processes can list and read `/Volumes/media` but **cannot write to it** — every attempt fails with `Operation not permitted` on the destination. Verified empirically with the source in `~/Pictures/Screenshots`, with the source in `~/Screenshots` (no TCC issue), and across multiple mount/remount cycles. Why ~/Downloads moves succeed under launchd while every other source fails is not fully understood; the working theory is that fsevent-triggered Downloads invocations inherit something from the Aqua session that an arbitrary `launchctl start` does not. **For screenshots, configure your capture tool (Shottr, macOS screenshot, etc.) to save directly to `/Volumes/media/screenshots/`** — it's the only path that just works.
 
 ### Cross-machine portability — no hardcoded usernames
 - **Rule:** no config file in this repo may contain `/Users/<username>/` or any other absolute path that bakes in the author's environment. Use `$HOME` / `~` / `fish_add_path $HOME/...` instead.

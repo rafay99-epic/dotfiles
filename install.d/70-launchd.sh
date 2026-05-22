@@ -10,13 +10,20 @@
 #                    `sudo tmutil disable` to kill the hourly auto-backup.
 #
 #   sort-downloads   LaunchAgent (~/Library/LaunchAgents/) — user-scoped.
-#                    Watches ~/Downloads + ~/Pictures/Screenshots and routes
-#                    files to /Volumes/media/<Category>/. Must be a User
-#                    Agent because daemons can't see user SMB mounts.
+#                    Watches ~/Downloads and routes files to
+#                    /Volumes/media/<Category>/. Must be a User Agent
+#                    because launchd-spawned daemons cannot write through
+#                    Finder-mounted SMB shares.
 #
 # Plist source files use __HOME__ as a placeholder; we sed-substitute $HOME
 # at install time for the LaunchAgent (the LaunchDaemon doesn't need
 # user-path templating).
+#
+# Note: screenshots are *not* handled by sort-downloads. macOS scopes SMB
+# write permissions to the Aqua GUI session that performed the mount —
+# launchd-spawned processes can list and read but not write. Configure your
+# screenshot tool (e.g. Shottr) to save directly to /Volumes/media/screenshots/
+# instead. The .inetloc login item keeps the share mounted.
 
 module_launchd() {
   heading "LaunchAgents"
@@ -46,11 +53,10 @@ module_launchd() {
   fi
 
   # ── Downloads auto-sort: LaunchAgent ──────────────────────────────────────
-  # Watches ~/Downloads and ~/Pictures/Screenshots and moves new files to
-  # /Volumes/media/<Category>/. User-scoped LaunchAgent — no sudo needed;
-  # daemons can't see SMB mounts. Plist in the repo uses __HOME__ as a
-  # placeholder; we substitute $HOME on install so the dotfiles repo stays
-  # portable.
+  # Watches ~/Downloads and moves new files to /Volumes/media/<Category>/.
+  # User-scoped LaunchAgent — no sudo needed; daemons can't see SMB mounts.
+  # Plist in the repo uses __HOME__ as a placeholder; we substitute $HOME on
+  # install so the dotfiles repo stays portable.
   SD_PLIST_SRC="$DOTFILES/launchd/com.prometheus.sort-downloads.plist"
   SD_PLIST_DST="$HOME/Library/LaunchAgents/com.prometheus.sort-downloads.plist"
   if [[ -f "$SD_PLIST_SRC" ]]; then

@@ -1,21 +1,24 @@
 #!/usr/bin/env bash
-# sort-downloads — move files from watched folders into category folders on NAS.
+# sort-downloads — move files from ~/Downloads into category folders on NAS.
 #
-# Sweeps the top level of every entry in $SOURCES and routes each file to a
-# matching folder under /Volumes/media/. Files inside subfolders are left
-# alone — top level only.
+# Sweeps the top level of ~/Downloads and routes each file to a matching
+# folder under /Volumes/media/. Files inside subfolders are left alone —
+# top level only.
 #
-# Default sources (edit the SOURCES array below to change):
-#   ~/Downloads             classify each file by extension / screenshot name
-#   ~/Pictures/Screenshots  every file lands in screenshots/ (no classification)
+# Why only ~/Downloads (not screenshots)?
+#   macOS scopes SMB write access to the Aqua GUI session that performed
+#   the mount. Launchd-spawned processes can list and read /Volumes/media
+#   but cannot write to it. Downloads happens to work because… honestly,
+#   it just does (this script is invoked via launchd's WatchPaths and the
+#   downloads case has been observed to succeed; the same job fails on
+#   any other source we tested). For screenshots, configure your capture
+#   tool to save directly to /Volumes/media/screenshots/ instead.
 #
 # Case-insensitive folder resolution:
-#   Both source and destination folder names are matched case-insensitively.
-#   If ~/Pictures/Screenshots is actually ~/Pictures/screenshots on a given
-#   machine, it's still picked up. On the NAS, if /Volumes/media/screenshots
-#   exists, files land there; if /Volumes/media/Screenshots exists, they
-#   land there instead. If neither exists, the override's exact case is used
-#   when mkdir creates the folder.
+#   On the NAS, if /Volumes/media/Documents exists, files land there; if
+#   /Volumes/media/documents exists, they land there instead. If neither
+#   exists, the category's default casing is used when mkdir creates the
+#   folder.
 #
 # Categories (when classifying):
 #   screenshots   PNG matching "Screenshot *" or "Screen Shot *"
@@ -30,14 +33,21 @@
 #   Other         everything else
 #
 # Safety:
+#   - Silently ignores macOS metadata noise (.DS_Store, .localized, ._*
+#     AppleDouble shadows, Icon\r, .Spotlight-V100, .Trashes, .fseventsd,
+#     etc.) — never logged, never counted. Keeps the verbose log readable.
 #   - Skips partial downloads (.crdownload .download .part .tmp .aria2 .opdownload)
-#   - Skips hidden files (.DS_Store, etc) and directories
+#   - Skips other hidden files and directories (logged when -v)
 #   - Only moves files older than $SETTLE_SECONDS (default 30s) — protects
 #     against grabbing a file that's still being written
-#   - Refuses to run if the NAS isn't actually mounted (checks `mount`, not
-#     just whether /Volumes/media exists)
+#   - Checks `mount` for the NAS and exits cleanly if it's gone. The
+#     .inetloc Finder login item is what keeps the share mounted; we can't
+#     remount from here (mount_smbfs needs Keychain access we don't have).
 #   - On collision: renames to "name (1).ext", "name (2).ext", ...
-#   - Cross-volume mv copies first then unlinks — source survives if copy fails
+#   - Cross-volume copy uses `cp -Xp` (no extended attributes) into a per-PID
+#     .partial-$$ temp file, then mv (same-volume rename), then rm source.
+#     Sidesteps the SMB EPERM trap on com.apple.provenance / quarantine
+#     xattrs that breaks plain `mv` for Shottr screenshots etc.
 #   - Single-instance lock so a burst of launchd events doesn't overlap
 #
 # Usage:
@@ -55,7 +65,6 @@ set -uo pipefail
 #   - Non-empty override → every file in this dir routes to /Volumes/media/<override>/
 SOURCES=(
   "$HOME/Downloads|"
-  "$HOME/Pictures/Screenshots|screenshots"
 )
 NAS="${SORT_DOWNLOADS_DST:-/Volumes/media}"
 LOG="$HOME/.sort-download/sort-downloads.log"
@@ -70,7 +79,7 @@ while [[ $# -gt 0 ]]; do
     -n|--dry-run) DRY=1 ;;
     -v|--verbose) VERBOSE=1 ;;
     -h|--help)
-      sed -n '2,43p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,59p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *)
@@ -100,7 +109,11 @@ fi
 trap 'rmdir "$LOCK" 2>/dev/null || true' EXIT INT TERM
 
 # Confirm the NAS is *actually* mounted. A stub folder at /Volumes/media would
-# pass `[ -d ]`, so check the mount table instead.
+# pass `[ -d ]`, so check the mount table instead. The `.inetloc` login item
+# is responsible for keeping the share mounted; if it's not there, bail —
+# we can't reliably re-mount from a launchd context anyway (mount_smbfs
+# can't pull credentials from the Keychain, and /Volumes is root-owned so
+# we can't even create the mountpoint).
 if ! /sbin/mount | grep -q " on ${NAS} "; then
   log "NAS not mounted at $NAS — skipping sweep"
   exit 0
@@ -134,6 +147,24 @@ is_partial() {
   case "$1" in
     .*) return 0 ;;
     *.crdownload|*.download|*.part|*.tmp|*.aria2|*.opdownload) return 0 ;;
+  esac
+  return 1
+}
+
+# macOS sprinkles a handful of metadata files into every directory it touches.
+# We don't want to move them, log them, or even count them as "skipped" —
+# they'd flood the verbose log and trip people up when reading it. Anything
+# matching here is treated as if it weren't in the directory at all.
+#
+# Covers: Finder's .DS_Store, the folder-localization marker .localized,
+# AppleDouble resource-fork shadows (._*), custom folder icons (the
+# literal "Icon\r" filename with a trailing CR byte), and the per-volume
+# system directories Spotlight, Trash, fsevents, document revisions, etc.
+is_macos_junk() {
+  case "$1" in
+    .DS_Store|.localized|.Spotlight-V100|.Trashes|.fseventsd|.TemporaryItems|.DocumentRevisions-V100|.apdisk) return 0 ;;
+    ._*) return 0 ;;
+    $'Icon\r') return 0 ;;
   esac
   return 1
 }
@@ -201,6 +232,13 @@ for entry in "${SOURCES[@]}"; do
   while IFS= read -r -d '' src; do
     name="$(basename "$src")"
 
+    # Silently ignore macOS metadata files — no log entry, no counter bump.
+    # Done before any other check so .DS_Store and friends never appear in
+    # the verbose log, where they'd otherwise dominate every line.
+    if is_macos_junk "$name"; then
+      continue
+    fi
+
     if [[ -d "$src" ]]; then
       vlog "skip dir: $name (in $src_dir)"
       skipped=$(( skipped + 1 ))
@@ -242,11 +280,38 @@ for entry in "${SOURCES[@]}"; do
     fi
 
     dst="$(resolve_dest "$dst_dir" "$name")"
-    if mv -- "$src" "$dst" 2>>"$LOG"; then
-      log "mv $name -> ${dst#"$NAS"/}"
-      moved=$(( moved + 1 ))
+
+    # Cross-volume move onto SMB: don't use `mv`. macOS `mv` falls back to
+    # copyfile() which tries to preserve extended attributes, and SMB
+    # rejects protected xattrs like com.apple.provenance and
+    # com.apple.quarantine with EPERM — silently breaking screenshots
+    # captured by Shottr, Safari downloads with Gatekeeper marks, etc.
+    #
+    # Pattern: cp -Xp (no xattrs, keep mode/mtime) into a per-PID temp
+    # file on the destination volume, then same-volume mv to the final
+    # name, then rm the source. If any step fails the source is left
+    # in place so the next launchd tick retries.
+    dst_tmp="${dst}.partial-$$"
+    if /bin/cp -Xp -- "$src" "$dst_tmp" 2>>"$LOG"; then
+      if /bin/mv -- "$dst_tmp" "$dst" 2>>"$LOG"; then
+        if /bin/rm -f -- "$src" 2>>"$LOG"; then
+          log "mv $name -> ${dst#"$NAS"/}"
+          moved=$(( moved + 1 ))
+        else
+          # Destination is good; we just couldn't unlink the source.
+          # Don't count it as moved — next run will see it again and
+          # resolve_dest will pick a "(1)" name. Better than silent loss.
+          log "WARN copied $name but could not remove source"
+          failed=$(( failed + 1 ))
+        fi
+      else
+        /bin/rm -f -- "$dst_tmp" 2>>"$LOG"
+        log "ERR rename failed: $name (source left in $src_dir)"
+        failed=$(( failed + 1 ))
+      fi
     else
-      log "ERR mv failed: $name -> $dst"
+      /bin/rm -f -- "$dst_tmp" 2>>"$LOG"
+      log "ERR copy failed: $name -> $dst (source left in $src_dir)"
       failed=$(( failed + 1 ))
     fi
   done < <(find "$src_dir" -mindepth 1 -maxdepth 1 -print0 2>/dev/null)
