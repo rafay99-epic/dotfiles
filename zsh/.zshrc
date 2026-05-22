@@ -294,6 +294,7 @@ compdef _dev dev
 alias lumo="cd $HOME/Code/Lumo/"
 alias envpilot.dev="cd $HOME/Code/ENV_Connect/"
 alias tudo_tech_lab="cd $HOME/Code/TudoNumTechLab/"
+alias media="cd /Volumes/media/"
 
 # Android SDK
 export ANDROID_HOME=$HOME/Library/Android/sdk
