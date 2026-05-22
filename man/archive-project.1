@@ -1,0 +1,299 @@
+.\" archive-project.1 — manual page for the archive-project script
+.\" Render:   man -l man/archive-project.1
+.\" Or via:   archive-project --man
+.TH ARCHIVE-PROJECT 1 "May 2026" "Prometheus Dotfiles" "User Commands"
+.\"
+.\" ─── Logo ─────────────────────────────────────────────────────────────────
+.\" Don't wrap the box in \fB\fR — groff implements bold via character
+.\" overstrike, which doubles the box-drawing chars in the rendered output.
+.nf
+.sp
+
+    ╭──────────────────────────────────────────────────────╮
+    │                                                      │
+    │     ██████╗ ██████╗  ██████╗ ███╗   ███╗             │
+    │     ██╔══██╗██╔══██╗██╔═══██╗████╗ ████║             │
+    │     ██████╔╝██████╔╝██║   ██║██╔████╔██║             │
+    │     ██╔═══╝ ██╔══██╗██║   ██║██║╚██╔╝██║             │
+    │     ██║     ██║  ██║╚██████╔╝██║ ╚═╝ ██║             │
+    │     ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝             │
+    │                                                      │
+    │        P  R  O  M  E  T  H  E  U  S                  │
+    │              D  O  T  F  I  L  E  S                  │
+    │                                                      │
+    │        github.com/rafay99-epic                       │
+    │        dotfiles.rafay99.com                          │
+    │                                                      │
+    ╰──────────────────────────────────────────────────────╯
+
+.sp
+.fi
+.\"
+.\" ─── Sections ────────────────────────────────────────────────────────────
+.SH NAME
+archive\-project \- move stale code projects from ~/Code/ to the NAS
+
+.SH SYNOPSIS
+.B archive-project
+[\fB\-n\fR | \fB\-\-dry\-run\fR]
+[\fB\-y\fR | \fB\-\-yes\fR]
+[\fB\-\-keep\-deps\fR]
+[\fB\-\-months=\fIN\fR]
+[\fB\-\-man\fR]
+[\fB\-h\fR | \fB\-\-help\fR]
+
+.SH DESCRIPTION
+.B archive-project
+recursively scans
+.I ~/Code/
+for git repositories and offers to move ones that are
+.B clean
+and
+.B old
+to the NAS at
+.IR /Volumes/media/code/archived/ ,
+preserving the original folder layout. The original directory structure
+under
+.I ~/Code/
+is reproduced under the archive root, so
+.I ~/Code/MyOrg/foo
+becomes
+.IR /Volumes/media/code/archived/MyOrg/foo .
+
+.PP
+The script is deliberately conservative: it never modifies a project with
+uncommitted work, never descends into a repo to grab a vendored sub-repo,
+and never deletes anything from the SSD until the destination on the NAS
+is fully written. A NAS dropout mid-move cannot leave you half-archived.
+
+.SH DECISION LOGIC
+A project becomes a candidate only when
+.B all three
+of these are true:
+
+.TP
+.B 1. It's a regular git repo
+The directory contains a
+.I .git/
+subdirectory. Worktrees and submodules
+.RI ( .git
+is a regular file, not a directory) are skipped because moving them out
+of place would break their parent's linkage.
+
+.TP
+.B 2. The working tree is fully clean
+.B git status --porcelain
+prints nothing. No staged, unstaged, or untracked changes. Projects with
+any uncommitted work are
+.B always
+skipped, regardless of age \(em you might be mid-thought, not done.
+
+.TP
+.B 3. The last commit is older than the threshold
+The timestamp of the most recent commit must be older than
+.B ARCHIVE_AFTER_MONTHS
+months (default
+.BR 1 ).
+Change the constant at the top of the script for a permanent change, or
+pass
+.B \-\-months=\fIN
+for a one-off run.
+
+.PP
+A repo nested inside another repo (e.g., a vendored library with its own
+.IR .git/ )
+is skipped \(em it belongs to the ancestor repo and will move with it
+when the ancestor is archived.
+
+.SH OPTIONS
+.TP
+.BR \-n ", " \-\-dry\-run
+Show what
+.I would
+be archived without touching anything. The full report (skipped
+projects, candidates, intended destinations) prints exactly as in a real
+run, but nothing is stripped, copied, or removed.
+
+.TP
+.BR \-y ", " \-\-yes
+Auto-confirm every candidate. Dirty / fresh / nested / non-repo projects
+are still skipped \(em \fB\-y\fR is yes-to-all for
+.IR candidates ,
+not yes-to-everything. Without this flag, the script asks
+.B [y/N/q]
+per candidate.
+
+.TP
+.B \-\-keep\-deps
+Do not strip
+.IR node_modules ,
+.IR Pods ,
+.IR .gradle ,
+etc. before moving. By default these are blown away because they're huge
+and trivially regenerated. Use this when you specifically want the
+build state preserved \(em e.g., archiving a project at a known-working
+toolchain version.
+
+.TP
+\fB\-\-months=\fIN\fR
+Treat any project whose last commit is older than
+.I N
+months as a candidate. Overrides the
+.B ARCHIVE_AFTER_MONTHS
+constant for this run only. Must be a positive integer.
+
+.TP
+.B \-\-man
+Open this man page in your pager.
+
+.TP
+.BR \-h ", " \-\-help
+Print a short usage summary and exit.
+
+.SH CONFIGURATION
+The script ships with these defaults at the top of the file. Edit them in
+.I bin/archive-project
+for permanent changes:
+
+.PP
+.RS 4
+.nf
+ARCHIVE_AFTER_MONTHS=1
+CODE_DIR="$HOME/Code"
+ARCHIVE_DIR="/Volumes/media/code/archived"
+NAS_MOUNT="/Volumes/media"
+LOG="$HOME/.archive-project/archive.log"
+
+STRIP_DIRS=(
+  node_modules .next .nuxt .svelte-kit .astro .turbo .vite
+  .parcel-cache .cache Pods DerivedData .gradle .expo
+  .expo-shared .dart_tool __pycache__ .pytest_cache
+  .mypy_cache .ruff_cache
+)
+STRIP_FILES=(
+  .flutter-plugins .flutter-plugins-dependencies
+)
+.fi
+.RE
+
+.PP
+.B STRIP_DIRS
+entries are matched by
+.B name
+anywhere in the tree, not by relative path. A monorepo's nested
+.I node_modules
+and a React Native app's
+.I ios/Pods
+both get cleaned without needing per-framework path patterns.
+.B build/ ,
+.BR dist/ ,
+.BR out/ ,
+.BR target/ ,
+and
+.B venv/
+are deliberately left alone \(em their names are too generic to delete
+safely by default.
+
+.SH MOVE SEMANTICS
+The "move" is a two-step copy-then-remove, not a
+.BR mv :
+
+.IP "1." 4
+.B cp -RXp src dst
+\(em recursive, no extended attributes (so SMB doesn't choke on
+.B com.apple.provenance
+and friends), preserves mode and mtime.
+.IP "2." 4
+If the copy completes, the SSD source is removed with
+.BR "rm -rf" .
+.IP "3." 4
+If the copy fails, the partial destination on the NAS is wiped and the
+SSD source is left intact for retry.
+
+.PP
+The result: a NAS dropout or full-disk error never strands you with half
+a project on each side. The source survives until the destination is
+whole.
+
+.PP
+If the destination name already exists at the archive root, a date suffix
+is appended:
+.IR foo " \[->] " foo-YYYYMMDD " \[->] " foo-YYYYMMDD-1 " \[->] " ...
+
+.SH PROCESSING ORDER
+Candidates are sorted by relative path, so outer projects are offered
+before inner ones. If you accept the outer, the inner candidate's source
+ceases to exist on its turn and it silently skips. This matches the
+mental model: when an org-style container is archived, its children
+travel inside it, not separately.
+
+.SH EXIT STATUS
+.TP
+.B 0
+All candidates either archived or declined cleanly.
+.TP
+.B 1
+At least one move failed; see the log.
+.TP
+.B 2
+Bad usage (unknown flag, non-numeric
+.BR \-\-months ).
+
+.SH FILES
+.TP
+.I bin/archive-project
+The script itself. Edit the config block at the top for permanent changes.
+.TP
+.I ~/.archive-project/archive.log
+Append-only log of every archive action.
+.TP
+.I /Volumes/media/code/archived/
+Default destination. Created on first run.
+
+.SH EXAMPLES
+.TP
+Preview what would happen, no changes:
+.B archive-project --dry-run
+
+.TP
+Run interactively at the default 1-month threshold:
+.B archive-project
+
+.TP
+Be stricter for a one-off run \(em only touch projects untouched for 6+ months:
+.B archive-project --months=6
+
+.TP
+Bulk-archive everything that qualifies, no per-project prompts:
+.B archive-project -y
+
+.TP
+Archive a project without stripping its
+.IR node_modules :
+.B archive-project --keep-deps
+
+.SH NOTES
+.B archive-project
+requires the NAS to be mounted at
+.IR /Volumes/media .
+The
+.I .inetloc
+Finder login item handles this at login; if the mount is missing, the
+script exits early with an instruction for how to remount.
+
+.PP
+Parent directories that become empty after a successful archive are
+.B not
+auto-removed. The script prints a note listing them so you can
+.B rmdir
+them by hand if you want \(em that choice stays with you.
+
+.SH SEE ALSO
+.BR install.sh (1),
+.BR sort-downloads (1),
+.BR clean-node-modules (1),
+.BR git-status (1),
+.BR cp (1)
+
+.SH AUTHOR
+Abdul Rafay \(em github.com/rafay99-epic

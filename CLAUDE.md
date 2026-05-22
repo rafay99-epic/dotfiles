@@ -23,6 +23,7 @@ When a user asks about any config, tool, or behaviour in this repo, **read the r
 | `/terminal` | `terminal.html` | Ghostty · Starship · Shell · Zsh · Fish (5 sections) |
 | `/customize` | `customize.html` | Customization + Commands (2 sections) |
 | `/maintenance` | `maintenance.html` | Brewfile · gitconfig · `bin/update` |
+| `/nas` | `nas.html` | The full NAS workflow: mount story · `sort-downloads` · `archive-project` · screenshot direct-save |
 | `/backup` | `backup.html` | Full Time Machine + TrueNAS setup guide (deep doc) |
 | `/macos` | `macos.html` | macOS Tweaks via `defaults write` |
 | `/gallery` | `gallery.html` | Screenshots + wallpaper downloads |
@@ -63,7 +64,8 @@ dotfiles/
 │   ├── tm-backup               # manual Time Machine trigger (--watch / --stop)
 │   ├── clean-node-modules      # scan $PWD for node_modules, show sizes, delete after confirm
 │   ├── bigfiles                # rank largest source files (by line count); skips deps/builds; --cloc passthrough
-│   └── sort-downloads          # classify ~/Downloads files and move to /Volumes/media/<Category>/; -n dry-run
+│   ├── sort-downloads          # classify ~/Downloads files and move to /Volumes/media/<Category>/; -n dry-run
+│   └── archive-project         # recursively scan ~/Code/, archive stale clean repos to /Volumes/media/code/archived/
 ├── docs/                       # static Vercel-hosted site (see "Multi-page docs" above)
 │   ├── index.html              # landing
 │   ├── install.html · apps.html · symlinks.html · desktop.html · terminal.html
@@ -110,7 +112,8 @@ dotfiles/
 │   └── 90-sketchybar.sh        # SketchyBar restart/stop
 ├── install.sh.backup           # frozen pre-modularization copy — delete once validated
 ├── man/
-│   └── install.1               # real groff man page with framed ASCII logo (--man flag)
+│   ├── install.1               # real groff man page with framed ASCII logo (--man flag)
+│   └── archive-project.1       # man page for archive-project — same framed-logo style
 ├── middleware.js               # Vercel edge middleware (security headers)
 ├── vercel.json                 # outputDirectory=docs, cleanUrls=true
 └── CLAUDE.md                   # this file
@@ -175,6 +178,20 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Screenshot detection runs **before** image classification — anything that does land in `~/Downloads` with a `Screenshot *` / `Screen Shot *` name routes to `screenshots/`, not `Pictures/`.
 
 **Why screenshots aren't watched here, even though it'd be nice** — this is load-bearing context, *do not re-add `~/Pictures/Screenshots` (or any other source) without re-validating.* macOS scopes SMB write permissions to the Aqua GUI session that performed the mount. Launchd-spawned processes can list and read `/Volumes/media` but **cannot write to it** — every attempt fails with `Operation not permitted` on the destination. Verified empirically with the source in `~/Pictures/Screenshots`, with the source in `~/Screenshots` (no TCC issue), and across multiple mount/remount cycles. Why ~/Downloads moves succeed under launchd while every other source fails is not fully understood; the working theory is that fsevent-triggered Downloads invocations inherit something from the Aqua session that an arbitrary `launchctl start` does not. **For screenshots, configure your capture tool (Shottr, macOS screenshot, etc.) to save directly to `/Volumes/media/screenshots/`** — it's the only path that just works.
+
+### Code archive → NAS (manual)
+- `bin/archive-project` is a **user-invoked** tool (never automatic) that recursively scans `$HOME/Code/` for git repos and moves stale clean ones to `/Volumes/media/code/archived/`. Frees SSD space without losing finished work.
+- **Decision logic — all three must hold for a candidate**:
+  1. The directory contains a regular `.git/` (worktrees / submodules / vendored sub-repos inside another repo are skipped — a nested repo will travel with its ancestor when the ancestor is archived).
+  2. The working tree is fully clean — `git status --porcelain` prints nothing. Any uncommitted change at all (staged, unstaged, or untracked) means the project is never touched. This is the user's explicit rule: half-done work doesn't count as "done."
+  3. The last commit is older than `ARCHIVE_AFTER_MONTHS` months. Default `1`; tweak the constant at the top of `bin/archive-project` for permanent change, or pass `--months=N` for one-off.
+- **Recursive scan via `find`**: walks `$HOME/Code/` and treats every directory containing `.git/` as a candidate, no matter how deep. Skips `node_modules` and `.git/` interiors. Org-style containers (e.g., `~/Code/MyOrg/` holding several project sub-repos) all surface individually; each is evaluated independently. Candidates are then sorted by relative path so outer projects move before inner ones — if you accept the outer, the inner candidate's source disappears and silently skips on its turn.
+- **Layout preservation**: `~/Code/MyOrg/foo` archives to `/Volumes/media/code/archived/MyOrg/foo`. Container dirs (`MyOrg/`) stay on the SSD; if a container becomes empty after archive, the script *prints a note* but never `rmdir`s it (that choice stays with the user).
+- **Strip-before-move** (default; disable with `--keep-deps`): nukes universally-regeneratable build output at any depth: `node_modules`, `.next`, `.nuxt`, `.svelte-kit`, `.astro`, `.turbo`, `.vite`, `.parcel-cache`, `.cache`, `Pods`, `DerivedData`, `.gradle`, `.expo`, `.expo-shared`, `.dart_tool`, `__pycache__`, `.pytest_cache`, `.mypy_cache`, `.ruff_cache`. Plus files `.flutter-plugins`, `.flutter-plugins-dependencies`. Deliberately *not* stripped: `build/`, `dist/`, `out/`, `target/`, `venv/` — too generic to delete safely by default. Run `clean-node-modules` first or pass `--keep-deps` to override.
+- **Atomic move via `cp -RXp` + `rm`, not `mv`**: same reasoning as the Downloads pattern but for trees. `-X` drops xattrs (so SMB doesn't choke on `com.apple.provenance` / `com.apple.quarantine`); `-Rp` recurses and preserves mode/mtime. Source is only removed after the destination is whole. A NAS dropout mid-copy can't strand you with half a project on each side.
+- **Destination collisions**: appends `-YYYYMMDD`, then `-YYYYMMDD-N`. Never overwrites.
+- **Pre-flight checks**: NAS must be mounted at `/Volumes/media` (else exits with the `osascript mount volume` recipe); `$ARCHIVE_DIR` is auto-created; the threshold flag must be a positive integer.
+- Logs: `~/.archive-project/archive.log` (same convention as `~/.sort-download/`). Man page: `man/archive-project.1`, openable via `archive-project --man` (same `--man` plumbing as `install.sh`).
 
 ### Cross-machine portability — no hardcoded usernames
 - **Rule:** no config file in this repo may contain `/Users/<username>/` or any other absolute path that bakes in the author's environment. Use `$HOME` / `~` / `fish_add_path $HOME/...` instead.

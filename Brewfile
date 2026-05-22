@@ -35,6 +35,8 @@ brew "thefuck"        # corrects mistyped commands
 brew "jq"             # JSON processor
 brew "git-delta"      # pretty git diffs (referenced by ~/.gitconfig)
 brew "atuin"          # magical shell history (SQLite-backed, Ctrl+R replacement)
+brew "pv"             # pipe viewer — progress bars for tar / cp / etc. (used by archive-project)
+brew "zstd"           # fast compression — used by archive-project for tarballs
 
 # ── Runtimes & Languages ────────────────────────────────────────────────────
 brew "rbenv"          # Ruby version manager

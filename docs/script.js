@@ -17,6 +17,7 @@ const navItems = [
   { id: 'customize',   path: '/customize',  icon: 'sliders-horizontal', label: 'Customization' },
   { group: 'More' },
   { id: 'maintenance', path: '/maintenance',icon: 'refresh-cw',         label: 'Maintenance' },
+  { id: 'nas',         path: '/nas',        icon: 'server',             label: 'NAS Workflow' },
   { id: 'backup',      path: '/backup',     icon: 'hard-drive-upload',  label: 'Backup' },
   { id: 'macos',       path: '/macos',      icon: 'cog',                label: 'macOS Tweaks' },
   { id: 'gallery',     path: '/gallery',    icon: 'images',             label: 'Gallery' },

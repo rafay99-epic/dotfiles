@@ -1,0 +1,857 @@
+#!/usr/bin/env bash
+# archive-project — move stale code projects from ~/Code/ to the NAS.
+#
+# Scans recursively for git repos under ~/Code/ (including nested ones —
+# e.g., projects living inside an org-style container like ~/Code/MyOrg/).
+# Each candidate is evaluated independently against the rules below.
+#
+# Decision logic — a project is a candidate when ALL three are true:
+#   1. It's a regular git repo (.git is a directory, not a worktree/submodule
+#      file). Nested repos are skipped if an ancestor is also a repo, since
+#      moving them out of place would orphan the parent's submodule pointer.
+#   2. The working tree is fully clean: no staged, unstaged, or untracked
+#      files. If `git status --porcelain` prints anything, the project is
+#      left alone — you might be mid-thought, not done.
+#   3. The last commit is older than $ARCHIVE_AFTER_MONTHS months.
+#
+# Projects with uncommitted work are *always* skipped, no matter how old.
+# The script never decides for you when you might still care about changes
+# in the working tree.
+#
+# To make the threshold permanently more/less aggressive, edit
+# ARCHIVE_AFTER_MONTHS in the config block below. For a one-off run, pass
+# --months=N. The flag overrides the constant.
+#
+# Per candidate, asks Y/n/q (yes / no / quit). On Y:
+#   1. Strips regeneratable build output anywhere in the tree (node_modules,
+#      Pods, .gradle, .dart_tool, .next, .turbo, …). The full list is in
+#      STRIP_DIRS / STRIP_FILES below. Override with --keep-deps. Pods +
+#      node_modules + .gradle alone can save many GB of SMB transfer.
+#   2. Copies (not moves) the project to
+#      $ARCHIVE_DIR/<relative-path-under-Code>/, preserving the directory
+#      layout. So ~/Code/MyOrg/foo lands at $ARCHIVE_DIR/MyOrg/foo.
+#   3. Only after the copy succeeds end-to-end, removes the SSD source.
+#      A mid-copy NAS dropout cannot strand you with half a project on each
+#      side: the source survives until the destination is whole.
+#   4. If the destination already exists, appends a date suffix:
+#      foo → foo-YYYYMMDD → foo-YYYYMMDD-1 → …
+#   5. Logs the action to $LOG.
+#
+# After all moves, prints a note if any parent directory under ~/Code/ is
+# now empty — but never deletes it. That choice stays with you.
+#
+# Usage:
+#   archive-project              # interactive, uses ARCHIVE_AFTER_MONTHS
+#   archive-project --months=3   # one-off threshold override
+#   archive-project -n           # dry-run; list candidates, don't move
+#   archive-project -y           # yes to all (still skips dirty / fresh)
+#   archive-project --keep-deps  # don't strip node_modules etc.
+#   archive-project --man        # open the man page
+#   archive-project -h           # this help
+#
+# Logs: ~/.archive-project/archive.log
+
+set -uo pipefail
+
+# ── Configuration ─── edit here for permanent changes ─────────────────────────
+ARCHIVE_AFTER_MONTHS=1
+CODE_DIR="$HOME/Code"
+ARCHIVE_DIR="/Volumes/media/code/archived"
+NAS_MOUNT="/Volumes/media"
+LOG="$HOME/.archive-project/archive.log"
+
+# Directory NAMES (not paths) we strip before moving — depth-agnostic, so a
+# monorepo's nested node_modules and an iOS subproject's Pods both get
+# cleaned. Universally regeneratable framework / build output only;
+# anything ambiguous (dist/, build/, out/, target/, venv/) stays so we
+# never delete user content by mistake. Override with --keep-deps.
+STRIP_DIRS=(
+  # JS / Node ecosystem
+  node_modules .next .nuxt .svelte-kit .astro .turbo .vite .parcel-cache .cache
+  # iOS / Xcode / CocoaPods
+  Pods DerivedData
+  # Android / Gradle (React Native + Flutter both use this)
+  .gradle
+  # React Native / Expo
+  .expo .expo-shared
+  # Flutter / Dart
+  .dart_tool
+  # Python
+  __pycache__ .pytest_cache .mypy_cache .ruff_cache
+)
+
+# Files (not dirs) to strip by name, anywhere in the tree.
+STRIP_FILES=(
+  .flutter-plugins .flutter-plugins-dependencies
+)
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Resolve script's real path (through symlinks) so --man can find the page
+# even when invoked via ~/.local/bin/archive-project.
+_src="${BASH_SOURCE[0]}"
+while [[ -L "$_src" ]]; do
+  _dir="$(cd -P "$(dirname "$_src")" && pwd)"
+  _src="$(readlink "$_src")"
+  [[ "$_src" != /* ]] && _src="$_dir/$_src"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$_src")" && pwd)"
+MAN_PAGE="$SCRIPT_DIR/../man/archive-project.1"
+
+DRY=0
+YES=0
+KEEP_DEPS=0
+THRESHOLD_MONTHS="$ARCHIVE_AFTER_MONTHS"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -n|--dry-run)   DRY=1 ;;
+    -y|--yes)       YES=1 ;;
+    --keep-deps)    KEEP_DEPS=1 ;;
+    --months=*)     THRESHOLD_MONTHS="${1#*=}" ;;
+    --months)       shift; THRESHOLD_MONTHS="${1:-}" ;;
+    --man)
+      if [[ -r "$MAN_PAGE" ]]; then
+        man "$MAN_PAGE"
+      else
+        echo "error: man page not found at $MAN_PAGE" >&2
+        exit 1
+      fi
+      exit 0
+      ;;
+    -h|--help)
+      sed -n '2,56p' "$0" | sed 's/^# \{0,1\}//'
+      exit 0
+      ;;
+    *) echo "Unknown argument: $1" >&2
+       echo "Try: archive-project -h" >&2
+       exit 2 ;;
+  esac
+  shift
+done
+
+if ! [[ "$THRESHOLD_MONTHS" =~ ^[0-9]+$ ]] || (( THRESHOLD_MONTHS < 1 )); then
+  echo "error: --months must be a positive integer (got: '$THRESHOLD_MONTHS')" >&2
+  exit 2
+fi
+
+mkdir -p "$(dirname "$LOG")" 2>/dev/null || true
+log() { printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >> "$LOG"; }
+
+# Tokyo Night truecolor palette — works in Ghostty, iTerm2, recent
+# Terminal.app, kitty, wezterm. Falls back to no-color when stdout
+# isn't a TTY (piped to a file, etc.).
+if [[ -t 1 ]]; then
+  BOLD=$'\033[1m'; DIM=$'\033[2m'; RESET=$'\033[0m'
+  BLUE=$'\033[38;2;122;162;247m'
+  CYAN=$'\033[38;2;125;207;255m'
+  GREEN=$'\033[38;2;158;206;106m'
+  YELLOW=$'\033[38;2;224;175;104m'
+  RED=$'\033[38;2;247;118;142m'
+  PURPLE=$'\033[38;2;187;154;247m'
+  SUB=$'\033[38;2;154;165;206m'
+else
+  BOLD=''; DIM=''; RESET=''; BLUE=''; CYAN=''; GREEN=''
+  YELLOW=''; RED=''; PURPLE=''; SUB=''
+fi
+
+# ── UI helpers ────────────────────────────────────────────────────────────────
+banner() {
+  local dry_tag=""
+  (( DRY )) && dry_tag="   ${YELLOW}${BOLD}[ DRY RUN ]${RESET}"
+  echo
+  printf '  %s╭───────────────────╮%s\n' "$BLUE" "$RESET"
+  printf '  %s│%s  %s%sarchive-project%s  %s│%s%s\n' "$BLUE" "$RESET" "$BOLD" "$CYAN" "$RESET" "$BLUE" "$RESET" "$dry_tag"
+  printf '  %s╰───────────────────╯%s\n' "$BLUE" "$RESET"
+  printf '   %sstale, clean repos → NAS%s\n' "$SUB" "$RESET"
+  echo
+}
+
+# Dash-divider section header. Width fixed at ~50 cols so headers line up.
+section() {
+  local title="$1"
+  local count="${2:-}"
+  local count_str=""
+  local count_len=0
+  if [[ -n "$count" ]]; then
+    count_str=" ${DIM}(${count})${RESET}"
+    count_len=$(( ${#count} + 3 ))
+  fi
+  local pad=$(( 48 - ${#title} - count_len ))
+  (( pad < 4 )) && pad=4
+  printf '\n  %s── %s%s %s' "$SUB" "$title" "$count_str" "$SUB"
+  printf -- '─%.0s' $(seq 1 "$pad")
+  printf '%s\n\n' "$RESET"
+}
+
+# Key-value config row, aligned at column 14.
+kv() {
+  printf '  %s%-12s%s ▸  %s\n' "$SUB" "$1" "$RESET" "$2"
+}
+
+# Format a kilobyte count as a human size (K/M/G).
+human_kb() {
+  awk -v kb="$1" 'BEGIN {
+    if (kb < 1)         { print "0K"; exit }
+    if (kb < 1024)      { printf "%dK\n", kb; exit }
+    if (kb < 1048576)   { printf "%.1fM\n", kb/1024; exit }
+    printf "%.2fG\n", kb/1048576
+  }'
+}
+
+# Estimate total KB that strip_regen() would delete for $1, without
+# touching anything. Used only to inform the user before they confirm.
+strip_preview_kb() {
+  local src="$1" total=0 sz name
+  (( KEEP_DEPS )) && { echo 0; return; }
+  for name in "${STRIP_DIRS[@]}"; do
+    while IFS= read -r -d '' dir; do
+      [[ -d "$dir" ]] || continue
+      sz="$(du -sk "$dir" 2>/dev/null | cut -f1)"
+      total=$(( total + ${sz:-0} ))
+    done < <(find "${src:?}" -type d -name "$name" -prune -print0 2>/dev/null)
+  done
+  echo "$total"
+}
+
+# ── Pre-flight ────────────────────────────────────────────────────────────────
+[[ -d "$CODE_DIR" ]] || { echo "${RED}error:${RESET} $CODE_DIR does not exist" >&2; exit 1; }
+
+if ! /sbin/mount | grep -q " on ${NAS_MOUNT} "; then
+  echo "${RED}error:${RESET} NAS not mounted at $NAS_MOUNT" >&2
+  echo "       open Finder → click 'media' in sidebar, or:" >&2
+  echo "       osascript -e 'mount volume \"smb://prometheus@192.168.100.215/media\"'" >&2
+  exit 1
+fi
+
+if (( DRY == 0 )); then
+  if ! mkdir -p "$ARCHIVE_DIR" 2>/dev/null; then
+    echo "${RED}error:${RESET} could not create $ARCHIVE_DIR" >&2
+    exit 1
+  fi
+fi
+
+threshold_secs=$(( THRESHOLD_MONTHS * 30 * 24 * 3600 ))
+now_secs="$(date +%s)"
+cutoff_secs=$(( now_secs - threshold_secs ))
+
+# Does any ancestor of $1 (up to but not including $CODE_DIR) contain a
+# .git directory? If yes, $1 is a nested repo — we won't archive it
+# independently of its parent.
+is_nested_in_repo() {
+  local p="$1"
+  local parent
+  parent="$(dirname "$p")"
+  while [[ "$parent" != "$CODE_DIR" && "$parent" != "/" && -n "$parent" ]]; do
+    if [[ -d "$parent/.git" ]]; then
+      return 0
+    fi
+    parent="$(dirname "$parent")"
+  done
+  return 1
+}
+
+# ── Scan ──────────────────────────────────────────────────────────────────────
+# Find every .git directory under $CODE_DIR. -prune stops find from
+# descending *into* .git itself; the -path filters skip node_modules and
+# .git contents to avoid grabbing vendored repos.
+declare -a candidates=()
+declare -a skip_dirty=()
+declare -a skip_fresh=()
+declare -a skip_norepo=()
+declare -a skip_nested=()
+declare -a skip_other=()
+
+while IFS= read -r -d '' git_dir; do
+  proj="$(dirname "$git_dir")"
+
+  # CODE_DIR itself being a repo would be weird — skip silently.
+  [[ "$proj" == "$CODE_DIR" ]] && continue
+
+  # Relative path under CODE_DIR — what gets recreated under ARCHIVE_DIR.
+  rel="${proj#"$CODE_DIR"/}"
+
+  # Symlinks are too easy to misinterpret; skip.
+  if [[ -L "$proj" ]]; then
+    skip_other+=("$rel (symlink, not following)")
+    continue
+  fi
+
+  # If we're nested inside another repo, defer to that repo's evaluation.
+  if is_nested_in_repo "$proj"; then
+    skip_nested+=("$rel (nested in an ancestor repo)")
+    continue
+  fi
+
+  # .git as a regular file means worktree or submodule — moving breaks linkage.
+  if [[ -f "$proj/.git" ]]; then
+    skip_norepo+=("$rel (worktree or submodule)")
+    continue
+  fi
+
+  last_commit="$(git -C "$proj" log -1 --format=%ct 2>/dev/null || true)"
+  if [[ -z "$last_commit" ]]; then
+    # Empty result can mean either "fresh init, no commits yet" OR
+    # "broken repo state" (corrupt refs/HEAD, missing objects, etc.).
+    # Either way, we don't have a date to compare against, so skip.
+    skip_norepo+=("$rel (no readable commit history)")
+    continue
+  fi
+
+  if [[ -n "$(git -C "$proj" status --porcelain 2>/dev/null)" ]]; then
+    skip_dirty+=("$rel")
+    continue
+  fi
+
+  age_days=$(( (now_secs - last_commit) / 86400 ))
+  if (( last_commit > cutoff_secs )); then
+    skip_fresh+=("$rel (${age_days}d ago)")
+    continue
+  fi
+
+  # Size in KB — accumulates into the freed-bytes summary later.
+  size_kb="$(du -sk "$proj" 2>/dev/null | cut -f1)"
+  candidates+=("$rel|$age_days|$proj|${size_kb:-0}")
+done < <(find "$CODE_DIR" \
+            \( -path '*/node_modules' -o -path '*/node_modules/*' -o -path '*/.git/*' \) -prune \
+            -o -type d -name .git -print0 \
+            2>/dev/null)
+
+# Sort candidates by relative path so outer projects come before inner ones.
+# When an outer project is archived first, any inner candidates inside it
+# vanish from disk and silently skip on their iteration.
+if (( ${#candidates[@]} > 0 )); then
+  mapfile -t candidates < <(printf '%s\n' "${candidates[@]}" | sort)
+fi
+
+# ── Report ────────────────────────────────────────────────────────────────────
+banner
+
+section "configuration"
+threshold_plural=""
+(( THRESHOLD_MONTHS != 1 )) && threshold_plural="s"
+kv "threshold"    "${BOLD}${THRESHOLD_MONTHS} month${threshold_plural}${RESET}${SUB}  (~$(( THRESHOLD_MONTHS * 30 )) days)${RESET}"
+kv "source"       "${CODE_DIR/#$HOME/~}"
+kv "destination"  "${ARCHIVE_DIR/#$HOME/~}"
+if (( KEEP_DEPS )); then
+  kv "cleanup"    "${YELLOW}disabled${RESET}${SUB}  (--keep-deps)${RESET}"
+else
+  kv "cleanup"    "${GREEN}strip${RESET} ${#STRIP_DIRS[@]} dirs + ${#STRIP_FILES[@]} files ${SUB}(depth-agnostic)${RESET}"
+fi
+
+print_skip_group() {
+  # First arg = title; remaining = entries. With `set -u`, an empty
+  # array expanded as "${arr[@]:-}" yields a single empty string, which
+  # would print as a bare bullet. Caller must check (( ${#arr[@]} > 0 ))
+  # before invoking — we double-check by filtering empties here too.
+  local title="$1" sym="$2"; shift 2
+  local -a entries=()
+  local s
+  for s in "$@"; do [[ -n "$s" ]] && entries+=("$s"); done
+  (( ${#entries[@]} == 0 )) && return 0
+  section "$title" "${#entries[@]}"
+  for s in "${entries[@]}"; do printf '    %s%s%s  %s\n' "$DIM" "$sym" "$RESET" "$s"; done
+}
+
+(( ${#skip_dirty[@]}  > 0 )) && print_skip_group "uncommitted changes — skipped"   "●" "${skip_dirty[@]}"
+(( ${#skip_fresh[@]}  > 0 )) && print_skip_group "too fresh — skipped"             "○" "${skip_fresh[@]}"
+(( ${#skip_nested[@]} > 0 )) && print_skip_group "nested in another repo — skipped" "↳" "${skip_nested[@]}"
+(( ${#skip_norepo[@]} > 0 )) && print_skip_group "not an eligible repo — skipped"  "✗" "${skip_norepo[@]}"
+(( ${#skip_other[@]}  > 0 )) && print_skip_group "other — skipped"                 "·" "${skip_other[@]}"
+
+if (( ${#candidates[@]} == 0 )); then
+  echo
+  echo "  ${GREEN}✓ nothing to archive.${RESET}"
+  echo
+  exit 0
+fi
+
+# Sum candidate sizes for the header.
+total_kb=0
+for entry in "${candidates[@]}"; do
+  IFS='|' read -r _ _ _ size_kb <<< "$entry"
+  total_kb=$(( total_kb + size_kb ))
+done
+
+section "candidates" "${#candidates[@]} · $(human_kb "$total_kb")"
+i=0
+for entry in "${candidates[@]}"; do
+  i=$(( i + 1 ))
+  IFS='|' read -r rel age _ size_kb <<< "$entry"
+  printf '    %s%2d.%s  %s%-40s%s  %s%4sd  %6s%s\n' \
+    "$CYAN" "$i" "$RESET" \
+    "$BOLD" "$rel" "$RESET" \
+    "$SUB" "$age" "$(human_kb "$size_kb")" "$RESET"
+done
+
+# Surface the [a]ll shortcut prominently so users don't have to discover it
+# from the per-prompt legend. Only shown when we'll actually prompt — i.e.
+# not in -y, --keep-deps-only, or dry-run mode.
+if (( ! DRY )) && (( ! YES )) && (( ${#candidates[@]} > 1 )); then
+  printf '\n     %stip:%s at each prompt, press %s%s[a]%s%s to archive all remaining without asking\n' \
+    "$YELLOW" "$RESET" "$BOLD" "$PURPLE" "$RESET" "$SUB"
+fi
+echo
+
+# ── Helpers for the move loop ────────────────────────────────────────────────
+strip_regen() {
+  local src="$1" name dir dir_size
+  for name in "${STRIP_DIRS[@]}"; do
+    # -prune so we don't recurse into a matched dir looking for more of
+    # the same name (which would error after the parent is rm'd).
+    while IFS= read -r -d '' dir; do
+      [[ -d "$dir" ]] || continue
+      dir_size="$(du -sh "$dir" 2>/dev/null | cut -f1)"
+      echo "  ${DIM}stripping ${dir#"$src/"} (${dir_size:-?})${RESET}"
+      rm -rf "${dir:?}"
+    done < <(find "${src:?}" -type d -name "$name" -prune -print0 2>/dev/null)
+  done
+  for name in "${STRIP_FILES[@]}"; do
+    while IFS= read -r -d '' f; do
+      [[ -f "$f" ]] || continue
+      echo "  ${DIM}removing ${f#"$src/"}${RESET}"
+      rm -f -- "$f"
+    done < <(find "${src:?}" -type f -name "$name" -print0 2>/dev/null)
+  done
+}
+
+# Pick a non-existing destination path. If $dst is free, return it; else
+# append -YYYYMMDD, then -YYYYMMDD-1, -2, ...
+resolve_dest() {
+  local dst="$1" base suffix candidate n=1
+  if [[ ! -e "$dst" ]]; then
+    printf '%s' "$dst"
+    return
+  fi
+  base="$dst"
+  suffix="$(date +%Y%m%d)"
+  candidate="${base}-${suffix}"
+  while [[ -e "$candidate" ]]; do
+    candidate="${base}-${suffix}-${n}"
+    n=$(( n + 1 ))
+  done
+  printf '%s' "$candidate"
+}
+
+# ── Tar+zstd transport ───────────────────────────────────────────────────────
+# The old `cp -RXp` approach was correct but slow: every file in the source
+# was its own round-trip across SMB. For a project with 8000 files (typical
+# of an unpruned monorepo with .git/objects/), that's 8000 × ~15 ms latency =
+# minutes of wall time per project, even at low total bytes.
+#
+# This implementation splits the move into four phases:
+#
+#   1. compress  — tar+zstd the SSD source into a local /tmp/<name>.tar.zst.
+#                  Sequential reads, sequential compression, single output
+#                  file. Pure local I/O, no network.
+#   2. upload    — `cp` the .tar.zst to the NAS via SMB. One contiguous
+#                  stream, one round-trip per zstd block, not per source
+#                  file. Many times faster than the old per-file copy.
+#   3. extract   — `tar` reads the NAS-side tarball and writes the project
+#                  tree into the archive folder. Still many SMB writes
+#                  (one per file), but with no per-file source-side stats,
+#                  so still ~2× faster than `cp -R`. This phase is the
+#                  slowest of the four and the unavoidable cost of having
+#                  a browseable directory at the end (which is what we want
+#                  — the user opens these to read old code).
+#   4. (later)   — verify_archive, called once per project from the batch
+#                  verifier *after* every project is uploaded+extracted.
+#                  Only when the full batch verifies do source SSD copies
+#                  get deleted.
+#
+# `pv` provides the byte-progress UI in each phase. If pv isn't installed,
+# we still run the pipeline; the operation just becomes silent until done.
+
+# stat -f reports size in bytes on macOS/BSD.
+size_bytes() {
+  stat -f %z -- "$1" 2>/dev/null || echo 0
+}
+
+# `du -sk` reports in KB on macOS/BSD. Multiply for bytes.
+du_bytes() {
+  local kb
+  kb="$(du -sk -- "$1" 2>/dev/null | cut -f1)"
+  echo $(( ${kb:-0} * 1024 ))
+}
+
+# Phase 1: compress $src into $tarball using tar piped through zstd.
+# Returns 0 on success. Caller deletes $tarball on subsequent failure.
+phase_compress() {
+  local src="$1" tarball="$2"
+  local total
+  total="$(du_bytes "$src")"
+  local parent base
+  parent="$(dirname "$src")"
+  base="$(basename "$src")"
+
+  if command -v pv >/dev/null 2>&1; then
+    # pv reports stdin progress; we feed it tar's stream, then zstd writes
+    # the file. -T0 = use all CPU cores; -3 = balanced speed/ratio.
+    if tar -cf - -C "$parent" "$base" 2>>"$LOG" \
+         | pv -s "$total" -N "  compress" -ptebar \
+         | zstd -T0 -3 -q -o "$tarball" 2>>"$LOG"; then
+      return 0
+    fi
+  else
+    if tar -cf - -C "$parent" "$base" 2>>"$LOG" \
+         | zstd -T0 -3 -q -o "$tarball" 2>>"$LOG"; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
+# Phase 2: upload $tarball to $dst_tarball on the NAS, then remove the
+# local /tmp copy. Single contiguous SMB write.
+phase_upload() {
+  local tarball="$1" dst_tarball="$2"
+  local total
+  total="$(size_bytes "$tarball")"
+
+  if command -v pv >/dev/null 2>&1; then
+    if pv -s "$total" -N "  upload  " -ptebar < "$tarball" > "$dst_tarball" 2>>"$LOG"; then
+      rm -f -- "$tarball" 2>>"$LOG"
+      return 0
+    fi
+  else
+    if /bin/cp -- "$tarball" "$dst_tarball" 2>>"$LOG"; then
+      rm -f -- "$tarball" 2>>"$LOG"
+      return 0
+    fi
+  fi
+  rm -f -- "$dst_tarball" 2>/dev/null
+  return 1
+}
+
+# Phase 3: extract $nas_tarball into $dst_parent. The extract runs on the
+# Mac; reads/writes happen over SMB. Many small writes — unavoidable, but
+# still faster than `cp -R` (no per-file source-side stat round-trips).
+phase_extract() {
+  local nas_tarball="$1" dst_parent="$2"
+  local total
+  total="$(size_bytes "$nas_tarball")"
+
+  if ! mkdir -p "$dst_parent" 2>>"$LOG"; then
+    return 1
+  fi
+
+  if command -v pv >/dev/null 2>&1; then
+    if pv -s "$total" -N "  extract " -ptebar < "$nas_tarball" \
+         | zstd -dc -q 2>>"$LOG" \
+         | tar -xf - -C "$dst_parent" 2>>"$LOG"; then
+      rm -f -- "$nas_tarball" 2>>"$LOG"
+      return 0
+    fi
+  else
+    if zstd -dc -q -- "$nas_tarball" 2>>"$LOG" \
+         | tar -xf - -C "$dst_parent" 2>>"$LOG"; then
+      rm -f -- "$nas_tarball" 2>>"$LOG"
+      return 0
+    fi
+  fi
+  return 1
+}
+
+# Full pipeline for one project. Returns 0 if the destination is fully
+# materialized on the NAS, ready for verification. Does NOT delete the
+# SSD source — that's deferred until batch-verify.
+ship_project() {
+  local src="$1" dst="$2"
+  local name dst_parent staging_tarball nas_tarball
+  name="$(basename "$dst")"
+  dst_parent="$(dirname "$dst")"
+  staging_tarball="/tmp/archive-project-$$-${name}.tar.zst"
+  nas_tarball="${dst_parent}/.${name}.tar.zst.uploading"
+
+  # Always clean staging on any exit from this function.
+  trap 'rm -f -- "$staging_tarball" 2>/dev/null' RETURN
+
+  if ! phase_compress "$src" "$staging_tarball"; then
+    rm -f -- "$staging_tarball" 2>/dev/null
+    return 1
+  fi
+
+  if ! phase_upload "$staging_tarball" "$nas_tarball"; then
+    return 1
+  fi
+
+  if ! phase_extract "$nas_tarball" "$dst_parent"; then
+    return 1
+  fi
+  return 0
+}
+
+# Verify: every file path that exists in $src must also exist in $dst.
+# Counts + sorted relative-path comparison. File contents are NOT byte-
+# compared (would be O(GB) over SMB) — but path + count mismatch would
+# catch any truncated tar / missing entries.
+#
+# The destination walk is the slow part (find over SMB stats every entry),
+# so we route it through pv with a count-based progress bar driven by the
+# source count we computed locally.
+#
+# Returns the matched file count via stdout on success; nothing on failure.
+# Result code:
+#   0  identical file set
+#   1  count mismatch
+#   2  path-set mismatch
+#
+# Stores LAST_VERIFY_DETAIL globally for the caller to display.
+LAST_VERIFY_DETAIL=""
+
+verify_archive() {
+  local src="$1" dst="$2"
+  local sc
+  # Source walk — local SSD, instant. Capture sorted paths in one go.
+  local sp
+  sp="$(cd "$src" && find . -type f 2>/dev/null | LC_ALL=C sort)"
+  sc="$(printf '%s\n' "$sp" | grep -c '^' || true)"
+
+  # Destination walk — over SMB, slow. Stream through pv for a count-based
+  # progress bar (-l = count lines, not bytes). Capture output to a tmp
+  # file so we can sort + compare without buffering in shell variables.
+  local dst_tmp
+  dst_tmp="$(mktemp -t arch-verify.XXXXXX)"
+  if command -v pv >/dev/null 2>&1; then
+    (cd "$dst" && find . -type f 2>/dev/null) \
+      | pv -l -s "$sc" -N "  verify  " -ptebar \
+      > "$dst_tmp"
+  else
+    (cd "$dst" && find . -type f 2>/dev/null) > "$dst_tmp"
+  fi
+
+  local dc
+  dc="$(wc -l < "$dst_tmp" | tr -d ' ')"
+
+  if [[ "$sc" != "$dc" ]]; then
+    rm -f -- "$dst_tmp"
+    LAST_VERIFY_DETAIL="count mismatch ($sc src vs $dc dst)"
+    log "verify $src vs $dst: $LAST_VERIFY_DETAIL"
+    return 1
+  fi
+
+  local dp
+  dp="$(LC_ALL=C sort < "$dst_tmp")"
+  rm -f -- "$dst_tmp"
+
+  if [[ "$sp" != "$dp" ]]; then
+    LAST_VERIFY_DETAIL="path-set differs ($sc files, names don't match)"
+    log "verify $src vs $dst: $LAST_VERIFY_DETAIL"
+    return 2
+  fi
+
+  LAST_VERIFY_DETAIL="$sc files"
+  return 0
+}
+
+# ── Confirm + move ────────────────────────────────────────────────────────────
+moved=0
+failed=0
+declare -a moved_rels=()
+declare -a shipped=()   # uploaded + extracted, awaiting batch verify before SSD delete
+freed_kb=0
+ALL_YES=0
+TOTAL="${#candidates[@]}"
+
+# In dry-run we print the plan as a single block, no prompts.
+if (( DRY )); then
+  section "plan"
+  i=0
+  for entry in "${candidates[@]}"; do
+    i=$(( i + 1 ))
+    IFS='|' read -r rel age _ size_kb <<< "$entry"
+    dst="$ARCHIVE_DIR/$rel"
+    printf '    %s[%d/%d]%s  %s%s%s  %s→%s  %s\n' \
+      "$YELLOW" "$i" "$TOTAL" "$RESET" \
+      "$BOLD" "$rel" "$RESET" \
+      "$SUB" "$RESET" "${dst/#$HOME/~}"
+  done
+  echo
+  echo "  ${YELLOW}dry-run — no changes made.${RESET}"
+  echo
+  exit 0
+fi
+
+section "review"
+
+i=0
+for entry in "${candidates[@]}"; do
+  i=$(( i + 1 ))
+  IFS='|' read -r rel age src size_kb <<< "$entry"
+  dst="$ARCHIVE_DIR/$rel"
+
+  # Outer project may have already swallowed this one — verify source still exists.
+  if [[ ! -d "$src" ]]; then
+    continue
+  fi
+
+  if (( ! YES )) && (( ! ALL_YES )); then
+    strip_kb="$(strip_preview_kb "$src")"
+    # Only mention "strip ≈ X" when there's actually something to strip
+    # and we haven't been told to keep deps. Avoids "strip ≈ 0K" noise.
+    strip_blurb=""
+    if (( ! KEEP_DEPS )) && (( strip_kb > 0 )); then
+      strip_blurb=" · strip ≈ $(human_kb "$strip_kb")"
+    fi
+    printf '\n    %s[%d/%d]%s  %s%s%s  %s· %sd · %s%s%s\n' \
+      "$CYAN" "$i" "$TOTAL" "$RESET" \
+      "$BOLD" "$rel" "$RESET" \
+      "$SUB" "$age" "$(human_kb "$size_kb")" "$strip_blurb" "$RESET"
+    printf '            %s→ %s%s\n\n' "$SUB" "${dst/#$HOME/~}" "$RESET"
+
+    while true; do
+      # [a]ll gets bold-purple + word, since it's the high-leverage choice
+      # most users want once they're confident the candidate list is right.
+      printf '            %sarchive?%s  %s[y]%ses  %s[N]%so  %s%s[a]ll%s  %s[q]%suit  %s›%s ' \
+        "$BOLD" "$RESET" \
+        "$GREEN" "$RESET" \
+        "$RED"   "$RESET" \
+        "$BOLD" "$PURPLE" "$RESET" \
+        "$YELLOW" "$RESET" \
+        "$SUB" "$RESET"
+      read -r ans
+      case "$ans" in
+        y|Y) break ;;
+        a|A) ALL_YES=1; break ;;
+        q|Q) echo; echo "    ${YELLOW}stopped by user.${RESET}"; break 2 ;;
+        ""|n|N) printf '            %sskipped.%s\n' "$DIM" "$RESET"; continue 2 ;;
+        *)   printf '            %s? answer y/n/a/q%s\n' "$YELLOW" "$RESET" ;;
+      esac
+    done
+  fi
+
+  # Ensure the parent of the destination exists (for nested layouts).
+  dst_parent="$(dirname "$dst")"
+  if ! mkdir -p "$dst_parent" 2>>"$LOG"; then
+    printf '            %s✗ couldn'\''t create %s — see %s%s\n' "$RED" "$dst_parent" "$LOG" "$RESET"
+    failed=$(( failed + 1 ))
+    continue
+  fi
+
+  resolved_dst="$(resolve_dest "$dst")"
+  if [[ "$resolved_dst" != "$dst" ]]; then
+    printf '            %s· destination existed; using %s%s\n' "$DIM" "$(basename "$resolved_dst")" "$RESET"
+    dst="$resolved_dst"
+  fi
+
+  if (( ! KEEP_DEPS )); then
+    strip_regen "$src"
+  fi
+
+  printf '            %s▸ shipping%s\n' "$BLUE" "$RESET"
+  if ship_project "$src" "$dst"; then
+    log "shipped $rel (last commit ${age}d ago) -> $dst (verify pending)"
+    # We don't increment `moved` yet — that happens after batch verify.
+    # Tracked here as "shipped, awaiting verification."
+    shipped+=("$rel|$src|$dst|$size_kb|$age")
+    printf '            %s✓ uploaded + extracted%s\n' "$GREEN" "$RESET"
+  else
+    printf '            %s✗ failed%s — see %s\n' "$RED" "$RESET" "$LOG"
+    failed=$(( failed + 1 ))
+    # Clean up any partial destination.
+    [[ -d "$dst" ]] && rm -rf -- "${dst:?}" 2>/dev/null
+  fi
+done
+
+# ── Batch verify ─────────────────────────────────────────────────────────────
+# Nothing is deleted from the SSD until this loop confirms each shipped
+# project's destination matches its source file-for-file. If even one
+# project mis-verifies, we keep ALL sources — safer to redo a few
+# uploads than to lose data.
+declare -a verified_rels=()
+declare -a verify_failed=()
+
+if (( ${#shipped[@]} > 0 )); then
+  section "verify" "${#shipped[@]}"
+  v_idx=0
+  for entry in "${shipped[@]}"; do
+    v_idx=$(( v_idx + 1 ))
+    IFS='|' read -r rel src dst _ _ <<< "$entry"
+    # Header line for this project — the pv progress bar prints under it.
+    printf '    %s[%d/%d]%s  %s%s%s\n' \
+      "$CYAN" "$v_idx" "${#shipped[@]}" "$RESET" \
+      "$BOLD" "$rel" "$RESET"
+    verify_archive "$src" "$dst"
+    case $? in
+      0) printf '            %s✓ matches%s  %s(%s)%s\n' "$GREEN" "$RESET" "$SUB" "$LAST_VERIFY_DETAIL" "$RESET"
+         verified_rels+=("$entry") ;;
+      1) printf '            %s✗ file COUNT differs%s  %s(%s)%s\n' "$RED" "$RESET" "$SUB" "$LAST_VERIFY_DETAIL" "$RESET"
+         verify_failed+=("$rel (count mismatch)") ;;
+      2) printf '            %s✗ file PATHS differ%s  %s(%s)%s\n' "$RED" "$RESET" "$SUB" "$LAST_VERIFY_DETAIL" "$RESET"
+         verify_failed+=("$rel (path mismatch)") ;;
+    esac
+  done
+fi
+
+# ── Delete sources (only if every verification passed) ───────────────────────
+if (( ${#verify_failed[@]} > 0 )); then
+  section "stopped — verification failed"
+  printf '    %sThese projects were uploaded + extracted but the destination%s\n'   "$YELLOW" "$RESET"
+  printf '    %sdoesn'\''t match the source. SSD sources are NOT being deleted.%s\n\n' "$YELLOW" "$RESET"
+  for f in "${verify_failed[@]}"; do
+    printf '      %s· %s%s\n' "$RED" "$f" "$RESET"
+  done
+  printf '\n    %sRun the script again to retry, or investigate manually.%s\n' "$SUB" "$RESET"
+  echo
+  exit 2
+fi
+
+if (( ${#verified_rels[@]} > 0 )); then
+  section "delete sources" "${#verified_rels[@]}"
+  printf '    %sAll projects verified. Removing SSD sources...%s\n\n' "$SUB" "$RESET"
+  d_idx=0
+  d_total="${#verified_rels[@]}"
+  for entry in "${verified_rels[@]}"; do
+    d_idx=$(( d_idx + 1 ))
+    IFS='|' read -r rel src dst size_kb age <<< "$entry"
+    # Show "[i/n] name  (size)  ..." with the right column for the result.
+    printf '    %s[%d/%d]%s  %-40s  %s%6s%s  ' \
+      "$CYAN" "$d_idx" "$d_total" "$RESET" \
+      "$rel" \
+      "$SUB" "$(human_kb "$size_kb")" "$RESET"
+    if rm -rf -- "${src:?}" 2>>"$LOG"; then
+      log "archived $rel (last commit ${age}d ago) -> $dst"
+      moved=$(( moved + 1 ))
+      moved_rels+=("$rel")
+      freed_kb=$(( freed_kb + size_kb ))
+      printf '%s✓ removed%s\n' "$GREEN" "$RESET"
+    else
+      printf '%s✗ rm failed — see %s%s\n' "$RED" "$LOG" "$RESET"
+      failed=$(( failed + 1 ))
+    fi
+  done
+fi
+
+# ── Empty-parent hints (never auto-clean) ────────────────────────────────────
+if (( ${#moved_rels[@]} > 0 )); then
+  declare -a empty_parents=()
+  declare -A seen_parents=()
+  for rel in "${moved_rels[@]}"; do
+    parent_rel="$(dirname "$rel")"
+    [[ "$parent_rel" == "." || "$parent_rel" == "/" ]] && continue
+    [[ -n "${seen_parents[$parent_rel]:-}" ]] && continue
+    seen_parents[$parent_rel]=1
+    parent_abs="$CODE_DIR/$parent_rel"
+    if [[ -d "$parent_abs" ]] && [[ -z "$(ls -A "$parent_abs" 2>/dev/null)" ]]; then
+      empty_parents+=("$parent_abs")
+    fi
+  done
+  if (( ${#empty_parents[@]} > 0 )); then
+    section "empty containers"
+    printf '    %sthese dirs are now empty — delete by hand if you want:%s\n\n' "$SUB" "$RESET"
+    for p in "${empty_parents[@]}"; do
+      printf '      %s· %s%s\n' "$SUB" "${p/#$HOME/~}" "$RESET"
+    done
+  fi
+fi
+
+# ── Summary card ─────────────────────────────────────────────────────────────
+section "summary"
+printf '    %sarchived%s   %s%d%s of %d\n'          "$SUB" "$RESET" "$GREEN" "$moved"  "$RESET" "$TOTAL"
+printf '    %sfailed  %s   %s%d%s\n'                "$SUB" "$RESET" "$RED"   "$failed" "$RESET"
+if (( freed_kb > 0 )); then
+  printf '    %sfreed   %s   %s%s%s on SSD\n'       "$SUB" "$RESET" "$GREEN" "$(human_kb "$freed_kb")" "$RESET"
+fi
+echo
+
+(( failed > 0 )) && exit 1
+exit 0

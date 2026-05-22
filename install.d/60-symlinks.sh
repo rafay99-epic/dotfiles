@@ -70,8 +70,9 @@ module_symlinks() {
   link "$DOTFILES/bin/clean-node-modules"             "$HOME/.local/bin/clean-node-modules"
   link "$DOTFILES/bin/bigfiles"                       "$HOME/.local/bin/bigfiles"
   link "$DOTFILES/bin/sort-downloads"                 "$HOME/.local/bin/sort-downloads"
+  link "$DOTFILES/bin/archive-project"                "$HOME/.local/bin/archive-project"
   if [[ "$DRY_RUN" == false ]]; then
-    chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" "$HOME/.local/bin/clean-node-modules" "$HOME/.local/bin/bigfiles" "$HOME/.local/bin/sort-downloads" 2>/dev/null || true
+    chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" "$HOME/.local/bin/clean-node-modules" "$HOME/.local/bin/bigfiles" "$HOME/.local/bin/sort-downloads" "$HOME/.local/bin/archive-project" 2>/dev/null || true
   fi
 
   # Fish functions
