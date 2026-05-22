@@ -170,6 +170,13 @@ chmod +x install.sh
         </div>
         <p class="text-tn-sub mb-4">The first thing <code class="inline-code">install.sh</code> does is ask a short series of questions and write the answers to <code class="inline-code">~/.config/dotfiles/local.env</code> — your personal values stay on your machine, never in the repo. Every later step reads from this file, so you only enter your details once.</p>
 
+        <div class="mb-5 bg-tn-bg2 border border-tn-yellow/40 rounded-xl p-4 flex gap-3">
+          <i data-lucide="triangle-alert" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">
+            <strong class="text-tn-fg">The wizard only prompts on the FIRST install.</strong> Once <code class="inline-code">~/.config/dotfiles/local.env</code> exists, re-running <code class="inline-code">./install.sh</code> loads it silently (one yellow line: <code class="inline-code">→ Loaded existing config — pass --reconfigure to re-ask</code>) and goes straight to the module picker — <em class="text-tn-fg not-italic">it does not re-prompt</em>. To re-ask every question (change NAS, flip a feature on/off, fix a typo), run <code class="inline-code">./install.sh --reconfigure</code>. Your current values are pre-filled as defaults; press Enter to keep each one.
+          </div>
+        </div>
+
         <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-4">
           <table>
             <thead><tr><th>Question</th><th>What it controls</th></tr></thead>

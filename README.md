@@ -19,11 +19,32 @@ curl -fsSL https://dotfiles.rafay99.com/install.sh | bash
 The script will:
 
 1. Clone this repo into `~/dotfiles`
-2. Ask if you want to install Homebrew and all packages
-3. If yes — install Homebrew, then every tool used by these dotfiles
-4. Always — symlink all configs into `~/.config`
+2. **Run the first-run config wizard** — asks ~7 questions (code dir, git identity, NAS yes/no + IP/user/share, Time Machine, auto-sort Downloads, archive-project) and writes your answers to `~/.config/dotfiles/local.env` (mode 0600, never committed)
+3. Show the interactive module picker — pick which install modules to run (Homebrew, window manager, symlinks, LaunchAgents, macOS tweaks, …)
+4. Run each selected module — modules whose feature you said "no" to in the wizard skip themselves silently
 
 After it finishes, open a new terminal tab and log out / back in.
+
+### After the first install
+
+`./install.sh` is **idempotent** — re-running it loads your existing `~/.config/dotfiles/local.env` silently (one yellow line: `→ Loaded existing config — pass --reconfigure to re-ask`) and goes straight to the module picker. **It will not re-prompt the wizard questions.**
+
+To re-prompt the wizard (after changing NAS, fixing an email typo, flipping a feature on/off):
+
+```bash
+./install.sh --reconfigure
+```
+
+Your current values are pre-filled as the defaults — press Enter through every question you don't want to change.
+
+To inspect or edit your config by hand:
+
+```bash
+cat ~/.config/dotfiles/local.env       # see your answers
+$EDITOR ~/.config/dotfiles/local.env   # edit directly
+```
+
+The committed `local.env.example` lists every supported key with comments — a reference for what you can put in your real file.
 
 ## What's Included
 

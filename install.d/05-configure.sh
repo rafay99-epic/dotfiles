@@ -80,9 +80,16 @@ module_configure() {
   cfg_dir="$(dirname "$cfg_path")"
 
   # Fast path: config exists, not asked to reconfigure → just load it.
+  # The message is yellow + multi-line so users don't keep wondering
+  # "why isn't the wizard asking me anything?" — they always know the
+  # wizard is being intentionally skipped and how to force it.
   if [[ -r "$cfg_path" ]] && [[ "${RECONFIGURE:-false}" != "true" ]]; then
     source "$DOTFILES/bin/lib/dotfiles-config.sh"
-    info "Loaded existing config: ${cfg_path/#$HOME/~}"
+    echo
+    echo -e "  ${YELLOW}⚙${RESET}  ${BOLD}Existing config loaded — wizard skipped.${RESET}"
+    echo -e "     ${DIM}File: ${cfg_path/#$HOME/~}${RESET}"
+    echo -e "     ${DIM}To re-ask every question: ${BOLD}./install.sh --reconfigure${RESET}"
+    echo
     return 0
   fi
 

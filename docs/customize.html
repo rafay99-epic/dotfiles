@@ -124,6 +124,13 @@
 
         <p class="text-tn-sub text-sm mb-4">Everything machine-specific — your NAS IP, NAS username, git identity, code directory, which optional features you want — lives in <strong class="text-tn-fg">one file outside the repo</strong>: <code class="inline-code">~/.config/dotfiles/local.env</code>. It's mode <code class="inline-code">0600</code>, gitignored, and written by the wizard on first install. Every script (and every install module) sources it at runtime via <code class="inline-code">bin/lib/dotfiles-config.sh</code>.</p>
 
+        <div class="mb-5 bg-tn-bg2 border border-tn-yellow/40 rounded-xl p-4 flex gap-3">
+          <i data-lucide="triangle-alert" class="w-5 h-5 text-tn-yellow shrink-0 mt-0.5"></i>
+          <div class="text-sm text-tn-sub">
+            <strong class="text-tn-fg">The wizard does not re-prompt automatically.</strong> If you run <code class="inline-code">./install.sh</code> again, the existing <code class="inline-code">local.env</code> is loaded silently and the wizard is skipped. To change a value, either edit the file by hand or pass <code class="inline-code">--reconfigure</code> to force the wizard to re-ask every question.
+          </div>
+        </div>
+
         <h4 class="text-xs font-semibold uppercase tracking-wider text-tn-sub mb-3">All supported keys</h4>
         <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-3">
           <table>
