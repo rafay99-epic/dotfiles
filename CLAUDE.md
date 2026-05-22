@@ -85,6 +85,8 @@ dotfiles/
 ├── launchd/
 │   ├── com.prometheus.tm-monthly.plist       # monthly Time Machine LaunchDaemon
 │   └── com.prometheus.sort-downloads.plist   # ~/Downloads → NAS auto-sort LaunchAgent
+├── local.env.example                # template reference for ~/.config/dotfiles/local.env
+├── bin/lib/dotfiles-config.sh        # shared loader; defines all config vars + defaults
 ├── lsd/                        # better-ls config
 ├── nas/
 │   └── truenas-media.inetloc   # login-item that auto-mounts the TrueNAS share
@@ -101,6 +103,7 @@ dotfiles/
 ├── install.d/                  # installer modules — each defines module_<name>()
 │   ├── 00-lib.sh               # shared helpers: colors, logging, link, brew_*, npm_install
 │   ├── 01-menu.sh              # module catalog + arrow-key picker + flag parsing
+│   ├── 05-configure.sh         # first-run + --reconfigure wizard; writes ~/.config/dotfiles/local.env
 │   ├── 10-prereqs.sh           # always-on: macOS check, Xcode CLT, banner
 │   ├── 20-homebrew.sh          # Homebrew + Brewfile + Node (nvm) + Bun + WM Brewfile
 │   ├── 30-wm.sh                # Window manager picker (OmniWM/AeroSpace/none)
@@ -120,6 +123,20 @@ dotfiles/
 ```
 
 ## Key Decisions
+
+### Local config — `~/.config/dotfiles/local.env`
+Every value that's specific to a single user or machine — NAS IP and username, code-projects directory, git identity, which optional features to enable — lives in **one file outside this repo**: `~/.config/dotfiles/local.env`. It's gitignored, mode 0600, written by an interactive wizard on first install.
+
+- **Wizard module**: `install.d/05-configure.sh`. Runs after `10-prereqs.sh`, before any other module. Asks each question in order, cascades `no` answers (e.g. `HAS_NAS=false` skips the Time Machine / sort-downloads / archive-project questions entirely).
+- **Re-run**: `./install.sh --reconfigure` re-asks every question with current values as defaults.
+- **Loader**: `bin/lib/dotfiles-config.sh` — sourced by every script that needs config (currently `bin/sort-downloads`, `bin/archive-project`, the install modules). Provides defaults for any value not in `local.env`, plus `is_truthy` and `dotfiles_smb_url` helpers.
+- **Template reference**: `local.env.example` (committed) shows every supported key with comments. Forks read this; their actual values stay in `$HOME/.config/dotfiles/local.env`.
+- **Variables exposed**: `CODE_DIR`, `GIT_USER_NAME`, `GIT_USER_EMAIL`, `HAS_NAS`, `NAS_HOST`, `NAS_USER`, `NAS_SHARE_MEDIA`, `NAS_MOUNT_MEDIA`, `HAS_TIMEMACHINE_NAS`, `NAS_SHARE_TM`, `TM_SCHEDULE_MONTHLY`, `ENABLE_SORT_DOWNLOADS`, `SORT_DOWNLOADS_BACKGROUND`, `ENABLE_ARCHIVE_PROJECT`, `ARCHIVE_AFTER_MONTHS`.
+- **Module gating** — install modules check the flags and skip silently when off:
+  - `60-symlinks.sh`: NAS-related bin/* links and `.inetloc` rendering gated on `HAS_NAS`; `tm-status` / `tm-backup` gated on `HAS_TIMEMACHINE_NAS`; `sort-downloads` link on `ENABLE_SORT_DOWNLOADS`; `archive-project` link on `ENABLE_ARCHIVE_PROJECT`.
+  - `70-launchd.sh`: `tm-monthly` LaunchDaemon gated on `HAS_TIMEMACHINE_NAS && TM_SCHEDULE_MONTHLY`; `sort-downloads` LaunchAgent on `ENABLE_SORT_DOWNLOADS && SORT_DOWNLOADS_BACKGROUND` (so a user can opt for the script-only flow with no background watcher).
+- **Git identity**: the wizard writes `~/.gitconfig.local` from `GIT_USER_NAME`/`GIT_USER_EMAIL`. The committed `git/.gitconfig` has an `[include]` block that picks it up — so no personal name/email is in the repo.
+- **Shell aliases**: per-project shortcuts (`alias lumo=…`, etc.) live in `~/.config/dotfiles/aliases.local.{sh,fish}` — sourced by `zsh/.zshrc` and `fish/config.fish` if present. The committed shellrcs never reference user-specific projects.
 
 ### AeroSpace Dual-Config
 AeroSpace has no per-monitor gap support. Two profiles solve this:
@@ -147,9 +164,9 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Init in both shells: `atuin init {zsh,fish} --disable-up-arrow` — Ctrl+R is replaced by Atuin's TUI; up-arrow keeps default history behaviour to avoid surprises.
 
 ### TrueNAS auto-mount
-- `nas/truenas-media.inetloc` is an Internet Location plist pointing at `smb://192.168.100.215/media`.
-- Registered as a **hidden Login Item** via `osascript ... make login item`, so the share mounts at `/Volumes/media` automatically every login. Credentials come from the macOS Keychain (saved on first Finder mount).
-- If the address changes for another user, edit the `<URL>` value inside the `.inetloc` and the SMB host elsewhere (see `docs/backup.html` Customization section).
+- `nas/truenas-media.inetloc.template` is a templated Internet Location plist. `install.d/60-symlinks.sh` sed-substitutes `__NAS_USER__`, `__NAS_HOST__`, `__NAS_SHARE_MEDIA__` from `~/.config/dotfiles/local.env`, writes the rendered file to `~/Library/Application Support/dotfiles/nas-media.inetloc`, and registers it as a hidden Finder Login Item via `osascript`. So the repo never ships a concrete IP; the rendered file with the real values lives entirely on the user's machine, outside the repo.
+- Mount happens at every login. Credentials come from the macOS Keychain (saved on first Finder mount).
+- Only runs when `HAS_NAS=true` in `local.env`. If `HAS_NAS=false` the inetloc isn't rendered, no Login Item is registered, no SMB share is mounted at boot.
 
 **Why a launchd-based auto-mount isn't viable** (we tried — explicitly):
 - `/Volumes` is `drwxr-xr-x root:wheel`, so a user-context process can't `mkdir` the mountpoint. Only Finder's `autodiskmount` helper (which escalates) can.
@@ -158,10 +175,10 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Bottom line: the `.inetloc` login item is the only mount mechanism that just works without manual credential handling. If it fails (rare), open Finder → click `media` in the sidebar to re-auth.
 
 ### Time Machine — monthly schedule, not hourly
-- Destination is an SMB share on the same TrueNAS (`smb://prometheus@192.168.100.215/timemachine`).
+- Destination is a SEPARATE SMB share on the NAS (`smb://<NAS_USER>@<NAS_HOST>/<NAS_SHARE_TM>`, configured per-machine in `~/.config/dotfiles/local.env`).
 - Apple's default hourly schedule is **disabled** via `sudo tmutil disable`.
 - Replaced with `launchd/com.prometheus.tm-monthly.plist`, installed as a **LaunchDaemon** at `/Library/LaunchDaemons/`, firing on the **1st of each month at 03:00** local time.
-- `install.sh` installs the daemon idempotently (checks file hash) and runs `tmutil disable` on a fresh machine.
+- `install.sh` installs the daemon idempotently (checks file hash) and runs `tmutil disable` on a fresh machine. Gated on `HAS_TIMEMACHINE_NAS=true && TM_SCHEDULE_MONTHLY=true` — otherwise neither file is touched.
 - Helper commands: `tm-status` (pretty live progress), `tm-backup` (manual trigger / stop). Both in `bin/` and on `$PATH`.
 - Exclusions are applied via `tmutil addexclusion -p` — see `docs/backup.html#part-5-exclusions` for the full list (node_modules, gradle, android, xcode derived data, NAS mounts, etc.).
 - **Full step-by-step setup** for adapting this to another machine: `docs/backup.html` (`/backup`).
@@ -199,7 +216,8 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - **Coverage:** the rule applies to `zsh/.zshrc`, `fish/config.fish`, `aerospace/*.toml`, and any other file that gets symlinked or read at runtime. Plist `Label` strings (`com.prometheus.*`) are a personal namespace, not paths — they stay.
 - **AeroSpace TOMLs:** `exec-and-forget` runs commands through `/bin/bash -c`, so `$HOME` expands correctly inside the value string. No `sed`-templating needed for these (unlike launchd plists, which use the `__HOME__` placeholder + install-time substitution).
 - **`install.sh`:** uses `$HOME` and `$DOTFILES` throughout. Never assumes the repo lives at `~/dotfiles` — it resolves its own path via `${BASH_SOURCE[0]}`.
-- **The one exception:** `docs/backup.html` quotes the *reference* TrueNAS username (`prometheus`) and IP (`192.168.100.215`) because the Time Machine setup guide is concrete by design — those values are explicitly called out in the Customization section as things you'd change for your own NAS.
+- **NAS values: same rule, different mechanism.** `NAS_HOST`, `NAS_USER`, `NAS_SHARE_*`, `GIT_USER_*` were previously hardcoded in committed files. They now live ONLY in `~/.config/dotfiles/local.env` (per-machine, gitignored). `nas/truenas-media.inetloc.template` uses `__NAS_USER__` / `__NAS_HOST__` / `__NAS_SHARE_MEDIA__` placeholders, rendered by `install.d/60-symlinks.sh` at install time. Docs (`docs/backup.html`, `docs/nas.html`) use `<USER>` / `<NAS-IP>` text placeholders so the public site never quotes a real address.
+- **Maintainer metadata (`.github/SECURITY.md`, `.github/CODE_OF_CONDUCT.md`)** still references the repo owner's contact email. That's intentional — these are GitHub "report-an-issue" files and DO need a real contact. Forks should edit them to point at the fork's maintainer.
 
 ### Script & config quality standards (CI-enforced)
 Any new or modified shell script, plist, or Brewfile must pass these checks **before commit**. The same checks run on every push/PR via `.github/workflows/{shellcheck,plist-validator,brewfile-check}.yml`, and a red CI on `main` is treated as a release blocker.

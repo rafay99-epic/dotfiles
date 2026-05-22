@@ -162,7 +162,7 @@
         </div>
       </div>
 
-      <p class="text-tn-sub text-sm"><em>The values shown throughout this guide (IP <code class="inline-code">192.168.100.215</code>, user <code class="inline-code">prometheus</code>, pool <code class="inline-code">media</code>) are from the reference setup. <a href="#customize" class="text-tn-blue hover:underline">Customization section</a> lists every value you'd change for your own.</em></p>
+      <p class="text-tn-sub text-sm"><em>Placeholders <code class="inline-code">&lt;NAS-IP&gt;</code>, <code class="inline-code">&lt;USER&gt;</code>, and share names (<code class="inline-code">media</code>, <code class="inline-code">timemachine</code>) appear throughout this guide. Your real values live in <code class="inline-code">~/.config/dotfiles/local.env</code> (written by <code class="inline-code">./install.sh</code> on first run, never committed). The <a href="#customize" class="text-tn-blue hover:underline">Customization section</a> below lists every value you'd swap in.</em></p>
     </section>
 
     <!-- Prerequisites -->
@@ -267,8 +267,8 @@
           <p class="text-tn-fg font-semibold mb-1">3.1 — Connect via Finder</p>
           <p class="text-sm mb-2">In Finder, press <kbd class="px-1.5 py-0.5 bg-tn-bg2 border border-tn-border rounded text-xs">⌘K</kbd> and enter the SMB URL:</p>
           <div class="code-block-wrap mb-2">
-            <div class="code-header"><span class="text-tn-sub text-xs">Connect to Server URL</span><button class="copy-btn" data-code="smb://192.168.100.215/timemachine">Copy</button></div>
-            <pre class="code-body text-xs"><span class="text-tn-green">smb://192.168.100.215/timemachine</span></pre>
+            <div class="code-header"><span class="text-tn-sub text-xs">Connect to Server URL</span><button class="copy-btn" data-code="smb://&lt;NAS-IP&gt;/timemachine">Copy</button></div>
+            <pre class="code-body text-xs"><span class="text-tn-green">smb://&lt;NAS-IP&gt;/timemachine</span></pre>
           </div>
           <p class="text-sm">When prompted, choose <strong>Registered User</strong>, enter your TrueNAS username + password, and tick <strong>Remember this password in my keychain</strong>. The share mounts at <code class="inline-code">/Volumes/timemachine</code>.</p>
         </li>
@@ -502,12 +502,12 @@ sudo tmutil disable">Copy</button></div>
           <tbody>
             <tr>
               <td><strong>TrueNAS IP / hostname</strong></td>
-              <td class="text-tn-sub"><code class="inline-code">192.168.100.215</code></td>
-              <td class="text-tn-sub">In the <code class="inline-code">tmutil setdestination</code> URL — and in <code class="inline-code">dotfiles/nas/truenas-media.inetloc</code> if you use the auto-mount login item</td>
+              <td class="text-tn-sub"><code class="inline-code">&lt;NAS-IP&gt;</code></td>
+              <td class="text-tn-sub">In <code class="inline-code">~/.config/dotfiles/local.env</code> (<code class="inline-code">NAS_HOST</code>). <code class="inline-code">install.sh</code> picks it up for both the <code class="inline-code">.inetloc</code> auto-mount and the <code class="inline-code">tmutil setdestination</code> URL.</td>
             </tr>
             <tr>
               <td><strong>TrueNAS username</strong></td>
-              <td class="text-tn-sub"><code class="inline-code">prometheus</code></td>
+              <td class="text-tn-sub"><code class="inline-code">&lt;USER&gt;</code></td>
               <td class="text-tn-sub">In the SMB URLs everywhere (<code class="inline-code">smb://USER@...</code>)</td>
             </tr>
             <tr>

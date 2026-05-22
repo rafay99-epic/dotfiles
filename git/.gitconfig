@@ -3,15 +3,17 @@
 # Symlinked from dotfiles/git/.gitconfig → ~/.gitconfig
 # =============================================================================
 #
-#  Note: identity (name/email) is set here because this is a personal dotfiles
-#  repo. Forks should edit the [user] section below (or override via
-#  ~/.gitconfig.local — the [include] at the bottom picks it up if present).
+#  No identity (name/email) lives in this committed file. The install
+#  wizard writes ~/.gitconfig.local from your answers, and the [include]
+#  block at the bottom of this file picks it up. If you'd rather set
+#  identity by hand:
+#
+#    git config --global user.name "Your Name"
+#    git config --global user.email "you@example.com"
+#
+#  …or just edit ~/.gitconfig.local directly.
 #
 # =============================================================================
-
-[user]
-    name  = Abdul Rafay
-    email = 99marafay@gmail.com
 
 # ── Core ─────────────────────────────────────────────────────────────────────
 [core]

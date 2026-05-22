@@ -19,3 +19,9 @@ sketchybar/helper/helper
 # Secrets / sensitive
 *.env
 *.secret
+
+# Dotfiles local config — lives at ~/.config/dotfiles/local.env on each
+# machine, never committed. `local.env.example` (with the trailing .example)
+# IS committed as the template/reference and isn't matched by *.env above.
+local.env
+.config/dotfiles/

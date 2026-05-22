@@ -273,8 +273,20 @@ alias undock="aerospace-sync"
 # `dev` is defined as a function in fish/functions/dev.fish (takes optional subpath args).
 # `gm` is defined as a function in fish/functions/gm.fish (git commit -m + push).
 
-# ── Project shortcuts ─────────────────────────────────────────────────────────
-alias lumo="cd $HOME/Code/Lumo/"
-alias envpilot.dev="cd $HOME/Code/ENV_Connect/"
-alias tudo_tech_lab="cd $HOME/Code/TudoNumTechLab/"
-alias media="cd /Volumes/media/"
+# ── NAS jump ──────────────────────────────────────────────────────────────────
+# Uses NAS_MOUNT_MEDIA from the dotfiles config if present, else the
+# conventional /Volumes/media.
+if set -q NAS_MOUNT_MEDIA
+    alias media="cd $NAS_MOUNT_MEDIA/"
+else
+    alias media="cd /Volumes/media/"
+end
+
+# ── Personal per-project shortcuts ────────────────────────────────────────────
+# Live in ~/.config/dotfiles/aliases.local.fish so they don't pollute the
+# committed repo. Create that file with content like:
+#   alias myproj="cd $HOME/Code/MyProject/"
+# It's sourced silently if present.
+if test -r "$HOME/.config/dotfiles/aliases.local.fish"
+    source "$HOME/.config/dotfiles/aliases.local.fish"
+end

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Rendered from dotfiles/nas/truenas-media.inetloc.template by install.sh -->
 <plist version="1.0">
 <dict>
     <key>URL</key>
-    <string>smb://192.168.100.215/media</string>
+    <string>smb://__NAS_USER__@__NAS_HOST__/__NAS_SHARE_MEDIA__</string>
 </dict>
 </plist>

@@ -40,6 +40,7 @@ install.sh \- modular installer for Prometheus Dotfiles
 [\fB\-\-yes\fR]
 [\fB\-\-only=\fIMODULES\fR]
 [\fB\-\-skip=\fIMODULES\fR]
+[\fB\-\-reconfigure\fR]
 [\fB\-\-modules\fR]
 [\fB\-\-man\fR]
 [\fB\-\-help\fR]
@@ -93,6 +94,15 @@ Example:
 Comma-separated list of modules to skip. All others run. Mutually
 exclusive with
 .BR \-\-only .
+.TP
+.B \-\-reconfigure
+Re-run the first-install wizard. Re-asks every question (code dir, git
+identity, NAS, Time Machine, sort-downloads, archive-project) and
+overwrites
+.IR ~/.config/dotfiles/local.env .
+Your current answers are pre-filled as the defaults, so you can press
+Enter through the questions you don't want to change. Run this when you
+want to flip a feature on or off, or when you've moved to a new NAS.
 .TP
 .B \-\-modules
 Print the available module list and exit.

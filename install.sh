@@ -11,6 +11,9 @@
 #    ./install.sh --yes                   — run ALL modules, auto-Y every prompt
 #    ./install.sh --only=symlinks,macos   — run only these modules
 #    ./install.sh --skip=wm,homebrew      — run everything EXCEPT these
+#    ./install.sh --reconfigure           — re-run the config wizard (re-asks
+#                                           every question, overwrites
+#                                           ~/.config/dotfiles/local.env)
 #    ./install.sh --modules               — print module list and exit
 #    ./install.sh --man                   — open the full man page
 #    ./install.sh --help                  — show this message
@@ -25,6 +28,8 @@
 #    install.sh              — this orchestrator
 #    install.d/00-lib.sh     — shared helpers (colors, logging, link, brew_*…)
 #    install.d/01-menu.sh    — module catalog + interactive picker
+#    install.d/05-configure.sh — first-run + --reconfigure wizard (writes
+#                                ~/.config/dotfiles/local.env)
 #    install.d/10-prereqs.sh — macOS check, Xcode CLT, banner
 #    install.d/20-homebrew.sh — Homebrew + Brewfile + Node + Bun
 #    install.d/30-wm.sh      — Window manager choice (omniwm/aerospace/none)
@@ -48,6 +53,10 @@ IFS=$'\n\t'
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRY_RUN=false
 YES_ALL=false
+# shellcheck disable=SC2034
+# (SC2034: RECONFIGURE *is* read — by install.d/05-configure.sh, which is
+# sourced dynamically below. The static checker can't see across that boundary.)
+RECONFIGURE=false         # --reconfigure → re-prompt wizard, overwrite local.env
 INSTALL_APPS=false
 WM_CHOICE="none"          # none | omniwm | aerospace
 ERRORS=()
@@ -82,6 +91,7 @@ for arg in "$@"; do
   case "$arg" in
     --dry-run)        DRY_RUN=true ;;
     --yes|-y)         YES_ALL=true; SELECTION_MODE="yes" ;;
+    --reconfigure)    RECONFIGURE=true ;;
     --modules)        print_module_list; exit 0 ;;
     --only=*)         ONLY_CSV="${arg#--only=}"; SELECTION_MODE="only" ;;
     --skip=*)         SKIP_CSV="${arg#--skip=}"; SELECTION_MODE="skip" ;;
@@ -119,6 +129,14 @@ fi
 # shellcheck source=install.d/10-prereqs.sh
 source "$DOTFILES/install.d/10-prereqs.sh"
 module_prereqs
+
+# ── Configure (always run — fast no-op if config exists and not --reconfigure)
+# The wizard writes ~/.config/dotfiles/local.env on first install (or when
+# --reconfigure is passed). Later modules read it via bin/lib/dotfiles-config.sh
+# to gate themselves on $HAS_NAS, $ENABLE_SORT_DOWNLOADS, etc.
+# shellcheck source=install.d/05-configure.sh
+source "$DOTFILES/install.d/05-configure.sh"
+module_configure
 
 # ── Resolve module selection ─────────────────────────────────────────────────
 case "$SELECTION_MODE" in

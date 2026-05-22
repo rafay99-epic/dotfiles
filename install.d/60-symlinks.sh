@@ -60,19 +60,100 @@ module_symlinks() {
   link "$DOTFILES/fish/config.fish"                   "$HOME/.config/fish/config.fish"
   link "$DOTFILES/fish/completions/bun.fish"          "$HOME/.config/fish/completions/bun.fish"
   link "$DOTFILES/git/.gitconfig"                     "$HOME/.gitconfig"
+  # ── Always-on helpers ─────────────────────────────────────────────────────
+  # These don't depend on NAS or any optional feature, so they ship to
+  # every machine that runs the installer.
   link "$DOTFILES/bin/update"                         "$HOME/.local/bin/update"
-  if [[ "$DRY_RUN" == false ]]; then
-    chmod +x "$HOME/.local/bin/update" 2>/dev/null || true
-  fi
   link "$DOTFILES/bin/killport"                       "$HOME/.local/bin/killport"
-  link "$DOTFILES/bin/tm-status"                      "$HOME/.local/bin/tm-status"
-  link "$DOTFILES/bin/tm-backup"                      "$HOME/.local/bin/tm-backup"
   link "$DOTFILES/bin/clean-node-modules"             "$HOME/.local/bin/clean-node-modules"
   link "$DOTFILES/bin/bigfiles"                       "$HOME/.local/bin/bigfiles"
-  link "$DOTFILES/bin/sort-downloads"                 "$HOME/.local/bin/sort-downloads"
-  link "$DOTFILES/bin/archive-project"                "$HOME/.local/bin/archive-project"
   if [[ "$DRY_RUN" == false ]]; then
-    chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" "$HOME/.local/bin/clean-node-modules" "$HOME/.local/bin/bigfiles" "$HOME/.local/bin/sort-downloads" "$HOME/.local/bin/archive-project" 2>/dev/null || true
+    chmod +x \
+      "$HOME/.local/bin/update" \
+      "$HOME/.local/bin/killport" \
+      "$HOME/.local/bin/clean-node-modules" \
+      "$HOME/.local/bin/bigfiles" \
+      2>/dev/null || true
+  fi
+
+  # The shared loader library that bin/* scripts source. Always linked so
+  # any future bin/* tool can use it.
+  link "$DOTFILES/bin/lib/dotfiles-config.sh"         "$HOME/.local/bin/lib/dotfiles-config.sh"
+
+  # ── NAS-dependent helpers ─────────────────────────────────────────────────
+  # Each one is gated by its own flag in ~/.config/dotfiles/local.env.
+  # When the flag is off, the script isn't symlinked — saves PATH clutter
+  # and surfaces an honest "command not found" if you try to run it.
+
+  if is_truthy "${HAS_TIMEMACHINE_NAS:-false}"; then
+    link "$DOTFILES/bin/tm-status"                    "$HOME/.local/bin/tm-status"
+    link "$DOTFILES/bin/tm-backup"                    "$HOME/.local/bin/tm-backup"
+    if [[ "$DRY_RUN" == false ]]; then
+      chmod +x "$HOME/.local/bin/tm-status" "$HOME/.local/bin/tm-backup" 2>/dev/null || true
+    fi
+  fi
+
+  if is_truthy "${ENABLE_SORT_DOWNLOADS:-false}"; then
+    link "$DOTFILES/bin/sort-downloads"               "$HOME/.local/bin/sort-downloads"
+    if [[ "$DRY_RUN" == false ]]; then
+      chmod +x "$HOME/.local/bin/sort-downloads" 2>/dev/null || true
+    fi
+  fi
+
+  if is_truthy "${ENABLE_ARCHIVE_PROJECT:-false}"; then
+    link "$DOTFILES/bin/archive-project"              "$HOME/.local/bin/archive-project"
+    if [[ "$DRY_RUN" == false ]]; then
+      chmod +x "$HOME/.local/bin/archive-project" 2>/dev/null || true
+    fi
+  fi
+
+  # ── NAS auto-mount: .inetloc Login Item ───────────────────────────────────
+  # The Finder Login Item that mounts the SMB share at every login. Rendered
+  # from nas/truenas-media.inetloc.template by sed-substituting the user's
+  # NAS_USER / NAS_HOST / NAS_SHARE_MEDIA into the URL.
+  #
+  # The rendered file lands at ~/Library/Application Support/dotfiles/
+  # (instead of the repo) so the repo never has a concrete IP in it.
+  if is_truthy "${HAS_NAS:-false}" && [[ -n "${NAS_HOST:-}" && -n "${NAS_USER:-}" ]]; then
+    NAS_INETLOC_SRC="$DOTFILES/nas/truenas-media.inetloc.template"
+    NAS_INETLOC_DST="$HOME/Library/Application Support/dotfiles/nas-media.inetloc"
+    if [[ -f "$NAS_INETLOC_SRC" ]]; then
+      if [[ "$DRY_RUN" == false ]]; then
+        mkdir -p "$(dirname "$NAS_INETLOC_DST")"
+        sed \
+          -e "s|__NAS_USER__|$NAS_USER|g" \
+          -e "s|__NAS_HOST__|$NAS_HOST|g" \
+          -e "s|__NAS_SHARE_MEDIA__|${NAS_SHARE_MEDIA:-media}|g" \
+          "$NAS_INETLOC_SRC" > "$NAS_INETLOC_DST"
+        success "Rendered NAS Internet Location → ${NAS_INETLOC_DST/#$HOME/~}"
+        INSTALLED+=("NAS .inetloc (rendered with your values)")
+
+        # Idempotent Login Item: remove any stale items (by name) before
+        # adding the fresh one. Catches:
+        #   - a previous run's rendered file at a different path,
+        #   - a broken login item left over after the .inetloc moved,
+        #   - the "truenas-media.inetloc" name from the pre-refactor era.
+        # Each `try` block silently absorbs the case where the name isn't
+        # there to delete, so this is safe to re-run.
+        osascript <<'AS' 2>/dev/null || true
+tell application "System Events"
+    try
+        delete login item "nas-media.inetloc"
+    end try
+    try
+        delete login item "truenas-media.inetloc"
+    end try
+end tell
+AS
+        # Register the new one. `hidden:true` is requested but macOS Sequoia
+        # ignores it for non-application paths — the Login Item shows in
+        # System Settings but doesn't open a window at login (because an
+        # .inetloc just triggers a mount), so the UX impact is nil.
+        osascript -e "tell application \"System Events\" to make login item at end with properties {path:\"$NAS_INETLOC_DST\", hidden:true}" >/dev/null 2>&1 || true
+      else
+        dry "render $NAS_INETLOC_SRC → $NAS_INETLOC_DST + register as Login Item"
+      fi
+    fi
   fi
 
   # Fish functions

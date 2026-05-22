@@ -8,8 +8,10 @@
   SMB-over-NAS setup with limited NAS storage. This LaunchDaemon replaces
   it: one backup on the 1st of each month at 03:00 local time.
 
-  Install (as a LaunchDaemon — runs as root, no sudo prompts at fire time):
-    sudo cp /Users/prometheus/dotfiles/launchd/com.prometheus.tm-monthly.plist \
+  Install (handled automatically by install.sh when HAS_TIMEMACHINE_NAS=true
+  and TM_SCHEDULE_MONTHLY=true in ~/.config/dotfiles/local.env; manual
+  equivalent shown below for reference):
+    sudo cp "$DOTFILES/launchd/com.prometheus.tm-monthly.plist" \
             /Library/LaunchDaemons/
     sudo chown root:wheel /Library/LaunchDaemons/com.prometheus.tm-monthly.plist
     sudo chmod 644       /Library/LaunchDaemons/com.prometheus.tm-monthly.plist

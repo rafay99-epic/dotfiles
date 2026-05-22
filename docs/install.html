@@ -162,6 +162,47 @@ chmod +x install.sh
 
       </section>
 
+      <!-- ── First-run wizard ──────────────────────────────────────────────── -->
+      <section id="wizard" class="section-fade mb-16">
+        <div class="flex items-center gap-3 mb-2">
+          <i data-lucide="settings-2" class="w-6 h-6 text-tn-purple shrink-0"></i>
+          <h2 class="section-title mb-0">First-run config wizard</h2>
+        </div>
+        <p class="text-tn-sub mb-4">The first thing <code class="inline-code">install.sh</code> does is ask a short series of questions and write the answers to <code class="inline-code">~/.config/dotfiles/local.env</code> — your personal values stay on your machine, never in the repo. Every later step reads from this file, so you only enter your details once.</p>
+
+        <div class="bg-tn-bg2 border border-tn-border rounded-xl overflow-hidden mb-4">
+          <table>
+            <thead><tr><th>Question</th><th>What it controls</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Where do you keep your code?</strong></td><td class="text-tn-sub"><code class="inline-code">CODE_DIR</code> — scanned by <code class="inline-code">archive-project</code>, used by the <code class="inline-code">dev</code> alias</td></tr>
+              <tr><td><strong>Your name / email</strong></td><td class="text-tn-sub">Written to <code class="inline-code">~/.gitconfig.local</code> (which the committed <code class="inline-code">.gitconfig</code> includes via <code class="inline-code">[include]</code>)</td></tr>
+              <tr><td><strong>Do you have a NAS?</strong></td><td class="text-tn-sub">If no, every NAS-related piece skips itself silently (Time Machine, sort-downloads, archive-project, the <code class="inline-code">.inetloc</code> Login Item)</td></tr>
+              <tr><td><strong>NAS IP / username / share</strong></td><td class="text-tn-sub">Substituted into <code class="inline-code">nas/truenas-media.inetloc.template</code> at install time so the rendered Login Item points at YOUR NAS</td></tr>
+              <tr><td><strong>Time Machine to NAS?</strong></td><td class="text-tn-sub">If yes: install the monthly LaunchDaemon, disable Apple's hourly schedule, link <code class="inline-code">tm-status</code> / <code class="inline-code">tm-backup</code> helpers</td></tr>
+              <tr><td><strong>Auto-sort Downloads?</strong></td><td class="text-tn-sub">Install <code class="inline-code">sort-downloads</code>; optionally also install the LaunchAgent that fires it in the background</td></tr>
+              <tr><td><strong>Install archive-project?</strong></td><td class="text-tn-sub">Manual tool to move stale code projects to the NAS; only useful with <code class="inline-code">HAS_NAS=true</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="text-tn-sub mb-3">After the wizard finishes, the regular module picker appears. Modules whose feature you opted out of are still in the list but skip themselves at runtime — never re-prompting, never touching anything.</p>
+
+        <h3 class="text-tn-fg font-semibold text-base mt-6 mb-2">Re-run the wizard later</h3>
+        <p class="text-tn-sub mb-3">Add or change a NAS, fix a typo in your email, flip a feature on/off — anytime:</p>
+        <div class="code-block-wrap mb-3">
+          <div class="code-header"><span class="text-tn-sub text-xs">Re-prompt every question, overwrite local.env</span><button class="copy-btn" data-code="./install.sh --reconfigure">Copy</button></div>
+          <pre class="code-body"><span class="text-tn-green">./install.sh</span> --reconfigure</pre>
+        </div>
+        <p class="text-tn-sub text-sm mb-3">Your current values are pre-filled as the defaults, so Enter-through-everything is the no-op path.</p>
+
+        <h3 class="text-tn-fg font-semibold text-base mt-6 mb-2">Inspect or edit by hand</h3>
+        <div class="code-block-wrap mb-3">
+          <div class="code-header"><span class="text-tn-sub text-xs">Read it</span><button class="copy-btn" data-code="cat ~/.config/dotfiles/local.env">Copy</button></div>
+          <pre class="code-body"><span class="text-tn-blue">cat</span> ~/.config/dotfiles/local.env</pre>
+        </div>
+        <p class="text-tn-sub text-sm mb-3">Mode <code class="inline-code">0600</code> — only your user can read it. Lives outside the repo, listed in <code class="inline-code">.gitignore</code>. The reference template <code class="inline-code">local.env.example</code> in the repo documents every supported key.</p>
+      </section>
+
       <!-- ── Multi-machine portability ─────────────────────────────────────── -->
       <section id="portability" class="section-fade mb-16">
         <div class="flex items-center gap-3 mb-2">

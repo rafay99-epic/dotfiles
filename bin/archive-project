@@ -53,11 +53,25 @@
 
 set -uo pipefail
 
-# ── Configuration ─── edit here for permanent changes ─────────────────────────
-ARCHIVE_AFTER_MONTHS=1
-CODE_DIR="$HOME/Code"
-ARCHIVE_DIR="/Volumes/media/code/archived"
-NAS_MOUNT="/Volumes/media"
+# Load the user's local config (CODE_DIR, NAS_MOUNT_MEDIA, etc.) via the
+# shared loader. If ~/.config/dotfiles/local.env doesn't exist (fresh machine
+# pre-install), the loader still works — it just falls back to defaults.
+_self="${BASH_SOURCE[0]}"
+while [[ -L "$_self" ]]; do
+  _link="$(readlink "$_self")"
+  [[ "$_link" == /* ]] && _self="$_link" || _self="$(dirname "$_self")/$_link"
+done
+_self_dir="$(cd -P "$(dirname "$_self")" && pwd)"
+# shellcheck disable=SC1091
+. "$_self_dir/lib/dotfiles-config.sh"
+
+# ── Configuration ─── most values come from ~/.config/dotfiles/local.env ──────
+# ARCHIVE_AFTER_MONTHS, CODE_DIR, and NAS_MOUNT_MEDIA are set by the loader
+# above (with defaults if not in local.env). The values below are derived
+# from the user's NAS mount, so this script auto-adapts when the user
+# reconfigures or moves to a different NAS.
+NAS_MOUNT="$NAS_MOUNT_MEDIA"
+ARCHIVE_DIR="${NAS_MOUNT}/code/archived"
 LOG="$HOME/.archive-project/archive.log"
 
 # Directory NAMES (not paths) we strip before moving — depth-agnostic, so a
@@ -218,8 +232,13 @@ strip_preview_kb() {
 
 if ! /sbin/mount | grep -q " on ${NAS_MOUNT} "; then
   echo "${RED}error:${RESET} NAS not mounted at $NAS_MOUNT" >&2
-  echo "       open Finder → click 'media' in sidebar, or:" >&2
-  echo "       osascript -e 'mount volume \"smb://prometheus@192.168.100.215/media\"'" >&2
+  echo "       open Finder → click '$(basename "$NAS_MOUNT")' in sidebar, or:" >&2
+  smb_url="$(dotfiles_smb_url "$NAS_SHARE_MEDIA")"
+  if [[ -n "$smb_url" ]]; then
+    echo "       osascript -e 'mount volume \"$smb_url\"'" >&2
+  else
+    echo "       (NAS not configured — run './install.sh --reconfigure' to set it up)" >&2
+  fi
   exit 1
 fi
 

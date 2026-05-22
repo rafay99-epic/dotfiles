@@ -60,13 +60,29 @@
 
 set -uo pipefail
 
+# Load the user's local config so NAS_MOUNT_MEDIA reflects their setup
+# (Synology vs TrueNAS, /Volumes/media vs anything else). Works fine even
+# when ~/.config/dotfiles/local.env doesn't exist — the loader has defaults.
+_self="${BASH_SOURCE[0]}"
+while [[ -L "$_self" ]]; do
+  _link="$(readlink "$_self")"
+  [[ "$_link" == /* ]] && _self="$_link" || _self="$(dirname "$_self")/$_link"
+done
+_self_dir="$(cd -P "$(dirname "$_self")" && pwd)"
+# shellcheck disable=SC1091
+. "$_self_dir/lib/dotfiles-config.sh"
+
 # Sources to watch. Format: "absolute-path|category-override"
 #   - Empty override (nothing after the pipe) → classify each file
-#   - Non-empty override → every file in this dir routes to /Volumes/media/<override>/
+#   - Non-empty override → every file in this dir routes to <NAS>/<override>/
 SOURCES=(
   "$HOME/Downloads|"
 )
-NAS="${SORT_DOWNLOADS_DST:-/Volumes/media}"
+
+# $NAS = where the share is mounted. Defaults to $NAS_MOUNT_MEDIA from the
+# user config (default /Volumes/media); SORT_DOWNLOADS_DST overrides for one-off
+# tests, kept for backward compatibility with anything that scripts this tool.
+NAS="${SORT_DOWNLOADS_DST:-$NAS_MOUNT_MEDIA}"
 LOG="$HOME/.sort-download/sort-downloads.log"
 LOCK="/tmp/sort-downloads.lock"
 SETTLE_SECONDS=30

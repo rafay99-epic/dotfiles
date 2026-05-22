@@ -1,450 +1,338 @@
 [
   {
     "title": "Prometheus Dotfiles",
-    "page": "Overview",
     "url": "/",
-    "snippet": "Prometheus Dotfiles — minimal macOS setup with Tokyo Night theme, AeroSpace tiling WM, SketchyBar, Ghostty terminal, Zsh and Fish shell configs.",
-    "kind": "page"
+    "page": "Overview",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
   },
   {
     "title": "Quick Install",
-    "page": "Quick Install",
     "url": "/install",
-    "snippet": "One-command install: clone the dotfiles, run install.sh, pick your tools.",
-    "kind": "page"
+    "page": "Quick Install",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
+  },
+  {
+    "title": "Quick Install",
+    "url": "/install#install",
+    "page": "Quick Install",
+    "snippet": "Paste one command — no cloning, no setup. It handles Homebrew, packages, symlinks, and shell config. After install, open a new terminal tab and log out / log back in so AeroSpace and SketchyBar launch"
+  },
+  {
+    "title": "First-run config wizard",
+    "url": "/install#wizard",
+    "page": "Quick Install",
+    "snippet": "The first thing install.sh does is ask a short series of questions and write the answers to ~/.config/dotfiles/local.env — your personal values stay on your machine, never in the repo. Every later ste"
   },
   {
     "title": "Use on any Mac, any username",
-    "page": "Quick Install",
     "url": "/install#portability",
-    "snippet": "Multi-machine portability. No /Users/<username>/ baked anywhere — every shell config, AeroSpace keybind, and launchd plist resolves the right path at runtime via $HOME. Covers zsh/.zshrc, fish/config.fish, aerospace/*.toml (exec-and-forget runs via bash -c so env vars expand), launchd/*.plist (sed __HOME__ substitution at install time), install.sh (BASH_SOURCE path resolution). Cross-machine cross-username cross-account portable.",
-    "kind": "section"
+    "page": "Quick Install",
+    "snippet": "No /Users/<your-name>/ baked anywhere. Clone, install, done — whether your home folder is /Users/alice , /Users/work-laptop , or anything else. Every shell config, keybinding, and launchd plist resolv"
   },
   {
     "title": "Applications",
-    "page": "Applications",
     "url": "/apps",
-    "snippet": "Every app and CLI tool installed by install.sh, grouped by category.",
-    "kind": "page"
+    "page": "Applications",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
   },
   {
-    "title": "Symlinks",
-    "page": "Symlinks",
-    "url": "/symlinks",
-    "snippet": "How config files in this repo get linked into ~/.config and ~/.",
-    "kind": "page"
+    "title": "Applications",
+    "url": "/apps#apps",
+    "page": "Applications",
+    "snippet": "Every tool used across the Zsh and Fish shell configs. All installable via Homebrew. Install everything at once Copy brew install starship fastfetch bat eza fzf thefuck rbenv nvm fnm fish lsd \\ atuin "
   },
   {
     "title": "How Symlinks Work",
+    "url": "/symlinks",
     "page": "Symlinks",
-    "url": "/symlinks#symlinks",
-    "snippet": "How Symlinks Work The dotfiles repo is the source of truth. Every config file is symlinked from ~/.config/ back into this repo — so edits are instantly live and automatically track…",
-    "kind": "section"
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
   },
   {
-    "title": "Desktop & WM",
-    "page": "Desktop & WM",
-    "url": "/desktop",
-    "snippet": "SketchyBar, OmniWM, AeroSpace, and multi-monitor profiles.",
-    "kind": "page"
+    "title": "How Symlinks Work",
+    "url": "/symlinks#symlinks",
+    "page": "Symlinks",
+    "snippet": "The dotfiles repo is the source of truth. Every config file is symlinked from ~/.config/ back into this repo — so edits are instantly live and automatically tracked by git. symlink map ~/.config/sketc"
   },
   {
     "title": "SketchyBar",
+    "url": "/desktop",
     "page": "Desktop & WM",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
+  },
+  {
+    "title": "SketchyBar",
     "url": "/desktop#sketchybar",
-    "snippet": "SketchyBar Floating, notch-aware menu bar replacement. Two frosted-glass pills sit on either side of the MacBook notch. SPACES AeroSpace workspaces MEDIA Now playing SYSTEM Battery…",
-    "kind": "section"
+    "page": "Desktop & WM",
+    "snippet": "Floating, notch-aware menu bar replacement. Two frosted-glass pills sit on either side of the MacBook notch. SPACES AeroSpace workspaces MEDIA Now playing SYSTEM Battery · Volume · Wi-Fi AI Claude + G"
   },
   {
     "title": "OmniWM",
-    "page": "Desktop & WM",
     "url": "/desktop#omniwm",
-    "snippet": "OmniWM Hyprland-style dwindle/BSP tiling window manager for macOS by BarutSRB. GUI-configured (no TOML) with a built-in Quake terminal. Peer alternative to AeroSpace — pick one at…",
-    "kind": "section"
+    "page": "Desktop & WM",
+    "snippet": "Hyprland-style dwindle/BSP tiling window manager for macOS by BarutSRB . GUI-configured (no TOML) with a built-in Quake terminal. Peer alternative to AeroSpace — pick one at install time. Setup Copy b"
   },
   {
     "title": "AeroSpace",
-    "page": "Desktop & WM",
     "url": "/desktop#aerospace",
-    "snippet": "AeroSpace i3-inspired tiling window manager for macOS. Vim-style keybindings, workspace-based layout. Supports dual-monitor profiles via aerospace-sync. Setup Copy brew tap nikitab…",
-    "kind": "section"
-  },
-  {
-    "title": "Aerospace Tabs",
     "page": "Desktop & WM",
-    "url": "/desktop#aerospace-tabs",
-    "snippet": "Navigation Workspaces Service Mode KeyAction Alt + H/J/K/LFocus window left / down / up / right Alt + Shift + H/J/K/LMove window Alt + THorizontal tiles (side-by-side) Alt + FToggl…",
-    "kind": "section"
-  },
-  {
-    "title": "Aerospace Nav",
-    "page": "Desktop & WM",
-    "url": "/desktop#aerospace-nav",
-    "snippet": "KeyAction Alt + H/J/K/LFocus window left / down / up / right Alt + Shift + H/J/K/LMove window Alt + THorizontal tiles (side-by-side) Alt + FToggle floating / tiling Alt + Shift + -…",
-    "kind": "section"
-  },
-  {
-    "title": "Aerospace Ws",
-    "page": "Desktop & WM",
-    "url": "/desktop#aerospace-ws",
-    "snippet": "KeyAction Alt + 1–9Switch to workspace Alt + Shift + 1–9Move window to workspace Alt + TabPrevious workspace (back and forth) Alt + Shift + TabMove workspace to next monitor Alt +…",
-    "kind": "section"
+    "snippet": "i3-inspired tiling window manager for macOS. Vim-style keybindings, workspace-based layout. Supports dual-monitor profiles via aerospace-sync . Setup Copy brew tap nikitabobko/tap brew install --cask "
   },
   {
     "title": "Multi-Config Profiles",
-    "page": "Desktop & WM",
-    "url": "/desktop#aerospace-service",
-    "snippet": "KeyAction Alt + Shift + ;Enter service mode EscReload config + exit service mode RFlatten workspace tree (reset layout) FToggle floating / tiling BackspaceClose all windows but cur…",
-    "kind": "section"
-  },
-  {
-    "title": "Multi-Config Profiles",
-    "page": "Desktop & WM",
     "url": "/desktop#profiles",
-    "snippet": "Multi-Config Profiles AeroSpace has no per-monitor gap support, so two separate config files handle the different setups. The aerospace-sync script auto-detects your monitor count…",
-    "kind": "section"
-  },
-  {
-    "title": "Terminal & Shell",
-    "page": "Terminal & Shell",
-    "url": "/terminal",
-    "snippet": "Ghostty terminal, Starship prompt, and Zsh/Fish shell configs with shared tools.",
-    "kind": "page"
+    "page": "Desktop & WM",
+    "snippet": "AeroSpace has no per-monitor gap support, so two separate config files handle the different setups. The aerospace-sync script auto-detects your monitor count and applies the right profile. In System S"
   },
   {
     "title": "Ghostty",
+    "url": "/terminal",
     "page": "Terminal & Shell",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
+  },
+  {
+    "title": "Ghostty",
     "url": "/terminal#ghostty",
-    "snippet": "Ghostty GPU-accelerated terminal. Tokyo Night theme, JetBrains Mono Nerd Font, tabs, splits, clipboard. Setup Copy brew install --cask ghostty mkdir -p ~/.config/ghostty ln -sf ~/d…",
-    "kind": "section"
-  },
-  {
-    "title": "Ghostty Tabs",
     "page": "Terminal & Shell",
-    "url": "/terminal#ghostty-tabs",
-    "snippet": "Tabs Splits Power Misc KeyAction ⌘ TNew tab ⌘ WClose tab / split ⌘ ] / ⌘ [Next / previous tab ⌘ 1–8Jump to tab Ctrl + TabNext tab KeyAction ⌘ DSplit right ⌘ ⇧ DSplit down ⌘ ⌥ H/J/K…",
-    "kind": "section"
-  },
-  {
-    "title": "Ghostty Tabs Panel",
-    "page": "Terminal & Shell",
-    "url": "/terminal#ghostty-tabs-panel",
-    "snippet": "KeyAction ⌘ TNew tab ⌘ WClose tab / split ⌘ ] / ⌘ [Next / previous tab ⌘ 1–8Jump to tab Ctrl + TabNext tab KeyAction ⌘ DSplit right ⌘ ⇧ DSplit down ⌘ ⌥ H/J/K/LNavigate splits Inact…",
-    "kind": "section"
-  },
-  {
-    "title": "Ghostty Splits",
-    "page": "Terminal & Shell",
-    "url": "/terminal#ghostty-splits",
-    "snippet": "KeyAction ⌘ DSplit right ⌘ ⇧ DSplit down ⌘ ⌥ H/J/K/LNavigate splits Inactive splits are dimmed (0.7 opacity), mouse-hover switches focus. KeyAction ⌘ `Toggle Quick Terminal — globa…",
-    "kind": "section"
-  },
-  {
-    "title": "Ghostty Power",
-    "page": "Terminal & Shell",
-    "url": "/terminal#ghostty-power",
-    "snippet": "KeyAction ⌘ `Toggle Quick Terminal — global Quake drop-down (works anywhere) ⌘ ⇧ PCommand palette — fuzzy-search every Ghostty action ⌘ ↑ / ⌘ ↓Jump to previous / next shell prompt…",
-    "kind": "section"
+    "snippet": "GPU-accelerated terminal. Tokyo Night theme, JetBrains Mono Nerd Font, tabs, splits, clipboard. Setup Copy brew install --cask ghostty mkdir -p ~/.config/ghostty ln -sf ~/dotfiles/ghostty/config ~/.co"
   },
   {
     "title": "Starship",
-    "page": "Terminal & Shell",
-    "url": "/terminal#ghostty-misc",
-    "snippet": "KeyAction ⌘ KClear screen ⌘ ↩Toggle fullscreen ⌘ = / ⌘ -Font size up / down ⌘ 0Reset font size ⌘ NNew window ⌘ ,Open config Option key acts as Alt (vim/fish Alt-bindings work). Cur…",
-    "kind": "section"
-  },
-  {
-    "title": "Starship",
-    "page": "Terminal & Shell",
     "url": "/terminal#starship",
-    "snippet": "Starship Two-line bracket prompt with live tech-stack, git, command status, monorepo detection, and a dedicated Claude Code statusline. Tokyo Night palette throughout. Prompt layou…",
-    "kind": "section"
-  },
-  {
-    "title": "Starship Tabs",
     "page": "Terminal & Shell",
-    "url": "/terminal#starship-tabs",
-    "snippet": "Tech Stack Git Monorepo Command Status Claude Code ModuleTriggered by Node · Bun · Denopackage.json · bun.lock · deno.json Pythonpyproject.toml · requirements.txt · Pipfile Rust ·…",
-    "kind": "section"
-  },
-  {
-    "title": "Starship Stack",
-    "page": "Terminal & Shell",
-    "url": "/terminal#starship-stack",
-    "snippet": "ModuleTriggered by Node · Bun · Denopackage.json · bun.lock · deno.json Pythonpyproject.toml · requirements.txt · Pipfile Rust · OCaml · SwiftCargo.toml · dune-project · Package.sw…",
-    "kind": "section"
-  },
-  {
-    "title": "Starship Git",
-    "page": "Terminal & Shell",
-    "url": "/terminal#starship-git",
-    "snippet": "IconMeaning ✓Clean working tree, up-to-date with remote ●Modified files in the working tree ✚Staged for commit ⇡ / ⇣ / ⇕Ahead / behind / diverged from remote …Untracked files ⊙Stas…",
-    "kind": "section"
-  },
-  {
-    "title": "Starship Monorepo",
-    "page": "Terminal & Shell",
-    "url": "/terminal#starship-monorepo",
-    "snippet": "BadgeToolTriggered by ⬢ NxNxnx.json · workspace.json ⚡ TurboTurborepoturbo.json pnpm-wspnpm workspacespnpm-workspace.yaml ⚛ LernaLernalerna.json ⇶ RushRushrush.json ☾ MoonMoonrepo.…",
-    "kind": "section"
-  },
-  {
-    "title": "Starship Status",
-    "page": "Terminal & Shell",
-    "url": "/terminal#starship-status",
-    "snippet": "IndicatorMeaning ✗ 1Exit code of last command (only on failure) 2.3sCommand duration (only if &gt; 2s) ✦ 2Backgrounded jobs (Ctrl-Z'd processes) 10:42Current time, right-aligned vi…",
-    "kind": "section"
-  },
-  {
-    "title": "Starship Claude",
-    "page": "Terminal & Shell",
-    "url": "/terminal#starship-claude",
-    "snippet": "Starship doubles as Claude Code's statusline via the starship statusline claude-code profile. Renders the active model, a context-window gauge, session cost, and the git branch. Re…",
-    "kind": "section"
+    "snippet": "Two-line bracket prompt with live tech-stack, git, command status, monorepo detection, and a dedicated Claude Code statusline. Tokyo Night palette throughout. Prompt layout ╭─ ~/dots/sketchybar main ●"
   },
   {
     "title": "Shell Tools",
-    "page": "Terminal & Shell",
     "url": "/terminal#shell",
-    "snippet": "Shell Tools lsd · Starship prompt · Fastfetch · CodexBar AI tracker lsdModern ls replacement Copy brew install lsd alias ls='lsd' alias ll='lsd -la' alias lt='lsd --tree' starshipC…",
-    "kind": "section"
+    "page": "Terminal & Shell",
+    "snippet": "lsd · Starship prompt · Fastfetch · CodexBar AI tracker lsd Modern ls replacement Copy brew install lsd alias ls= 'lsd' alias ll= 'lsd -la' alias lt= 'lsd --tree' starship Cross-shell prompt > ~/.zshr"
   },
   {
     "title": "Zsh",
-    "page": "Terminal & Shell",
     "url": "/terminal#zsh",
-    "snippet": "Zsh Default shell on macOS. Starship prompt, fzf, zoxide, eza, Atuin history, and a fish-like input experience via four zsh plugins.",
-    "kind": "section"
-  },
-  {
-    "title": "Eza (modern ls) — Tokyo Night palette",
     "page": "Terminal & Shell",
-    "url": "/terminal#zsh",
-    "snippet": "Eza shared base flags ($EZA_BASE), Tokyo Night $EZA_COLORS palette, and the full alias suite: ls, ll, l, lG, la, lt, lt3, lta, ltd, lr, lS, lg, ld. Long view with git column and relative times by default.",
-    "kind": "section"
-  },
-  {
-    "title": "Zsh plugins — fzf-tab, autosuggestions, syntax-highlighting, history-substring-search",
-    "page": "Terminal & Shell",
-    "url": "/terminal#zsh",
-    "snippet": "Fish-like input experience for zsh. fzf-tab replaces Tab with bat/eza previews. zsh-autosuggestions shows greyed inline suggestions. zsh-syntax-highlighting colours commands as you type. zsh-history-substring-search binds Ctrl+Up/Down.",
-    "kind": "section"
+    "snippet": "Default shell on macOS. Starship prompt, fzf, zoxide, eza, Atuin history, and a fish-like input experience via four zsh plugins. Setup Copy ln -sf ~/dotfiles/zsh/.zshrc ~/.zshrc What's included Featur"
   },
   {
     "title": "Fish",
-    "page": "Terminal & Shell",
     "url": "/terminal#fish",
-    "snippet": "Fish Friendly interactive shell. Aliases, eza palette, gm function, and project shortcuts mirror zsh one-to-one. Autosuggestions, syntax-highlighting, history-substring-search are built-in.",
-    "kind": "section"
+    "page": "Terminal & Shell",
+    "snippet": "Friendly interactive shell. Aliases, eza palette, git function, and project shortcuts mirror zsh one-to-one. Autosuggestions / syntax-highlighting / history-substring-search are built-in to fish — no "
   },
   {
     "title": "Customization",
-    "page": "Customization",
     "url": "/customize",
-    "snippet": "Theme tokens, commands, and per-tool customization knobs.",
-    "kind": "page"
+    "page": "Customization",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
   },
   {
-    "title": "Add a simple alias",
+    "title": "Customization",
+    "url": "/customize#customize",
     "page": "Customization",
-    "url": "/customize#recipe-alias",
-    "snippet": "Add a simple alias Aliases are textual substitutions — they don't take arguments. Use them for fixed-shape commands. For anything that needs an arg, use a function (next recipe). z…",
-    "kind": "section"
-  },
-  {
-    "title": "Add a function (takes arguments)",
-    "page": "Customization",
-    "url": "/customize#recipe-function",
-    "snippet": "Add a function (takes arguments) When the alias needs to receive a port number, a path, or any user input, write a function instead. dev and killport in this repo are functions for…",
-    "kind": "section"
-  },
-  {
-    "title": "Add a Homebrew package",
-    "page": "Customization",
-    "url": "/customize#recipe-brew",
-    "snippet": "Add a Homebrew package One line in the Brewfile — install.sh runs brew bundle against it so a fresh machine installs it automatically. BrewfileCopy brew \"ripgrep\" # ultra-fast grep…",
-    "kind": "section"
-  },
-  {
-    "title": "Reload after edits",
-    "page": "Customization",
-    "url": "/customize#recipe-reload",
-    "snippet": "Reload after edits zshCopy source ~/.zshrc fishCopy exec fish brew packagesCopy brew bundle --file=Brewfile Fish functions placed under ~/.config/fish/functions/ are autoloaded on…",
-    "kind": "section"
+    "snippet": "Everything here is plain text in this repo. Adding your own aliases, functions, package installs, or directory jumps is a one-line edit and a shell reload. Your local config Everything machine-specifi"
   },
   {
     "title": "Useful Commands",
-    "page": "Customization",
     "url": "/customize#commands",
-    "snippet": "Useful Commands SketchyBar ReloadCopysketchybar --reload RestartCopybrew services restart sketchybar StopCopybrew services stop sketchybar AeroSpace Reload",
-    "kind": "section"
+    "page": "Customization",
+    "snippet": "SketchyBar Reload Copy sketchybar --reload Restart Copy brew services restart sketchybar Stop Copy brew services stop sketchybar AeroSpace Reload config Copy aerospace reload-config Sync profile Copy "
   },
   {
     "title": "Maintenance",
-    "page": "Maintenance",
     "url": "/maintenance",
-    "snippet": "Brewfile, gitconfig with delta, and the one-command update script.",
-    "kind": "page"
+    "page": "Maintenance",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
+  },
+  {
+    "title": "Maintenance",
+    "url": "/maintenance#maintenance",
+    "page": "Maintenance",
+    "snippet": "Declarative package lists, a global gitconfig with delta diffs, a one-command updater, a worktree-friendly node_modules sweeper, a line-count ranker that exposes refactor candidates, and a background "
   },
   {
     "title": "Brewfile",
-    "page": "Maintenance",
     "url": "/maintenance#maint-brewfile",
-    "snippet": "Brewfile Three declarative package lists at the repo root. install.sh runs brew bundle against the right one based on your WM choice. Adding a new tool is one line in a file instea…",
-    "kind": "section"
+    "page": "Maintenance",
+    "snippet": "Three declarative package lists at the repo root. install.sh runs brew bundle against the right one based on your WM choice. Adding a new tool is one line in a file instead of editing a shell script. "
   },
   {
     "title": "~/.gitconfig",
-    "page": "Maintenance",
     "url": "/maintenance#maint-git",
-    "snippet": "~/.gitconfig Symlinked from git/.gitconfig. Delta diffs in Tokyo Night, sensible defaults, and a tight alias set. Defaults init.defaultBranch = main push.autoSetupRemote — no more…",
-    "kind": "section"
+    "page": "Maintenance",
+    "snippet": "Symlinked from git/.gitconfig . Delta diffs in Tokyo Night, sensible defaults, and a tight alias set. Defaults init.defaultBranch = main push.autoSetupRemote — no more --set-upstream rebase.autoStash "
   },
   {
     "title": "bin/update",
-    "page": "Maintenance",
     "url": "/maintenance#maint-update",
-    "snippet": "bin/update A single command that keeps the whole stack current. Symlinked to ~/.local/bin/update so it's on your $PATH from anywhere. Run weeklyCopy update StepWhat it does Dotfile…",
-    "kind": "section"
+    "page": "Maintenance",
+    "snippet": "A single command that keeps the whole stack current. Symlinked to ~/.local/bin/update so it's on your $PATH from anywhere. Run weekly Copy update Step What it does Dotfiles git pull --ff-only in ~/dot"
   },
   {
     "title": "bin/clean-node-modules",
-    "page": "Maintenance",
     "url": "/maintenance#maint-clean-node-modules",
-    "snippet": "bin/clean-node-modules Reclaim disk space across your repo and its git worktrees. Scans $PWD recursively, lists every top-level node_modules with its size, then deletes them after a single confirmation. Flags: -n dry-run, -y skip prompt, -h help.",
-    "kind": "section"
+    "page": "Maintenance",
+    "snippet": "Reclaim disk space across your repo and its git worktrees. Scans $PWD recursively, lists every top-level node_modules with its size, then deletes them after a single confirmation. Nested node_modules "
   },
   {
     "title": "bin/bigfiles",
-    "page": "Maintenance",
     "url": "/maintenance#maint-bigfiles",
-    "snippet": "bin/bigfiles Refactor radar. Ranks every source file under $PWD by line count, skipping node_modules, .git, build, dist, .next, .nuxt, .turbo, .expo, .venv, __pycache__, .gradle, Pods, DerivedData, vendor, lock files, and minified bundles. Flags: -n top N (default 20), -t threshold, -e ts,tsx,js extension filter, -a count every file, --cloc full code/comment breakdown via cloc.",
-    "kind": "section"
+    "page": "Maintenance",
+    "snippet": "Refactor radar. Ranks every source file under $PWD by line count, skipping the noise — node_modules , .git , build , dist , out , target , .next , .nuxt , .turbo , .expo , .yarn , .venv , __pycache__ "
   },
   {
     "title": "bin/sort-downloads",
-    "page": "Maintenance",
     "url": "/maintenance#maint-sort-downloads",
-    "snippet": "bin/sort-downloads Background LaunchAgent that watches ~/Downloads AND ~/Pictures/Screenshots in real time and moves new files to the TrueNAS share at /Volumes/media. macOS screenshots (Cmd+Shift+3/4) auto-drain to the NAS. Multi-source config via SOURCES array (path|override pairs — empty override classifies, non-empty force-routes). Case-insensitive folder resolution: both source and destination paths are matched via find -iname so Screenshots vs screenshots vs SCREENSHOTS all resolve to the same folder regardless of which side has which case. Categories: screenshots (lowercase intentionally), Pictures, PDFs, Documents, Installers, Movies, Music, Archives, Other. Safety: skips partial downloads (.crdownload .download .part .tmp), files younger than 30s, hidden files, and directories. Refuses to run if the NAS isn't really mounted (checks `mount`, not just the folder). Renames on collision. Logs to ~/.sort-download/sort-downloads.log. launchd plist: com.prometheus.sort-downloads (LaunchAgent, WatchPaths includes both sources, ThrottleInterval 30s, RunAtLoad true). Flags: -n dry-run, -v verbose, -h help. Auto-organize Downloads NAS SMB.",
-    "kind": "section"
+    "page": "Maintenance",
+    "snippet": "Auto-sort for ~/Downloads — classify each file by extension, move to a matching folder on the NAS. Full documentation (LaunchAgent setup, category routing, screenshot caveat, atomic copy pattern) live"
   },
   {
     "title": "install.sh — modular installer",
-    "page": "Maintenance",
     "url": "/maintenance#maint-install-modules",
-    "snippet": "install.sh modular installer with arrow-key picker. The root install.sh is a thin orchestrator (~200 lines). Each part lives in install.d/<NN-name>.sh defining module_<name>(). Modules: 00-lib (helpers, colors, link, brew_install, prompt), 01-menu (catalog + pure-bash arrow-key picker + flag parsing), 10-prereqs (always runs — macOS check, Xcode CLT, banner), 20-homebrew (Brewfile + Node nvm + Bun + WM Brewfile + sketchybar font + fish in /etc/shells), 30-wm (Window manager picker — omniwm/aerospace/none), 40-shells (fzf-tab), 50-apps (Ghostty, Cursor, Claude, Codex, Spotify), 60-symlinks (link calls), 70-launchd (Time Machine + sort-downloads LaunchAgents), 80-macos (defaults write tweaks), 90-sketchybar (restart). Flags: --dry-run, --yes/-y, --only=csv, --skip=csv, --modules, --man (open man page), --help. Env var INSTALL_MODULES=csv equivalent to --only. Pure-bash arrow-key picker — no whiptail/dialog dependency. Picker keys: arrows ↑/↓ (or k/j vim style) to move, Space to toggle, a all, n none, r reset, Enter run, q/Esc quit. Footer shows Selected: X/8 counter. Flicker-free redraw — entire frame built as one string, printed atomically with single printf call, each line ends with \\033[K to clear leftover chars. ANSI-C quoted color vars work with both echo -e and printf %s. bash 3.2 compatible (parallel indexed arrays, no declare -A). --only and --skip mutually exclusive. Atomic curl bootstrap — all files land in one commit. man page at man/install.1 with framed ASCII logo, full reference, examples, exit codes. Picker, picker menu, module selection, customizable installer, interactive, TUI.",
-    "kind": "section"
+    "page": "Maintenance",
+    "snippet": "install.sh at the repo root is a thin orchestrator (~190 lines). Each part of the install lives in its own file under install.d/ , exposing one function: module_<name>() . The orchestrator parses flag"
   },
   {
-    "title": "Time Machine + TrueNAS — Setup Guide",
-    "page": "Backup",
+    "title": "NAS Workflow",
+    "url": "/nas",
+    "page": "NAS Workflow",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
+  },
+  {
+    "title": "Mounting the share",
+    "url": "/nas#mount",
+    "page": "NAS Workflow",
+    "snippet": "The share smb://<USER>@<NAS-IP>/media is mounted at /Volumes/media by a hidden Finder Login Item. install.sh renders nas/truenas-media.inetloc.template with your real NAS_HOST / NAS_USER from ~/.confi"
+  },
+  {
+    "title": "Downloads auto-sort — sort-downloads",
+    "url": "/nas#downloads-sort",
+    "page": "NAS Workflow",
+    "snippet": "A LaunchAgent watches ~/Downloads via WatchPaths and fires bin/sort-downloads whenever a file appears. The script classifies each file by extension (or name, for Screenshot * ) and routes it to the ma"
+  },
+  {
+    "title": "Screenshots direct to NAS",
+    "url": "/nas#screenshots",
+    "page": "NAS Workflow",
+    "snippet": "Configure your screenshot tool ( Shottr , the built-in ⌘⇧4 , CleanShot, whatever) to save directly to /Volumes/media/screenshots/ . Bypasses the LaunchAgent permission problem entirely, and every capt"
+  },
+  {
+    "title": "Code archive — archive-project",
+    "url": "/nas#archive-project",
+    "page": "NAS Workflow",
+    "snippet": "Manual tool that recursively scans ~/Code/ for git repos and offers to move stale ones to /Volumes/media/code/archived/ , preserving the original folder layout. Run when you want to free SSD space wit"
+  },
+  {
+    "title": "Time Machine to TrueNAS",
+    "url": "/nas#time-machine",
+    "page": "NAS Workflow",
+    "snippet": "Monthly Time Machine backups to a separate SMB share ( smb://<USER>@<NAS-IP>/timemachine ) are managed by a root LaunchDaemon, not the user-scoped tools on this page. The full setup — share creation o"
+  },
+  {
+    "title": "Cheat sheet",
+    "url": "/nas#cheatsheet",
+    "page": "NAS Workflow",
+    "snippet": "at a glance cd /Volumes/media # jump in (also: alias `media`) open /Volumes/media # open in Finder sort-downloads -n # preview Downloads auto-sort archive-project -n # preview code archive candidates "
+  },
+  {
+    "title": "Time Machine + TrueNAS",
     "url": "/backup",
-    "snippet": "Step-by-step guide to setting up Time Machine backups over SMB to a self-hosted TrueNAS box, with a monthly LaunchDaemon schedule and helper commands.",
-    "kind": "page"
+    "page": "Backup",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
   },
   {
     "title": "Overview",
-    "page": "Backup",
     "url": "/backup#overview",
-    "snippet": "Overview This setup replaces a physical Time Machine drive with an SMB share on a self-hosted TrueNAS server on your local network. You get the same hourly-style backups Apple ship…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "This setup replaces a physical Time Machine drive with an SMB share on a self-hosted TrueNAS server on your local network. You get the same hourly-style backups Apple ships, but to a box you own — and"
   },
   {
     "title": "Prerequisites",
-    "page": "Backup",
     "url": "/backup#prereqs",
-    "snippet": "Prerequisites ThingNotes TrueNAS box runningSCALE or CORE, web UI reachable. This guide uses SCALE labels; CORE differs slightly. A storage poolWith enough free space for ~2-3× you…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "Thing Notes TrueNAS box running SCALE or CORE, web UI reachable. This guide uses SCALE labels; CORE differs slightly. A storage pool With enough free space for ~2-3× your Mac's data size. Mac uses 290"
   },
   {
     "title": "1 TrueNAS — create the dataset",
-    "page": "Backup",
     "url": "/backup#part-1-dataset",
-    "snippet": "1 TrueNAS — create the dataset Time Machine writes to a sparse-bundle disk image inside the share. A dedicated dataset gives you per-feature quotas and snapshot policies separate f…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "Time Machine writes to a sparse-bundle disk image inside the share. A dedicated dataset gives you per-feature quotas and snapshot policies separate from your other data. 1.1 — Open the dataset tree We"
   },
   {
     "title": "2 TrueNAS — create the SMB share",
-    "page": "Backup",
     "url": "/backup#part-2-smb",
-    "snippet": "2 TrueNAS — create the SMB share Apple removed NFS as a Time Machine destination years ago — SMB is the only network protocol that works. The share must have the Time Machine purpo…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "Apple removed NFS as a Time Machine destination years ago — SMB is the only network protocol that works. The share must have the Time Machine purpose flag enabled, or macOS will refuse it as a destina"
   },
   {
     "title": "3 macOS — mount and test write",
-    "page": "Backup",
     "url": "/backup#part-3-mount",
-    "snippet": "3 macOS — mount and test write Mount the share once via Finder so macOS caches the credentials in your login Keychain. This avoids password prompts later. 3.1 — Connect via Finder…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "Mount the share once via Finder so macOS caches the credentials in your login Keychain. This avoids password prompts later. 3.1 — Connect via Finder In Finder, press ⌘K and enter the SMB URL: Connect "
   },
   {
     "title": "4 macOS — register as Time Machine destination",
-    "page": "Backup",
     "url": "/backup#part-4-destination",
-    "snippet": "4 macOS — register as Time Machine destination tmutil setdestination tells Time Machine where to back up. It does not read from your login Keychain — you must embed credentials in…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "tmutil setdestination tells Time Machine where to back up. It does not read from your login Keychain — you must embed credentials in the URL once. After this command, macOS stores them in the System K"
   },
   {
     "title": "5 Exclusions",
-    "page": "Backup",
     "url": "/backup#part-5-exclusions",
-    "snippet": "5 Exclusions By default Time Machine backs up everything. For a developer machine, that means hauling tens of GB of node_modules, build caches, and emulator disk images over the ne…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "By default Time Machine backs up everything. For a developer machine, that means hauling tens of GB of node_modules , build caches, and emulator disk images over the network — every backup. tmutil add"
   },
   {
     "title": "6 Monthly LaunchDaemon",
-    "page": "Backup",
     "url": "/backup#part-6-schedule",
-    "snippet": "6 Monthly LaunchDaemon Apple's default TM schedule is one backup per hour. Over a network link to a NAS with finite storage, that's wasteful and noisy. The dotfiles ship a LaunchDa…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "Apple's default TM schedule is one backup per hour. Over a network link to a NAS with finite storage, that's wasteful and noisy. The dotfiles ship a LaunchDaemon that fires once a month, on the 1st at"
   },
   {
     "title": "7 Helper commands",
-    "page": "Backup",
     "url": "/backup#part-7-helpers",
-    "snippet": "7 Helper commands Two thin wrappers over tmutil. Both live in dotfiles/bin/ and get symlinked to ~/.local/bin/ by install.sh. tm-status CommandWhat it does tm-statusOne-shot pretty…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "Two thin wrappers over tmutil . Both live in dotfiles/bin/ and get symlinked to ~/.local/bin/ by install.sh . tm-status Command What it does tm-status One-shot pretty status — phase, percent, bytes co"
   },
   {
     "title": "Customizing for your setup",
-    "page": "Backup",
     "url": "/backup#customize",
-    "snippet": "Customizing for your setup Every value in this guide is replaceable. Here's the map. ValueReference setupWhere to change it TrueNAS IP / hostname 192.168.100.215 In the tmutil setd…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "Every value in this guide is replaceable. Here's the map. Value Reference setup Where to change it TrueNAS IP / hostname <NAS-IP> In ~/.config/dotfiles/local.env ( NAS_HOST ). install.sh picks it up f"
   },
   {
     "title": "Troubleshooting",
-    "page": "Backup",
     "url": "/backup#troubleshooting",
-    "snippet": "Troubleshooting \"Backup destination doesn't support Time Machine\" The SMB share is missing the Time Machine purpose flag on the TrueNAS side. Go to Shares → SMB Shares → Edit on th…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "\"Backup destination doesn't support Time Machine\" The SMB share is missing the Time Machine purpose flag on the TrueNAS side. Go to Shares → SMB Shares → Edit on the timemachine share and set Purpose "
   },
   {
     "title": "Tearing it down",
-    "page": "Backup",
     "url": "/backup#teardown",
-    "snippet": "Tearing it down If you want to remove this setup entirely: Reverse everythingCopy # 1. Stop and remove the LaunchDaemon sudo launchctl unload /Library/LaunchDaemons/com.prometheus.…",
-    "kind": "section"
+    "page": "Backup",
+    "snippet": "If you want to remove this setup entirely: Reverse everything Copy # 1. Stop and remove the LaunchDaemon sudo launchctl unload /Library/LaunchDaemons/com.prometheus.tm-monthly.plist sudo rm /Library/L"
   },
   {
     "title": "macOS Tweaks",
-    "page": "macOS Tweaks",
     "url": "/macos",
-    "snippet": "System preferences applied by install.sh via defaults write.",
-    "kind": "page"
+    "page": "macOS Tweaks",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
+  },
+  {
+    "title": "macOS Tweaks",
+    "url": "/macos#macos",
+    "page": "macOS Tweaks",
+    "snippet": "The install script can apply system preferences via defaults write so you don't have to click through System Settings. These are split into required (always applied) and optional (prompted individuall"
   },
   {
     "title": "Gallery",
-    "page": "Gallery",
     "url": "/gallery",
-    "snippet": "Screenshots and Tokyo Night wallpaper downloads.",
-    "kind": "page"
+    "page": "Gallery",
+    "snippet": "\" /> tailwind.config = { theme: { extend: { colors: { tn: { bg:'#1a1b26', bg2:'#24283b', bg3:'#2f3549', border:'#414868', fg:'#c0caf5', sub:'#9aa5ce', blue:'#7aa2f7', purple:'#bb9af7', cyan:'#7dcfff',"
   },
   {
-    "title": "MS Office: disable telemetry",
-    "page": "macOS Tweaks",
-    "url": "/macos#office-telemetry",
-    "snippet": "Disables SendAllTelemetryEnabled for Microsoft Word, Excel, PowerPoint, Outlook, OneNote, AutoUpdate, and the Office365 Service so the apps stop sending diagnostic and usage data to Microsoft.",
-    "kind": "section"
+    "title": "Gallery",
+    "url": "/gallery#gallery",
+    "page": "Gallery",
+    "snippet": "Screenshots of the live setup and downloadable wallpapers. Generated wallpapers export as 4K PNG (3840 x 2160). Click any screenshot to view it full size. UI Previews --> SketchyBar Menu bar · Tokyo N"
   }
 ]

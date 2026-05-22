@@ -291,10 +291,18 @@ dev() {
 }
 _dev() { _path_files -W "$HOME/Code" -/ }
 compdef _dev dev
-alias lumo="cd $HOME/Code/Lumo/"
-alias envpilot.dev="cd $HOME/Code/ENV_Connect/"
-alias tudo_tech_lab="cd $HOME/Code/TudoNumTechLab/"
-alias media="cd /Volumes/media/"
+
+# Generic NAS jump alias (uses NAS_MOUNT_MEDIA from the dotfiles config if
+# you have one, otherwise the conventional /Volumes/media).
+alias media="cd \"\${NAS_MOUNT_MEDIA:-/Volumes/media}/\""
+
+# Personal per-project shortcuts live in ~/.config/dotfiles/aliases.local.sh
+# so they don't pollute the committed repo. Create that file with content
+# like:
+#   alias myproj="cd $HOME/Code/MyProject/"
+# It's sourced silently if present.
+[[ -r "$HOME/.config/dotfiles/aliases.local.sh" ]] && \
+  source "$HOME/.config/dotfiles/aliases.local.sh"
 
 # Android SDK
 export ANDROID_HOME=$HOME/Library/Android/sdk

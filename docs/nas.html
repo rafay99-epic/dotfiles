@@ -116,14 +116,14 @@
       <!-- ── Mount story ──────────────────────────────────────────────────── -->
       <section id="mount" class="section-fade mb-16">
         <h2 class="section-title">Mounting the share</h2>
-        <p class="text-tn-sub mb-4">The share <code class="inline-code">smb://prometheus@192.168.100.215/media</code> is mounted at <code class="inline-code">/Volumes/media</code> by a hidden Finder Login Item — <code class="inline-code">nas/truenas-media.inetloc</code>. Credentials come from the macOS Keychain, saved on the first manual Finder mount. From that point on it just appears at every login.</p>
+        <p class="text-tn-sub mb-4">The share <code class="inline-code">smb://&lt;USER&gt;@&lt;NAS-IP&gt;/media</code> is mounted at <code class="inline-code">/Volumes/media</code> by a hidden Finder Login Item. <code class="inline-code">install.sh</code> renders <code class="inline-code">nas/truenas-media.inetloc.template</code> with your real <code class="inline-code">NAS_HOST</code> / <code class="inline-code">NAS_USER</code> from <code class="inline-code">~/.config/dotfiles/local.env</code>, drops it under <code class="inline-code">~/Library/Application Support/dotfiles/</code>, and registers it as a Login Item. Credentials come from the macOS Keychain, saved on the first manual Finder mount.</p>
 
         <div class="code-block-wrap">
           <div class="code-header">
             <span class="text-tn-sub text-xs">re-mount by hand (if Finder ever drops it)</span>
-            <button class="copy-btn" data-code='osascript -e &apos;mount volume &quot;smb://prometheus@192.168.100.215/media&quot;&apos;'>Copy</button>
+            <button class="copy-btn" data-code='osascript -e &apos;mount volume &quot;smb://&lt;USER&gt;@&lt;NAS-IP&gt;/media&quot;&apos;'>Copy</button>
           </div>
-          <pre class="code-body"><span class="text-tn-blue">osascript</span> -e <span class="text-tn-green">'mount volume "smb://prometheus@192.168.100.215/media"'</span></pre>
+          <pre class="code-body"><span class="text-tn-blue">osascript</span> -e <span class="text-tn-green">'mount volume "smb://&lt;USER&gt;@&lt;NAS-IP&gt;/media"'</span></pre>
         </div>
 
         <div class="callout callout-warn mt-6">
@@ -272,7 +272,7 @@ __pycache__ .pytest_cache .mypy_cache .ruff_cache</pre>
       <!-- ── Time Machine cross-link ──────────────────────────────────────── -->
       <section id="time-machine" class="section-fade mb-16">
         <h2 class="section-title">Time Machine to TrueNAS</h2>
-        <p class="text-tn-sub mb-4">Monthly Time Machine backups to a separate SMB share (<code class="inline-code">smb://prometheus@192.168.100.215/timemachine</code>) are managed by a root LaunchDaemon, not the user-scoped tools on this page. The full setup &mdash; share creation on TrueNAS, replacing the hourly schedule, helper commands (<code class="inline-code">tm-status</code>, <code class="inline-code">tm-backup</code>), exclusion rules &mdash; lives on the dedicated <a href="/backup" class="text-tn-blue hover:underline font-medium">Backup page</a>.</p>
+        <p class="text-tn-sub mb-4">Monthly Time Machine backups to a separate SMB share (<code class="inline-code">smb://&lt;USER&gt;@&lt;NAS-IP&gt;/timemachine</code>) are managed by a root LaunchDaemon, not the user-scoped tools on this page. The full setup &mdash; share creation on TrueNAS, replacing the hourly schedule, helper commands (<code class="inline-code">tm-status</code>, <code class="inline-code">tm-backup</code>), exclusion rules &mdash; lives on the dedicated <a href="/backup" class="text-tn-blue hover:underline font-medium">Backup page</a>.</p>
       </section>
 
       <!-- ── Quick reference ──────────────────────────────────────────────── -->
@@ -290,7 +290,7 @@ __pycache__ .pytest_cache .mypy_cache .ruff_cache</pre>
 <span class="text-tn-blue">tail</span> -f ~/.sort-download/sort-downloads.log     <span class="text-tn-sub"># auto-sort activity</span>
 <span class="text-tn-blue">tail</span> -f ~/.archive-project/archive.log         <span class="text-tn-sub"># archive history</span>
 
-<span class="text-tn-blue">osascript</span> -e <span class="text-tn-green">'mount volume "smb://prometheus@192.168.100.215/media"'</span>
+<span class="text-tn-blue">osascript</span> -e <span class="text-tn-green">'mount volume "smb://&lt;USER&gt;@&lt;NAS-IP&gt;/media"'</span>
                                                   <span class="text-tn-sub"># re-mount by hand</span></pre>
         </div>
       </section>

@@ -197,8 +197,8 @@
               </tr>
               <tr>
                 <td class="font-mono text-tn-cyan text-xs">Screenshots: save location</td>
-                <td class="text-tn-sub">Saves all screenshots to <code class="inline-code">~/Pictures/Screenshots</code> instead of cluttering the Desktop</td>
-                <td><code class="inline-code text-xs">defaults write com.apple.screencapture location -string "$HOME/Pictures/Screenshots"</code></td>
+                <td class="text-tn-sub">Saves screenshots to <code class="inline-code">/Volumes/media/screenshots/</code> (direct to NAS) instead of cluttering the Desktop. Bypasses the launchd→SMB-write trap that makes auto-sort fail for non-Downloads sources. See <a href="/nas#screenshots" class="text-tn-blue hover:underline">NAS Workflow → Screenshots</a> for the full story.</td>
+                <td><code class="inline-code text-xs">defaults write com.apple.screencapture location -string "/Volumes/media/screenshots"</code></td>
               </tr>
               <tr>
                 <td class="font-mono text-tn-cyan text-xs">Mission Control: fixed Spaces</td>
