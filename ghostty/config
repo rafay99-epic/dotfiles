@@ -28,7 +28,10 @@ macos-window-shadow = true
 # Falls back to Ghostty's default if not installed.
 font-family = JetBrainsMono Nerd Font
 font-family = JetBrains Mono
-font-size = 16
+# Default size bumped to 18 — comfortable on Retina without
+# needing Cmd++ every session. Cmd++/Cmd+- still adjust live,
+# but font-zoom isn't persisted, so this is the real default.
+font-size = 18
 
 # Slightly heavier strokes — easier to read on Retina
 font-thicken = true
@@ -129,6 +132,22 @@ clipboard-paste-protection = true
 # Right-click pastes if clipboard has text, opens menu otherwise
 right-click-action = paste
 
+# ── Pasting IMAGES (e.g. into Claude Code CLI) ─────────────
+# Cmd+V only ever pastes TEXT: Ghostty intercepts it and routes
+# it through its text-only clipboard reader, so image data never
+# reaches the running program (see ghostty-org/ghostty#11444).
+#
+# To paste an image (screenshot etc.) into Claude Code, press
+# Ctrl+V instead. Ghostty leaves Ctrl+V UNBOUND on purpose so the
+# keystroke passes straight through to the app, which then reads
+# the image off the macOS clipboard itself. Do NOT add a
+# `keybind = ctrl+v=...` here — that would shadow it and break
+# image paste again.
+#
+# One-time setup: grant Ghostty Accessibility access under
+# System Settings → Privacy & Security → Accessibility (the
+# checkbox appears because of the global: keybind below).
+
 # ── Keybindings ───────────────────────────────────────────
 
 # ── Tabs ──────────────────────────────────────────────────
@@ -140,14 +159,14 @@ keybind = ctrl+tab=next_tab
 keybind = ctrl+shift+tab=previous_tab
 
 # Jump directly to tab 1–8
-keybind = super+1=goto_tab:1
-keybind = super+2=goto_tab:2
-keybind = super+3=goto_tab:3
-keybind = super+4=goto_tab:4
-keybind = super+5=goto_tab:5
-keybind = super+6=goto_tab:6
-keybind = super+7=goto_tab:7
-keybind = super+8=goto_tab:8
+keybind = alt+1=goto_tab:1
+keybind = alt+2=goto_tab:2
+keybind = alt+3=goto_tab:3
+keybind = alt+4=goto_tab:4
+keybind = alt+5=goto_tab:5
+keybind = alt+6=goto_tab:6
+keybind = alt+7=goto_tab:7
+keybind = alt+8=goto_tab:8
 
 # ── Splits ────────────────────────────────────────────────
 keybind = super+d=new_split:right
