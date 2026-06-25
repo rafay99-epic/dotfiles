@@ -23,8 +23,7 @@
 # Globals exported (after sourcing the loader):
 #   CODE_DIR, GIT_USER_NAME, GIT_USER_EMAIL, HAS_NAS, NAS_HOST, NAS_USER,
 #   NAS_SHARE_MEDIA, NAS_MOUNT_MEDIA, HAS_TIMEMACHINE_NAS, NAS_SHARE_TM,
-#   TM_SCHEDULE_MONTHLY, ENABLE_SORT_DOWNLOADS, SORT_DOWNLOADS_BACKGROUND,
-#   ENABLE_ARCHIVE_PROJECT, ARCHIVE_AFTER_MONTHS
+#   TM_SCHEDULE_MONTHLY, ENABLE_ARCHIVE_PROJECT, ARCHIVE_AFTER_MONTHS
 
 # ── Input helpers ────────────────────────────────────────────────────────────
 # Bash-3.2-compatible (macOS default). Avoids ${var,,}, [[ … =~ ]] is fine.
@@ -150,7 +149,6 @@ module_configure() {
     HAS_NAS=false
     # Force-disable every NAS-dependent feature so the file ends up consistent.
     HAS_TIMEMACHINE_NAS=false
-    ENABLE_SORT_DOWNLOADS=false
     ENABLE_ARCHIVE_PROJECT=false
   fi
   echo
@@ -174,22 +172,9 @@ module_configure() {
     fi
     echo
 
-    # ── sort-downloads ──────────────────────────────────────────────────────
-    echo -e "  ${BOLD}Auto-sort Downloads${RESET}"
-    echo -e "  ${DIM}(classify everything that lands in ~/Downloads and move it to the NAS)${RESET}"
-    if ask_yn "Watch ~/Downloads and auto-sort to your NAS?" "$ENABLE_SORT_DOWNLOADS"; then
-      ENABLE_SORT_DOWNLOADS=true
-      if ask_yn "Run continuously in the background (LaunchAgent)?" "$SORT_DOWNLOADS_BACKGROUND"; then
-        SORT_DOWNLOADS_BACKGROUND=true
-      else
-        SORT_DOWNLOADS_BACKGROUND=false
-        info "OK — sort-downloads will be installed but won't run automatically."
-        info "Run it manually with: ${BOLD}sort-downloads${RESET}"
-      fi
-    else
-      ENABLE_SORT_DOWNLOADS=false
-    fi
-    echo
+    # Auto-sorting ~/Downloads onto the NAS now lives in the Porter app
+    # (~/Code/porter), not this dotfiles repo — so there's no sort-downloads
+    # question here anymore.
 
     # ── archive-project ─────────────────────────────────────────────────────
     echo -e "  ${BOLD}archive-project${RESET}"
@@ -279,10 +264,6 @@ NAS_MOUNT_MEDIA="$NAS_MOUNT_MEDIA"
 HAS_TIMEMACHINE_NAS=$HAS_TIMEMACHINE_NAS
 NAS_SHARE_TM="$NAS_SHARE_TM"
 TM_SCHEDULE_MONTHLY=$TM_SCHEDULE_MONTHLY
-
-# ─ Auto-sort ~/Downloads onto the NAS ──────────────────────────────────────
-ENABLE_SORT_DOWNLOADS=$ENABLE_SORT_DOWNLOADS
-SORT_DOWNLOADS_BACKGROUND=$SORT_DOWNLOADS_BACKGROUND
 
 # ─ archive-project ──────────────────────────────────────────────────────────
 ENABLE_ARCHIVE_PROJECT=$ENABLE_ARCHIVE_PROJECT

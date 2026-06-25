@@ -36,7 +36,7 @@
 #    install.d/40-shells.sh  — fzf-tab and other shell plugins
 #    install.d/50-apps.sh    — Optional GUI apps (Ghostty, Cursor, …)
 #    install.d/60-symlinks.sh — All dotfile symlinks
-#    install.d/70-launchd.sh — Time Machine + sort-downloads LaunchAgents
+#    install.d/70-launchd.sh — Time Machine + NAS auto-mount LaunchAgents
 #    install.d/80-macos.sh   — defaults write tweaks
 #    install.d/90-sketchybar.sh — Restart SketchyBar (if applicable)
 #
@@ -133,7 +133,7 @@ module_prereqs
 # ── Configure (always run — fast no-op if config exists and not --reconfigure)
 # The wizard writes ~/.config/dotfiles/local.env on first install (or when
 # --reconfigure is passed). Later modules read it via bin/lib/dotfiles-config.sh
-# to gate themselves on $HAS_NAS, $ENABLE_SORT_DOWNLOADS, etc.
+# to gate themselves on $HAS_NAS, $HAS_TIMEMACHINE_NAS, etc.
 # shellcheck source=install.d/05-configure.sh
 source "$DOTFILES/install.d/05-configure.sh"
 module_configure

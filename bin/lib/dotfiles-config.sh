@@ -53,10 +53,6 @@ fi
 : "${NAS_SHARE_TM:=timemachine}"
 : "${TM_SCHEDULE_MONTHLY:=true}"
 
-# Auto-sort ~/Downloads onto the NAS.
-: "${ENABLE_SORT_DOWNLOADS:=false}"
-: "${SORT_DOWNLOADS_BACKGROUND:=true}"   # true → LaunchAgent; false → manual only
-
 # Archive-project tool.
 : "${ENABLE_ARCHIVE_PROJECT:=false}"
 : "${ARCHIVE_AFTER_MONTHS:=1}"

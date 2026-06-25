@@ -41,7 +41,7 @@ Conventional Commits. The autolabeler and `git-cliff` both depend on this:
 - `docs: …` — docs-only changes → Docs, patch bump
 - `refactor: …` — code restructure with no behaviour change → Refactor
 
-Scope is optional: `feat(sort-downloads): …` is fine, `feat: …` is also fine.
+Scope is optional: `feat(nas-mount): …` is fine, `feat: …` is also fine.
 
 Keep the subject under 72 chars. Use the body to explain *why*, not *what* — the diff already shows the *what*.
 

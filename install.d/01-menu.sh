@@ -35,7 +35,7 @@ MODULES_AVAILABLE_DESC=(
   "Window manager — OmniWM / AeroSpace / none"
   "Optional GUI apps (Ghostty, Cursor, Claude, Spotify, …)"
   "macOS preferences (Dock, Finder, screenshots, telemetry, …)"
-  "LaunchAgents — Time Machine + sort-downloads"
+  "LaunchAgents — Time Machine + NAS auto-mount"
   "Shell plugins (fzf-tab)"
   "SketchyBar restart (auto-skips when WM is none)"
 )

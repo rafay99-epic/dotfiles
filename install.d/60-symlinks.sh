@@ -93,13 +93,6 @@ module_symlinks() {
     fi
   fi
 
-  if is_truthy "${ENABLE_SORT_DOWNLOADS:-false}"; then
-    link "$DOTFILES/bin/sort-downloads"               "$HOME/.local/bin/sort-downloads"
-    if [[ "$DRY_RUN" == false ]]; then
-      chmod +x "$HOME/.local/bin/sort-downloads" 2>/dev/null || true
-    fi
-  fi
-
   if is_truthy "${ENABLE_ARCHIVE_PROJECT:-false}"; then
     link "$DOTFILES/bin/archive-project"              "$HOME/.local/bin/archive-project"
     if [[ "$DRY_RUN" == false ]]; then
