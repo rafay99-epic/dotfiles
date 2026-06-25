@@ -92,39 +92,6 @@ is_mounted() {
   mount | grep -Fq " on ${NAS_MOUNT_MEDIA} "
 }
 
-# Trigger downstream jobs that need the NAS up. We exec each script
-# directly rather than going through `launchctl start <Label>`. Two
-# reasons learned the hard way:
-#
-#   1. StartOnMount=true on sort-downloads doesn't reliably fire for
-#      SMB shares mounted via Finder+osascript. The disk-arbitration
-#      event launchd watches just isn't always emitted.
-#   2. `launchctl start` silently no-ops when the target agent is
-#      within its ThrottleInterval. At boot the timing is exactly
-#      wrong: sort-downloads' RunAtLoad fires at T=0 (and bails
-#      because the NAS isn't up yet), nas-mount succeeds ~30 s later
-#      and kicks sort-downloads — but launchd throttles the kick and
-#      returns exit 0 anyway, so the backlog never clears.
-#
-# Direct exec bypasses both problems. nas-mount itself runs in the
-# Aqua session with the same privileges as the LaunchAgent would,
-# so the downstream script gets the same execution context.
-#
-# Each call is best-effort: if the user disabled a feature in local.env
-# (e.g. ENABLE_SORT_DOWNLOADS=false) the script won't be symlinked and
-# we silently skip it.
-kick_dependent_jobs() {
-  local sd="$HOME/.local/bin/sort-downloads"
-  if [[ -x "$sd" ]]; then
-    log "running sort-downloads to clear any backlog"
-    # Run in the background so this script returns promptly even if
-    # the sweep takes a while on a large Downloads folder. Output
-    # still lands in sort-downloads' own log via its internal redirect.
-    "$sd" >/dev/null 2>&1 &
-    disown
-  fi
-}
-
 # Bail early if the user hasn't opted into NAS. Returning 1 (not 0)
 # lets the LaunchAgent surface a meaningful exit status; if someone
 # disables HAS_NAS but the LaunchAgent is still loaded, the log will
@@ -141,16 +108,11 @@ fi
 
 SMB_URL="$(dotfiles_smb_url "$NAS_SHARE_MEDIA")"
 
-# Fast path: already mounted. We still kick dependent jobs because the
-# .inetloc Login Item may have won the race to mount the share *before*
-# this script ran, in which case sort-downloads' RunAtLoad fired against
-# a pre-mount filesystem (NAS not yet there) and bailed. By kicking it
-# here we close that timing hole — the launchctl start is idempotent
-# and the script's own settle/empty-source checks make a second sweep
-# cheap if everything was already moved.
+# Fast path: already mounted (the .inetloc Login Item may have won the race).
+# Nothing downstream to trigger — the Porter app watches folders on its own and
+# sweeps when the share mounts.
 if is_mounted; then
-  log "already mounted at $NAS_MOUNT_MEDIA — kicking dependent jobs"
-  kick_dependent_jobs
+  log "already mounted at $NAS_MOUNT_MEDIA"
   exit 0
 fi
 
@@ -168,7 +130,6 @@ while :; do
     sleep 2
     if is_mounted; then
       log "mounted $NAS_MOUNT_MEDIA via Finder"
-      kick_dependent_jobs
       exit 0
     fi
     log "Finder returned success but $NAS_MOUNT_MEDIA not in mount table — retrying"

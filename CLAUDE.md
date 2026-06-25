@@ -8,7 +8,7 @@ The docs site has been **extracted into a separate repository**: `~/Code/prometh
 - **Source repo**: `~/Code/prometheus-docs/`
 - **Content lives in**: `~/Code/prometheus-docs/src/content/docs/` (MDX files organised under `configuration/`, `installation/`, `installing/`, `questions/`, `reference/`)
 - **Key pages**:
-  - `configuration/nas.mdx` — the full NAS workflow (mount story, `nas-mount` retry layer, `sort-downloads`, `archive-project`, screenshot direct-save)
+  - `configuration/nas.mdx` — the full NAS workflow (mount story, `nas-mount` retry layer, `archive-project`, screenshot direct-save). Note: download auto-sorting moved to the Porter app (`~/Code/porter`).
   - `configuration/backup.mdx` — Time Machine to TrueNAS deep-dive
   - `configuration/maintenance.mdx` — Brewfile, gitconfig, `bin/update`, installer modules
   - `configuration/customize.mdx` — `local.env` keys and per-machine config
@@ -42,9 +42,9 @@ dotfiles/
 │   ├── tm-backup               # manual Time Machine trigger (--watch / --stop)
 │   ├── clean-node-modules      # scan $PWD for node_modules, show sizes, delete after confirm
 │   ├── bigfiles                # rank largest source files (by line count); skips deps/builds; --cloc passthrough
-│   ├── sort-downloads          # classify ~/Downloads files and move to /Volumes/media/<Category>/; -n dry-run
 │   ├── archive-project         # recursively scan ~/Code/, archive stale clean repos to /Volumes/media/code/archived/
-│   └── nas-mount               # retry NAS mount via Finder+Keychain; loops with backoff for the login-time race
+│   ├── nas-mount               # retry NAS mount via Finder+Keychain; loops with backoff for the login-time race
+│   └── flutter-switch          # list/switch installed Flutter SDKs by repointing ~/flutter/current symlink
 ├── fastfetch/                  # system info banner config
 ├── fish/
 │   ├── config.fish
@@ -54,7 +54,6 @@ dotfiles/
 ├── git/.gitconfig              # delta diffs · sensible defaults · aliases
 ├── launchd/
 │   ├── com.prometheus.tm-monthly.plist       # monthly Time Machine LaunchDaemon
-│   ├── com.prometheus.sort-downloads.plist   # ~/Downloads → NAS auto-sort LaunchAgent
 │   └── com.prometheus.nas-mount.plist        # NAS auto-mount retry LaunchAgent (fires nas-mount at login)
 ├── local.env.example                # template reference for ~/.config/dotfiles/local.env
 ├── bin/lib/dotfiles-config.sh        # shared loader; defines all config vars + defaults
@@ -81,7 +80,7 @@ dotfiles/
 │   ├── 40-shells.sh            # fzf-tab and other shell plugins
 │   ├── 50-apps.sh              # Optional GUI apps (Ghostty, Cursor, Claude, …)
 │   ├── 60-symlinks.sh          # All `link` calls — the heart of dotfiles management
-│   ├── 70-launchd.sh           # Time Machine + sort-downloads LaunchAgents
+│   ├── 70-launchd.sh           # Time Machine + NAS auto-mount LaunchAgents
 │   ├── 80-macos.sh             # defaults write tweaks (Dock, Finder, …)
 │   └── 90-sketchybar.sh        # SketchyBar restart/stop
 ├── install.sh.backup           # frozen pre-modularization copy — delete once validated
@@ -96,14 +95,14 @@ dotfiles/
 ### Local config — `~/.config/dotfiles/local.env`
 Every value that's specific to a single user or machine — NAS IP and username, code-projects directory, git identity, which optional features to enable — lives in **one file outside this repo**: `~/.config/dotfiles/local.env`. It's gitignored, mode 0600, written by an interactive wizard on first install.
 
-- **Wizard module**: `install.d/05-configure.sh`. Runs after `10-prereqs.sh`, before any other module. Asks each question in order, cascades `no` answers (e.g. `HAS_NAS=false` skips the Time Machine / sort-downloads / archive-project questions entirely).
+- **Wizard module**: `install.d/05-configure.sh`. Runs after `10-prereqs.sh`, before any other module. Asks each question in order, cascades `no` answers (e.g. `HAS_NAS=false` skips the Time Machine / archive-project questions entirely).
 - **Re-run**: `./install.sh --reconfigure` re-asks every question with current values as defaults.
-- **Loader**: `bin/lib/dotfiles-config.sh` — sourced by every script that needs config (currently `bin/sort-downloads`, `bin/archive-project`, the install modules). Provides defaults for any value not in `local.env`, plus `is_truthy` and `dotfiles_smb_url` helpers.
+- **Loader**: `bin/lib/dotfiles-config.sh` — sourced by every script that needs config (currently `bin/archive-project`, `bin/nas-mount`, the install modules). Provides defaults for any value not in `local.env`, plus `is_truthy` and `dotfiles_smb_url` helpers.
 - **Template reference**: `local.env.example` (committed) shows every supported key with comments. Forks read this; their actual values stay in `$HOME/.config/dotfiles/local.env`.
-- **Variables exposed**: `CODE_DIR`, `GIT_USER_NAME`, `GIT_USER_EMAIL`, `HAS_NAS`, `NAS_HOST`, `NAS_USER`, `NAS_SHARE_MEDIA`, `NAS_MOUNT_MEDIA`, `HAS_TIMEMACHINE_NAS`, `NAS_SHARE_TM`, `TM_SCHEDULE_MONTHLY`, `ENABLE_SORT_DOWNLOADS`, `SORT_DOWNLOADS_BACKGROUND`, `ENABLE_ARCHIVE_PROJECT`, `ARCHIVE_AFTER_MONTHS`.
+- **Variables exposed**: `CODE_DIR`, `GIT_USER_NAME`, `GIT_USER_EMAIL`, `HAS_NAS`, `NAS_HOST`, `NAS_USER`, `NAS_SHARE_MEDIA`, `NAS_MOUNT_MEDIA`, `HAS_TIMEMACHINE_NAS`, `NAS_SHARE_TM`, `TM_SCHEDULE_MONTHLY`, `ENABLE_ARCHIVE_PROJECT`, `ARCHIVE_AFTER_MONTHS`.
 - **Module gating** — install modules check the flags and skip silently when off:
-  - `60-symlinks.sh`: NAS-related bin/* links and `.inetloc` rendering gated on `HAS_NAS`; `tm-status` / `tm-backup` gated on `HAS_TIMEMACHINE_NAS`; `sort-downloads` link on `ENABLE_SORT_DOWNLOADS`; `archive-project` link on `ENABLE_ARCHIVE_PROJECT`.
-  - `70-launchd.sh`: `tm-monthly` LaunchDaemon gated on `HAS_TIMEMACHINE_NAS && TM_SCHEDULE_MONTHLY`; `sort-downloads` LaunchAgent on `ENABLE_SORT_DOWNLOADS && SORT_DOWNLOADS_BACKGROUND` (so a user can opt for the script-only flow with no background watcher).
+  - `60-symlinks.sh`: NAS-related bin/* links and `.inetloc` rendering gated on `HAS_NAS`; `tm-status` / `tm-backup` gated on `HAS_TIMEMACHINE_NAS`; `archive-project` link on `ENABLE_ARCHIVE_PROJECT`.
+  - `70-launchd.sh`: `tm-monthly` LaunchDaemon gated on `HAS_TIMEMACHINE_NAS && TM_SCHEDULE_MONTHLY`; `nas-mount` LaunchAgent gated on `HAS_NAS`.
 - **Git identity**: the wizard writes `~/.gitconfig.local` from `GIT_USER_NAME`/`GIT_USER_EMAIL`. The committed `git/.gitconfig` has an `[include]` block that picks it up — so no personal name/email is in the repo.
 - **Shell aliases**: per-project shortcuts (`alias lumo=…`, etc.) live in `~/.config/dotfiles/aliases.local.{sh,fish}` — sourced by `zsh/.zshrc` and `fish/config.fish` if present. The committed shellrcs never reference user-specific projects.
 
@@ -144,7 +143,7 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 
 **Retry layer — `bin/nas-mount` + `com.prometheus.nas-mount` LaunchAgent.** The `.inetloc` Login Item fires the instant you log in, often before Wi-Fi has associated, so the mount silently fails and never retries. The retry layer fixes that without resurrecting the `mount_smbfs` approach:
 - `bin/nas-mount` checks if `/Volumes/media` is already mounted (~1 ms early-out). Otherwise it calls `osascript -e 'tell application "Finder" to mount volume "smb://USER@HOST/SHARE"'` — same path the `.inetloc` uses, so the saved Keychain credential just works and we stay clear of the Auth-77 trap.
-- On a successful mount (and on the "already mounted" fast-path, in case the `.inetloc` won the race), `nas-mount` *directly execs* `~/.local/bin/sort-downloads` in the background to clear any backlog. We bypass `launchctl start com.prometheus.sort-downloads` deliberately — it silently no-ops within `ThrottleInterval`, which at boot is exactly when sort-downloads has just run-and-bailed. Direct exec inherits the Aqua-session privileges and works under throttle.
+- `nas-mount` no longer kicks any downstream job. Auto-sorting moved to the Porter app, which watches folders itself and sweeps on its own `NSWorkspace.didMount` observer when the share comes up — so `nas-mount`'s only job is getting the share mounted.
 - Loops up to 6 attempts × 15 s = ~90 s total budget, comfortably covering Wi-Fi + DHCP + mDNS at login. Flags: `-1` (oneshot, no retries), `-v` (echo to stdout in addition to logfile).
 - Logs: `~/.nas-mount/nas-mount.log`. Exit 0 = mounted, 1 = `HAS_NAS` off / not configured, 2 = retries exhausted.
 - `launchd/com.prometheus.nas-mount.plist` is a LaunchAgent with `RunAtLoad=true`, `LimitLoadToSessionType=Aqua` (Finder + Keychain require it), `KeepAlive=false` (the script's internal retry loop is the budget — we don't want launchd respawning on exit-2 and flooding the log).
@@ -160,20 +159,28 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - Exclusions are applied via `tmutil addexclusion -p` — see `~/Code/prometheus-docs/src/content/docs/configuration/backup.mdx` (`#exclusions`) for the full list (node_modules, gradle, android, xcode derived data, NAS mounts, etc.).
 - **Full step-by-step setup** for adapting this to another machine: `~/Code/prometheus-docs/src/content/docs/configuration/backup.mdx` (`/configuration/backup`).
 
-### Downloads auto-sort → NAS
-- `bin/sort-downloads` sweeps `~/Downloads` and moves files into matching folders on `/Volumes/media/` (Pictures, PDFs, Documents, Installers, Movies, Music, Archives, Other; plus `screenshots/` for any file named `Screenshot *` / `Screen Shot *` that slips into Downloads).
-- **Sources** are defined by the `SOURCES` array at the top of the script as `"path|override"` pairs. Empty override → classify by extension/name; non-empty override → force every file into that category. Default is just `~/Downloads|`. To add a folder back, append a new entry — but read the screenshot caveat below first.
-- **Case-insensitive folder resolution** (`find_dir_ci` helper): destination paths are resolved with `find -iname` before use, so if the NAS has the folder as `Screenshots` (capital) files land there instead of creating a duplicate. Casing is only invented when `mkdir` has to create the folder fresh.
-- Triggered in real time by `launchd/com.prometheus.sort-downloads.plist` — a **LaunchAgent** (not Daemon, because root daemons can't see user-mounted SMB shares). `WatchPaths` on `~/Downloads`, `ThrottleInterval=30`, `RunAtLoad=true`, `StartOnMount=true`, `StartInterval=300` (5-min polling safety net).
-- **Why `StartInterval=300`** — verified empirically that launchd's `WatchPaths` subscription goes silently dead on this machine. Agent stays loaded, `launchctl print` shows `watching=1`, directory mtime visibly changes on new downloads — and yet the agent never fires for hours at a stretch (observed gaps of 2+ h with files piling up). Could be Sequoia's "Background Activity" throttling unsigned LaunchAgents, could be fsevents starvation, could be a launchd bug. Doesn't matter; the pragmatic fix is to poll. 300 s = worst-case 5 min file-to-NAS lag; the script's no-op path when Downloads is empty is ~10 ms (stat the dir, hit the lock, exit). Defense in depth: `WatchPaths` (when it works) gives sub-second response on file drops, `StartOnMount` covers NAS reconnect, `StartInterval` guarantees a sweep at least every 5 min, and `nas-mount`'s direct-exec covers the boot race.
-- **NAS-reconnect handling** does NOT rely on `StartOnMount`. We tried it (the key is still on the plist as belt-and-suspenders) but verified empirically that `StartOnMount` does not reliably fire for SMB shares mounted via Finder+osascript — the disk-arbitration event launchd watches just isn't always emitted for these mounts. Instead, `bin/nas-mount` *directly execs* `~/.local/bin/sort-downloads` after a successful mount (and even on the "already mounted" early-exit path, in case the `.inetloc` won the race). Direct exec bypasses two launchd traps: (a) the missing `StartOnMount` event, and (b) `launchctl start <Label>` silently no-op'ing when the target agent is within its `ThrottleInterval` (which is exactly the boot-time window — sort-downloads' RunAtLoad fires at T=0, bails, then nas-mount completes ~30 s later and would be throttled if it went through launchctl). The boot chain is now: `nas-mount` retries → succeeds → execs `sort-downloads` → backlog clears.
-- The plist uses `__HOME__` as a placeholder; `install.sh` templates it with the real `$HOME` when writing to `~/Library/LaunchAgents/`, so the repo stays portable.
-- Safety guards: silently ignores macOS metadata files (`.DS_Store`, `.localized`, `._*`, `Icon\r`, etc. — never logged, never counted via `is_macos_junk`); skips partial downloads (`.crdownload` / `.download` / `.part` / `.tmp` / `.aria2` / `.opdownload`) and any file younger than 30 s; skips directories and hidden files; renames on collision (`name (1).ext`); single-instance `mkdir` lock at `/tmp/sort-downloads.lock`; bails cleanly if `/Volumes/media` isn't mounted (we can't remount from a launchd context — see "TrueNAS auto-mount" above).
-- **Cross-volume copy pattern** (`cp -Xp` → `.partial-$$` → same-volume `mv` → `rm`, *not* `mv` cross-volume): macOS `mv` falls back to `copyfile()` cross-volume which tries to preserve every extended attribute on the source. SMB sometimes rejects protected xattrs (`com.apple.provenance`, `com.apple.quarantine`) with EPERM, aborting the whole copy. `cp -Xp` writes without those, same-volume `mv` renames atomically, then `rm` unlinks the source. If any step fails the source survives for the next launchd tick.
-- Logs: `~/.sort-download/sort-downloads.log` (kept in `$HOME` so they're easy to tail/clear without diving into `Library/Logs`). Manual sweep: `sort-downloads [-n|-v]`. Trigger immediately: `launchctl start com.prometheus.sort-downloads`.
-- Screenshot detection runs **before** image classification — anything that does land in `~/Downloads` with a `Screenshot *` / `Screen Shot *` name routes to `screenshots/`, not `Pictures/`.
+### Downloads auto-sort → NAS — RETIRED, moved to the Porter app
+This used to be `bin/sort-downloads` + `launchd/com.prometheus.sort-downloads.plist`.
+It has been **removed** and replaced by the standalone **Porter** app
+(`~/Code/porter`) — a SwiftUI menu-bar app that watches one or more folders and
+files each finished download onto the NAS by configurable rules.
 
-**Why screenshots aren't watched here, even though it'd be nice** — this is load-bearing context, *do not re-add `~/Pictures/Screenshots` (or any other source) without re-validating.* macOS scopes SMB write permissions to the Aqua GUI session that performed the mount. Launchd-spawned processes can list and read `/Volumes/media` but **cannot write to it** — every attempt fails with `Operation not permitted` on the destination. Verified empirically with the source in `~/Pictures/Screenshots`, with the source in `~/Screenshots` (no TCC issue), and across multiple mount/remount cycles. Why ~/Downloads moves succeed under launchd while every other source fails is not fully understood; the working theory is that fsevent-triggered Downloads invocations inherit something from the Aqua session that an arbitrary `launchctl start` does not. **For screenshots, configure your capture tool (Shottr, macOS screenshot, etc.) to save directly to `/Volumes/media/screenshots/`** — it's the only path that just works.
+**Why it had to leave the dotfiles/launchd world** (load-bearing — don't try to
+bring it back as a script): macOS scopes SMB **write** access to the Aqua GUI
+session that mounted the share. A launchd-spawned process can read `/Volumes/media`
+but **cannot write to it**. Porter runs as a real login-session app, so its writes
+succeed; it also dodges the launchd `WatchPaths`-goes-dead / `StartInterval`-throttle
+unreliability and the `/bin/bash`-bound TCC grant that broke on every script edit.
+
+The hard-won behaviour lives on in Porter's design: the xattr-stripping cross-volume
+copy (`cp -Xp` equivalent → temp → same-volume rename → unlink), case-insensitive
+destination-folder resolution, settle/partial/junk triage, collision suffixes, and
+"screenshots route by name before extension." See `~/Code/porter/CLAUDE.md`.
+Removed alongside the script: the `~/.local/bin/sort-downloads` symlink, the
+LaunchAgent, and the `ENABLE_SORT_DOWNLOADS` / `SORT_DOWNLOADS_BACKGROUND` config keys.
+
+For screenshots, still configure your capture tool to save directly to
+`/Volumes/media/screenshots/`.
 
 ### Code archive → NAS (manual)
 - `bin/archive-project` is a **user-invoked** tool (never automatic) that recursively scans `$HOME/Code/` for git repos and moves stale clean ones to `/Volumes/media/code/archived/`. Frees SSD space without losing finished work.
@@ -187,7 +194,14 @@ AeroSpace has no per-monitor gap support. Two profiles solve this:
 - **Atomic move via `cp -RXp` + `rm`, not `mv`**: same reasoning as the Downloads pattern but for trees. `-X` drops xattrs (so SMB doesn't choke on `com.apple.provenance` / `com.apple.quarantine`); `-Rp` recurses and preserves mode/mtime. Source is only removed after the destination is whole. A NAS dropout mid-copy can't strand you with half a project on each side.
 - **Destination collisions**: appends `-YYYYMMDD`, then `-YYYYMMDD-N`. Never overwrites.
 - **Pre-flight checks**: NAS must be mounted at `/Volumes/media` (else exits with the `osascript mount volume` recipe); `$ARCHIVE_DIR` is auto-created; the threshold flag must be a positive integer.
-- Logs: `~/.archive-project/archive.log` (same convention as `~/.sort-download/`). Man page: `man/archive-project.1`, openable via `archive-project --man` (same `--man` plumbing as `install.sh`).
+- Logs: `~/.archive-project/archive.log` (same `~/.<tool>/` convention as `~/.nas-mount/`). Man page: `man/archive-project.1`, openable via `archive-project --man` (same `--man` plumbing as `install.sh`).
+
+### Flutter version switching — `current` symlink + `flutter-switch`
+- Multiple SDKs live under `~/flutter/<label>/flutter` (e.g. `~/flutter/3.22/flutter`, `~/flutter/3.44/flutter`). Each `<label>` is just a directory name; the real framework version is read from `bin/cache/flutter.version.json` (`frameworkVersion`), falling back to the legacy `version` file.
+- `~/flutter/current` is a symlink to the active `<label>/flutter`. **PATH points at the stable `$HOME/flutter/current/bin`** (`zsh/.zshrc`, `fish/config.fish`) — never at a concrete version dir. Repointing the symlink therefore makes the chosen SDK live in **every** shell instantly, including already-open ones (the PATH entry is a fixed string; the symlink resolves fresh at each exec). No re-source needed.
+- `bin/flutter-switch`: `--list` shows versions with a `*` on the active one; bare invocation opens an fzf picker (numbered-menu fallback when fzf is absent); `flutter-switch <label>` switches directly. It only does `ln -sfn` on `~/flutter/current` — nothing else is mutated.
+- Was previously `$HOME/Flutter-SDK/flutter/bin` in both shellrcs, a path that no longer existed (so `flutter` was simply not found). That's been replaced by the `current`-symlink scheme above.
+- Shellcheck-clean (`shellcheck -x -S style bin/flutter-switch`). Linked to `~/.local/bin/flutter-switch`.
 
 ### Cross-machine portability — no hardcoded usernames
 - **Rule:** no config file in this repo may contain `/Users/<username>/` or any other absolute path that bakes in the author's environment. Use `$HOME` / `~` / `fish_add_path $HOME/...` instead.

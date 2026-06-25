@@ -19,7 +19,7 @@ curl -fsSL https://dotfiles.rafay99.com/install.sh | bash
 The script will:
 
 1. Clone this repo into `~/dotfiles`
-2. **Run the first-run config wizard** — asks ~7 questions (code dir, git identity, NAS yes/no + IP/user/share, Time Machine, auto-sort Downloads, archive-project) and writes your answers to `~/.config/dotfiles/local.env` (mode 0600, never committed)
+2. **Run the first-run config wizard** — asks a handful of questions (code dir, git identity, NAS yes/no + IP/user/share, Time Machine, archive-project) and writes your answers to `~/.config/dotfiles/local.env` (mode 0600, never committed)
 3. Show the interactive module picker — pick which install modules to run (Homebrew, window manager, symlinks, LaunchAgents, macOS tweaks, …)
 4. Run each selected module — modules whose feature you said "no" to in the wizard skip themselves silently
 
