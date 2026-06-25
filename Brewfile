@@ -50,9 +50,6 @@ brew "scrcpy"         # Android screen mirror
 # ── Fonts ───────────────────────────────────────────────────────────────────
 cask "font-jetbrains-mono-nerd-font"
 
-# ── Syntax Lab apps (own tap) ─────────────────────────────────────────────────
-# Porter — menu-bar app that watches your folders and files finished downloads
-# onto the NAS by configurable rules (replaces the old bin/sort-downloads). This
-# installs the STABLE channel; `porter-nightly` is also available in the tap.
-tap "rafay99-epic/homebrew-apps"
-cask "porter"
+# Note: Porter (the sort-downloads replacement) is intentionally NOT installed
+# from here — manage it directly via the tap:
+#   brew install rafay99-epic/apps/porter
