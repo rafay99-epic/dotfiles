@@ -1,0 +1,19 @@
+bin/flutter-switch
+  s_ad305017a169a8::t_aae3501e860a1d 1-143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "54e7b1481de3e411fe50012e73868bec956ca7e2",
+  "prompts": {},
+  "sessions": {
+    "s_ad305017a169a8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3558f923-6ec4-44ce-ae08-df094faa5def",
+        "model": "unknown"
+      },
+      "human_author": "Abdul Rafay <99marafay@gmail.com>"
+    }
+  }
+}
