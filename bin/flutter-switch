@@ -1,0 +1,143 @@
+#!/usr/bin/env bash
+#
+# flutter-switch — list installed Flutter SDKs and switch the live one.
+#
+# Layout it expects:
+#   ~/flutter/<label>/flutter/bin/flutter   (e.g. ~/flutter/3.22/flutter, ~/flutter/3.44/flutter)
+#   ~/flutter/current   -> symlink to the active <label>/flutter
+#
+# Your shells put "$HOME/flutter/current/bin" on PATH, so repointing the
+# symlink makes the chosen version live in every shell instantly — no re-source.
+#
+# Usage:
+#   flutter-switch              # interactive picker (fzf if present, else numbered menu)
+#   flutter-switch <label>      # switch directly, e.g. `flutter-switch 3.22`
+#   flutter-switch -l|--list    # list versions and exit
+#   flutter-switch -h|--help
+#
+set -euo pipefail
+
+FLUTTER_ROOT="${FLUTTER_ROOT:-$HOME/flutter}"
+CURRENT_LINK="$FLUTTER_ROOT/current"
+
+c_reset=$'\e[0m'; c_dim=$'\e[2m'; c_green=$'\e[32m'; c_cyan=$'\e[36m'; c_bold=$'\e[1m'
+
+die() { printf '%serror:%s %s\n' "$c_bold" "$c_reset" "$*" >&2; exit 1; }
+
+usage() {
+  sed -n '3,18p' "$0" | sed 's/^# \{0,1\}//'
+  exit "${1:-0}"
+}
+
+# Resolve the label a flutter dir currently points to (basename of its parent).
+# ~/flutter/3.22/flutter -> "3.22"
+label_of() { basename "$(dirname "$1")"; }
+
+# Read a human version string for a given SDK dir, cheaply (no `flutter` launch).
+version_of() {
+  local sdk="$1" v=""
+  if [[ -f "$sdk/bin/cache/flutter.version.json" ]]; then
+    v=$(sed -n 's/.*"frameworkVersion": *"\([^"]*\)".*/\1/p' \
+          "$sdk/bin/cache/flutter.version.json" | head -n1)
+  fi
+  [[ -z "$v" && -f "$sdk/version" ]] && v=$(head -n1 "$sdk/version")
+  printf '%s' "${v:-unknown}"
+}
+
+# Populate parallel arrays: labels[], sdks[], versions[]
+labels=(); sdks=(); versions=()
+discover() {
+  local d sdk
+  for d in "$FLUTTER_ROOT"/*/; do
+    sdk="${d%/}/flutter"
+    [[ -x "$sdk/bin/flutter" ]] || continue
+    labels+=("$(label_of "$sdk")")
+    sdks+=("$sdk")
+    versions+=("$(version_of "$sdk")")
+  done
+  [[ ${#sdks[@]} -gt 0 ]] || die "no Flutter SDKs found under $FLUTTER_ROOT (expected <label>/flutter/bin/flutter)"
+}
+
+# Label of the currently active SDK (empty if the symlink is missing/broken).
+active_label() {
+  [[ -L "$CURRENT_LINK" ]] || return 0
+  local tgt; tgt=$(readlink "$CURRENT_LINK") || return 0
+  label_of "$tgt"
+}
+
+list_table() {
+  local cur i marker
+  cur=$(active_label)
+  for i in "${!labels[@]}"; do
+    if [[ "${labels[$i]}" == "$cur" ]]; then
+      marker="${c_green}*${c_reset}"
+    else
+      marker=" "
+    fi
+    printf '%s %s%-8s%s %s%s%s\n' \
+      "$marker" "$c_bold" "${labels[$i]}" "$c_reset" \
+      "$c_dim" "${versions[$i]}" "$c_reset"
+  done
+}
+
+switch_to() {
+  local want="$1" i found=""
+  for i in "${!labels[@]}"; do
+    if [[ "${labels[$i]}" == "$want" ]]; then found="${sdks[$i]}"; break; fi
+  done
+  [[ -n "$found" ]] || die "no SDK labelled '$want' (try: flutter-switch --list)"
+  ln -sfn "$found" "$CURRENT_LINK"
+  printf '%s✓%s now using Flutter %s%s%s  %s(%s)%s\n' \
+    "$c_green" "$c_reset" "$c_bold" "$want" "$c_reset" \
+    "$c_dim" "$(version_of "$found")" "$c_reset"
+  printf '   %s%s%s\n' "$c_cyan" "$found" "$c_reset"
+  if command -v flutter >/dev/null 2>&1; then
+    printf '   %s%s%s\n' "$c_dim" "$(command -v flutter)" "$c_reset"
+  fi
+}
+
+pick_interactive() {
+  local cur menu sel i
+  cur=$(active_label)
+  if command -v fzf >/dev/null 2>&1; then
+    menu=""
+    for i in "${!labels[@]}"; do
+      [[ "${labels[$i]}" == "$cur" ]] && menu+="● " || menu+="  "
+      menu+="${labels[$i]}	${versions[$i]}"$'\n'
+    done
+    sel=$(printf '%s' "$menu" \
+      | fzf --ansi --no-multi --height=40% --reverse \
+            --header='Select Flutter version (● = current)' \
+            --prompt='flutter ❯ ') || { echo "cancelled"; exit 130; }
+    # selected line looks like "● 3.44<tab>3.44.3" or "  3.22<tab>3.22.0";
+    # drop the marker column, then take the label (first field).
+    sel=$(printf '%s' "$sel" | sed 's/^● //; s/^  //' | awk '{print $1}')
+    [[ -n "$sel" ]] || { echo "cancelled"; exit 130; }
+    switch_to "$sel"
+  else
+    echo "Installed Flutter versions:"
+    for i in "${!labels[@]}"; do
+      [[ "${labels[$i]}" == "$cur" ]] && marker="*" || marker=" "
+      printf '  %s[%d] %-8s %s%s%s\n' "$marker" "$((i+1))" \
+        "${labels[$i]}" "$c_dim" "${versions[$i]}" "$c_reset"
+    done
+    printf 'Select [1-%d]: ' "${#labels[@]}"
+    read -r choice
+    if ! [[ "$choice" =~ ^[0-9]+$ ]] || (( choice < 1 || choice > ${#labels[@]} )); then
+      die "invalid selection"
+    fi
+    switch_to "${labels[$((choice-1))]}"
+  fi
+}
+
+main() {
+  case "${1:-}" in
+    -h|--help) usage 0 ;;
+    -l|--list) discover; list_table; exit 0 ;;
+    "")        discover; pick_interactive ;;
+    -*)        die "unknown flag: $1 (see --help)" ;;
+    *)         discover; switch_to "$1" ;;
+  esac
+}
+
+main "$@"

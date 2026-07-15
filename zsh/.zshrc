@@ -26,14 +26,6 @@ export FZF_DEFAULT_OPTS="--color=fg:${fg},bg:${bg},hl:${purple},fg+:${fg},bg+:${
 # Set up fzf key bindings and fuzzy completion
 eval "$(fzf --zsh)"
 
-# ---- zoxide (smart cd) -----
-# --cmd cd rebinds the `cd` builtin to zoxide. Plain `cd foo` does fuzzy
-# matching against frequent dirs; `cdi` opens an fzf picker.
-if command -v zoxide >/dev/null 2>&1; then
-  eval "$(zoxide init zsh --cmd cd)"
-fi
-
-
 #-------------------------------
 # Use case-sensitive completion
 #-------------------------------
@@ -248,7 +240,9 @@ eval $(thefuck --alias)
 alias scrcpy120="scrcpy --video-codec=h265 --max-size=1920 --max-fps"
 
 
-export PATH="$HOME/Flutter-SDK/flutter/bin:$PATH"
+# Flutter — points at the active SDK via the `current` symlink.
+# Switch versions with `flutter-switch` (repoints the symlink, live instantly).
+export PATH="$HOME/flutter/current/bin:$PATH"
 
 
 export PATH="$HOME/.local/bin:$PATH"
@@ -338,3 +332,52 @@ alias lr="eza $EZA_BASE --long --header --git --time-style=relative --sort=modif
 alias lS="eza $EZA_BASE --long --header --git --time-style=relative --sort=size --reverse"
 alias lg="eza $EZA_BASE --long --header --git --git-repos --time-style=relative"
 alias ld="eza $EZA_BASE --long --header --only-dirs"
+
+# kimi-code
+export PATH="$HOME/.kimi-code/bin:$PATH"
+
+# opencode
+export PATH="$HOME/.opencode/bin:$PATH"
+
+# ---- zoxide (smart cd) -----
+# MUST be initialized at the very end of this file: `--cmd cd` rebinds the `cd`
+# builtin, so anything that touches `cd`/PATH afterwards would clobber it.
+# Plain `cd foo` does fuzzy matching against frequent dirs; `cdi` opens an fzf picker.
+if command -v zoxide >/dev/null 2>&1; then
+  eval "$(zoxide init zsh --cmd cd)"
+fi
+
+# Added by git-ai installer on Sat Jun 27 12:41:15 PKT 2026
+export PATH="/Users/prometheus/.git-ai/bin:$PATH"
+
+# cubic
+export PATH="/Users/prometheus/.cubic/bin":$PATH
+
+# --- convex-switch ---------------------------------------------------------
+# Auto-activate the linked Convex account when you cd into a project, and
+# re-sync at the prompt if another terminal switched the global config.
+__CVX_STAMP="${TMPDIR:-/tmp}/.cvx-stamp-${USER:-u}-$$"
+_convex_switch_hook() {
+  (( $+commands[cvx] )) || return 0
+  eval "$(command cvx activate -q --env)"
+  : >| "$__CVX_STAMP"
+}
+_convex_switch_precmd() {
+  [[ "${CVX_HOME:-$HOME}/.convex/config.json" -nt "$__CVX_STAMP" ]] && _convex_switch_hook
+}
+autoload -Uz add-zsh-hook 2>/dev/null &&
+  add-zsh-hook chpwd _convex_switch_hook &&
+  add-zsh-hook precmd _convex_switch_precmd
+_convex_switch_hook   # run once for the current directory
+# --- end convex-switch -----------------------------------------------------
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/prometheus/.lmstudio/bin"
+# End of LM Studio CLI section
+
+
+# >>> grok installer >>>
+export PATH="$HOME/.grok/bin:$PATH"
+fpath=(~/.grok/completions/zsh $fpath)
+autoload -Uz compinit && compinit -C
+# <<< grok installer <<<

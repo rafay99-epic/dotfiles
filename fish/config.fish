@@ -11,6 +11,11 @@ starship init fish | source
 # ── Locale ────────────────────────────────────────────────────────────────────
 set -gx LANG en_US.UTF-8
 
+# ── Homebrew ──────────────────────────────────────────────────────────────────
+# Update manually (`brew update` / `brew upgrade`), never on every command.
+set -gx HOMEBREW_NO_AUTO_UPDATE 1   # skip the background auto-update on each brew invocation
+set -gx HOMEBREW_NO_ENV_HINTS 1     # silence the "$HOMEBREW_..." env-hint footer
+
 # =============================================================================
 # PATH — all additions in one place
 # fish_add_path prepends and deduplicates automatically
@@ -23,8 +28,9 @@ fish_add_path $BUN_INSTALL/bin
 # Rust / Cargo
 fish_add_path $HOME/.cargo/bin
 
-# Flutter SDK
-fish_add_path $HOME/Flutter-SDK/flutter/bin
+# Flutter — points at the active SDK via the `current` symlink.
+# Switch versions with `flutter-switch` (repoints the symlink, live instantly).
+fish_add_path $HOME/flutter/current/bin
 
 # Java (OpenJDK 17 via Homebrew)
 fish_add_path /opt/homebrew/opt/openjdk@17/bin
@@ -71,12 +77,6 @@ end
 
 # ── fzf (fuzzy finder) ────────────────────────────────────────────────────────
 # Requires fzf >= 0.48 — provides Ctrl+R, Ctrl+T, Alt+C bindings
-if command -q zoxide
-    # --cmd cd rebinds `cd` to zoxide. Plain `cd foo` jumps by frequency;
-    # `cdi` opens an fzf picker.
-    zoxide init fish --cmd cd | source
-end
-
 if command -q fzf
     fzf --fish | source
     set -gx FZF_DEFAULT_OPTS "\
@@ -290,3 +290,19 @@ end
 if test -r "$HOME/.config/dotfiles/aliases.local.fish"
     source "$HOME/.config/dotfiles/aliases.local.fish"
 end
+
+# ── zoxide (smart cd) ─────────────────────────────────────────────────────────
+# MUST be initialized at the very end of this file: `--cmd cd` rebinds the `cd`
+# builtin, so anything that touches `cd`/PATH afterwards would clobber it.
+# Plain `cd foo` jumps by frequency; `cdi` opens an fzf picker.
+if command -q zoxide
+    zoxide init fish --cmd cd | source
+end
+
+# Added by git-ai installer on Sat Jun 27 12:41:15 PKT 2026
+fish_add_path -g "/Users/prometheus/.git-ai/bin"
+
+# Added by LM Studio CLI (lms)
+set -gx PATH $PATH /Users/prometheus/.lmstudio/bin
+# End of LM Studio CLI section
+
