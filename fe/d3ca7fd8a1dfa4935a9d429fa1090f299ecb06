@@ -1,0 +1,50 @@
+zsh/.zshrc
+  s_02acc6b8b8d802::t_503f2a539098b7 78-82
+  s_02acc6b8b8d802::t_0c0af73991fccf 251-254
+  s_02acc6b8b8d802::t_efe951bfd0851c 385-386
+  s_02acc6b8b8d802::t_e545a7794e2f36 102-110
+  s_02acc6b8b8d802::t_72d678d454fd81 236-238
+  s_02acc6b8b8d802::t_23fa91ebad2e5d 101
+  s_02acc6b8b8d802::t_9d57dee95eb2d0 111
+  s_02acc6b8b8d802::t_9154fcfec7a2b2 384
+  s_02acc6b8b8d802::t_4b1d0241c3772e 387-388
+  s_02acc6b8b8d802::t_798e1bae8f9984 381-382
+starship/starship.toml
+  s_02acc6b8b8d802::t_a5e56d3a83430b 26-28
+  s_7ef1338275a135::t_824e8d1db38997 585-586
+fish/config.fish
+  s_02acc6b8b8d802::t_cd6b9f8e8f136c 2
+  s_02acc6b8b8d802::t_f8500839ecec34 1,3-4,309-311
+Brewfile
+  s_02acc6b8b8d802::t_266e3b8491778d 50-54
+CLAUDE.md
+  s_02acc6b8b8d802::t_0bed90c13c1e64 198-202
+  s_02acc6b8b8d802::t_4e4946666d360c 46
+zsh/.zprofile
+  s_02acc6b8b8d802::t_cd6b9f8e8f136c 2
+  s_02acc6b8b8d802::t_857c671f08981b 1,3-4,10-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fed3ca7fd8a1dfa4935a9d429fa1090f299ecb06",
+  "prompts": {},
+  "sessions": {
+    "s_02acc6b8b8d802": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb960e50-df01-48fc-aa96-4964cc190a55",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Abdul Rafay <99marafay@gmail.com>"
+    },
+    "s_7ef1338275a135": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6eaebe62-2ef7-4611-a2d5-fdaeb713b359",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Abdul Rafay <99marafay@gmail.com>"
+    }
+  }
+}
