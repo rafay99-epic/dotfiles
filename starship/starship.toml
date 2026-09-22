@@ -23,6 +23,9 @@
 
 palette     = 'tokyo_night'
 add_newline = true
+# Default 500ms is too tight for the first git call after boot (cold disk cache)
+# or git_metrics in a big repo; that's the "Executing command git timed out" warning.
+command_timeout = 1000
 
 format = """
 [╭─](fg:muted)\
@@ -579,6 +582,8 @@ style  = 'fg:purple bold'
 
 # Shorten the long model IDs that Claude Code emits
 [claude_model.model_aliases]
+"claude-fable-5"             = "Fable 5"
+"claude-fable-5[1m]"         = "Fable 5 (1M)"
 "claude-opus-4-7"            = "Opus 4.7"
 "claude-opus-4-7[1m]"        = "Opus 4.7 (1M)"
 "claude-sonnet-4-6"          = "Sonnet 4.6"

@@ -43,8 +43,7 @@ dotfiles/
 │   ├── clean-node-modules      # scan $PWD for node_modules, show sizes, delete after confirm
 │   ├── bigfiles                # rank largest source files (by line count); skips deps/builds; --cloc passthrough
 │   ├── archive-project         # recursively scan ~/Code/, archive stale clean repos to /Volumes/media/code/archived/
-│   ├── nas-mount               # retry NAS mount via Finder+Keychain; loops with backoff for the login-time race
-│   └── flutter-switch          # list/switch installed Flutter SDKs by repointing ~/flutter/current symlink
+│   └── nas-mount               # retry NAS mount via Finder+Keychain; loops with backoff for the login-time race
 ├── fastfetch/                  # system info banner config
 ├── fish/
 │   ├── config.fish
@@ -196,12 +195,11 @@ For screenshots, still configure your capture tool to save directly to
 - **Pre-flight checks**: NAS must be mounted at `/Volumes/media` (else exits with the `osascript mount volume` recipe); `$ARCHIVE_DIR` is auto-created; the threshold flag must be a positive integer.
 - Logs: `~/.archive-project/archive.log` (same `~/.<tool>/` convention as `~/.nas-mount/`). Man page: `man/archive-project.1`, openable via `archive-project --man` (same `--man` plumbing as `install.sh`).
 
-### Flutter version switching — `current` symlink + `flutter-switch`
-- Multiple SDKs live under `~/flutter/<label>/flutter` (e.g. `~/flutter/3.22/flutter`, `~/flutter/3.44/flutter`). Each `<label>` is just a directory name; the real framework version is read from `bin/cache/flutter.version.json` (`frameworkVersion`), falling back to the legacy `version` file.
-- `~/flutter/current` is a symlink to the active `<label>/flutter`. **PATH points at the stable `$HOME/flutter/current/bin`** (`zsh/.zshrc`, `fish/config.fish`) — never at a concrete version dir. Repointing the symlink therefore makes the chosen SDK live in **every** shell instantly, including already-open ones (the PATH entry is a fixed string; the symlink resolves fresh at each exec). No re-source needed.
-- `bin/flutter-switch`: `--list` shows versions with a `*` on the active one; bare invocation opens an fzf picker (numbered-menu fallback when fzf is absent); `flutter-switch <label>` switches directly. It only does `ln -sfn` on `~/flutter/current` — nothing else is mutated.
-- Was previously `$HOME/Flutter-SDK/flutter/bin` in both shellrcs, a path that no longer existed (so `flutter` was simply not found). That's been replaced by the `current`-symlink scheme above.
-- Shellcheck-clean (`shellcheck -x -S style bin/flutter-switch`). Linked to `~/.local/bin/flutter-switch`.
+### Flutter versions: fvx, not a dotfiles script
+- Handled by **fvx** (`~/Code/fvx`, `brew "rafay99-epic/apps/fvx"` in `Brewfile`). `fvx setup` puts `flutter`/`dart` shims at `$HOME/.fvx/shims` first on PATH (lines in `~/.zshenv`, `zsh/.zshrc`, `fish/config.fish`). Each call resolves the SDK from the current folder (`.fvmrc`, `pubspec.yaml`, ...), falling back to the `~/.flutter-sdk/current` symlink (`fvx default`).
+- SDKs live in `~/.flutter-sdk/<version>/flutter`. Nothing in this repo puts an SDK `bin/` on PATH; the shims do it.
+- The old `bin/flutter-switch` script and its completions were removed. Don't bring them back.
+
 
 ### Cross-machine portability — no hardcoded usernames
 - **Rule:** no config file in this repo may contain `/Users/<username>/` or any other absolute path that bakes in the author's environment. Use `$HOME` / `~` / `fish_add_path $HOME/...` instead.

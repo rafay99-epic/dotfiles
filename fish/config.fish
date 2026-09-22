@@ -1,3 +1,7 @@
+# The following lines were added by Docker Desktop to add commands to your PATH.
+export PATH="$PATH:$HOME/.docker/bin"
+# End of Docker Desktop section.
+
 # =============================================================================
 # Fish Shell Config — mirrored from zsh/.zshrc
 # =============================================================================
@@ -27,10 +31,6 @@ fish_add_path $BUN_INSTALL/bin
 
 # Rust / Cargo
 fish_add_path $HOME/.cargo/bin
-
-# Flutter — points at the active SDK via the `current` symlink.
-# Switch versions with `flutter-switch` (repoints the symlink, live instantly).
-fish_add_path $HOME/flutter/current/bin
 
 # Java (OpenJDK 17 via Homebrew)
 fish_add_path /opt/homebrew/opt/openjdk@17/bin
@@ -306,3 +306,6 @@ fish_add_path -g "/Users/prometheus/.git-ai/bin"
 set -gx PATH $PATH /Users/prometheus/.lmstudio/bin
 # End of LM Studio CLI section
 
+# --- fvx ---
+fish_add_path --prepend "$HOME/.fvx/shims"
+# --- end fvx ---
