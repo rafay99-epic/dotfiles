@@ -47,6 +47,11 @@ brew "openjdk@17"     # JDK 17
 # ── Mobile / hardware ───────────────────────────────────────────────────────
 brew "scrcpy"         # Android screen mirror
 
+# ── Own CLIs (rafay99-epic/apps tap) ────────────────────────────────────────
+tap  "rafay99-epic/apps"
+brew "rafay99-epic/apps/fvx"   # per-folder Flutter version (flutter/dart shims)
+brew "rafay99-epic/apps/cvx"   # per-folder Convex account (cd hook in .zshrc)
+
 # ── Fonts ───────────────────────────────────────────────────────────────────
 cask "font-jetbrains-mono-nerd-font"
 

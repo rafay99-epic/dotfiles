@@ -75,14 +75,11 @@ export LANG=en_US.UTF-8
 # command invocation.
 export NVM_DIR="$HOME/.nvm"
 
-if [[ -d "$NVM_DIR/versions/node" ]]; then
-  # newest installed version, version-sorted (v22 wins over v18, etc.)
-  _nvm_latest="$(ls -1 "$NVM_DIR/versions/node" 2>/dev/null | sort -V | tail -1)"
-  if [[ -n "$_nvm_latest" && -d "$NVM_DIR/versions/node/$_nvm_latest/bin" ]]; then
-    export PATH="$NVM_DIR/versions/node/$_nvm_latest/bin:$PATH"
-  fi
-  unset _nvm_latest
-fi
+# Newest installed version via glob qualifiers (n = numeric sort, On = descending,
+# so v22 wins over v18) — no ls/sort/tail forks.
+_nvm_latest=( "$NVM_DIR"/versions/node/*/bin(N/nOn) )
+(( $#_nvm_latest )) && export PATH="$_nvm_latest[1]:$PATH"
+unset _nvm_latest
 
 _nvm_lazy_init() {
   # Drop our wrapper functions so the real commands (from nvm.sh) take over
@@ -94,11 +91,6 @@ for _cmd in nvm node npm npx yarn pnpm; do
   eval "${_cmd}() { _nvm_lazy_init; ${_cmd} \"\$@\"; }"
 done
 unset _cmd
-# The following lines have been added by Docker Desktop to enable Docker CLI completions.
-fpath=($HOME/.docker/completions $fpath)
-autoload -Uz compinit
-compinit
-# End of Docker CLI completions
 
 # ---- Atuin (shell history) -----
 # Config: ~/.config/atuin/config.toml (symlinked from dotfiles/atuin/config.toml)
@@ -106,6 +98,17 @@ compinit
 if command -v atuin >/dev/null 2>&1; then
   eval "$(atuin init zsh --disable-up-arrow)"
 fi
+# Completion system: must init before fzf-tab and any compdef call below.
+# `compinit -C` trusts the cached ~/.zcompdump and skips the compaudit security
+# scan (~40ms). The full check still runs once the dump is older than 24h, so
+# completions for newly installed tools show up by the next day (or run
+# `rm ~/.zcompdump` to pick them up now).
+fpath=($HOME/.docker/completions $fpath)
+autoload -Uz compinit
+_zcd=( ~/.zcompdump(N.mh-24) )
+if (( $#_zcd )); then compinit -C; else compinit; fi
+unset _zcd
+
 
 # ────────────────────────────────────────────────────────────────────────────
 # Zsh plugins — fish-like input experience
@@ -230,8 +233,9 @@ uu=38;2;187;154;247:un=38;2;86;95;137:gu=38;2;187;154;247:gn=38;2;86;95;137:\
 
 # Aliases defined further down (after kaku.zsh source) so kaku's `ll`/`la`/`l`
 # overrides don't clobber them.
-# thefuck alias
-eval $(thefuck --alias)
+# thefuck — lazy. `thefuck --alias` boots Python (~80ms), so only pay for it the
+# first time `fuck` is typed; the eval replaces this stub with the real function.
+fuck() { unfunction fuck; eval "$(thefuck --alias)"; fuck "$@"; }
 
 #-------------------
 #phone recording
@@ -240,15 +244,14 @@ eval $(thefuck --alias)
 alias scrcpy120="scrcpy --video-codec=h265 --max-size=1920 --max-fps"
 
 
-# Flutter — points at the active SDK via the `current` symlink.
-# Switch versions with `flutter-switch` (repoints the symlink, live instantly).
-export PATH="$HOME/flutter/current/bin:$PATH"
-
 
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"
 export PATH="$HOME/.rbenv/bin:$PATH"
-eval "$(rbenv init -)"
+# rbenv — shims on PATH is all ruby/gem/bundle need. `rbenv init` (~45ms) only
+# adds the `rbenv shell`/`rehash` wrapper, so load it on first `rbenv` call.
+export PATH="$HOME/.rbenv/shims:$PATH"
+rbenv() { unfunction rbenv; eval "$(command rbenv init - zsh)"; rbenv "$@"; }
 
 # bun completions
 [ -s "$HOME/.bun/_bun" ] && source "$HOME/.bun/_bun"
@@ -375,9 +378,11 @@ _convex_switch_hook   # run once for the current directory
 export PATH="$PATH:/Users/prometheus/.lmstudio/bin"
 # End of LM Studio CLI section
 
+# loadout — agent skill hub
+export PATH="$HOME/Code/loadout/bin:$PATH"
 
-# >>> grok installer >>>
-export PATH="$HOME/.grok/bin:$PATH"
-fpath=(~/.grok/completions/zsh $fpath)
-autoload -Uz compinit && compinit -C
-# <<< grok installer <<<
+# --- fvx ---
+# Flutter/Dart shims: resolve the SDK per folder (.fvmrc, pubspec, ...), falling
+# back to ~/.flutter-sdk/current. Installed via Brewfile, managed by `fvx setup`.
+export PATH="$HOME/.fvx/shims":"$PATH"
+# --- end fvx ---
