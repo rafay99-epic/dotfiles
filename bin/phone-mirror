@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# phone-mirror — mirror an Android phone over USB with scrcpy.
+# Waits for the phone to be plugged in, then opens the mirror window.
+# Usage: phone-mirror [extra scrcpy flags]   e.g. phone-mirror --record demo.mp4
+
+set -uo pipefail
+
+for cmd in scrcpy adb; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Error: $cmd not found. Install with: brew install scrcpy && brew install --cask android-platform-tools" >&2
+    exit 1
+  fi
+done
+
+echo "Waiting for phone over USB (USB debugging on, tap Allow on the phone)..."
+adb wait-for-usb-device
+
+exec scrcpy -d --stay-awake "$@"

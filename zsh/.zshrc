@@ -242,6 +242,8 @@ fuck() { unfunction fuck; eval "$(thefuck --alias)"; fuck "$@"; }
 #-------------------
 
 alias scrcpy120="scrcpy --video-codec=h265 --max-size=1920 --max-fps"
+# mirror — wait for the phone on USB, then open scrcpy (see bin/phone-mirror)
+alias mirror="$HOME/dotfiles/bin/phone-mirror"
 
 
 

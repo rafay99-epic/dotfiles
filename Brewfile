@@ -46,6 +46,7 @@ brew "openjdk@17"     # JDK 17
 
 # ── Mobile / hardware ───────────────────────────────────────────────────────
 brew "scrcpy"         # Android screen mirror
+cask "android-platform-tools" # adb, needed by scrcpy and bin/phone-mirror
 
 # ── Own CLIs (rafay99-epic/apps tap) ────────────────────────────────────────
 tap  "rafay99-epic/apps"
